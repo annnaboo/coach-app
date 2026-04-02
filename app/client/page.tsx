@@ -2,63 +2,72 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-
-const bg: React.CSSProperties = {
-  background: `
-    radial-gradient(ellipse 110% 60% at 50% -5%, #16573a 0%, transparent 65%),
-    radial-gradient(ellipse 50% 50% at 100% 100%, #020d07 0%, transparent 55%),
-    linear-gradient(170deg, #0b3d28 0%, #051610 100%)
-  `,
-  minHeight: '100vh',
-}
+import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '24px',
-  padding: '32px',
-}
-
-const pillBtn: React.CSSProperties = {
-  position: 'relative',
-  overflow: 'hidden',
-  borderRadius: '999px',
-  background: 'rgba(207,167,100,0.72)',
+  background: 'rgba(255,255,255,0.6)',
   backdropFilter: 'blur(10px)',
   WebkitBackdropFilter: 'blur(10px)',
-  border: 'none',
-  color: '#000000',
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 500,
-  fontSize: '15px',
-  padding: '12px 28px',
-  cursor: 'pointer',
+  border: '1px solid rgba(0,0,0,0.06)',
+  borderRadius: '24px',
+  padding: '28px',
+}
+
+const EXERCISE_NAMES: Record<string, string> = {
+  'foam': 'Миофасциальный релиз', 'ankle': 'Вращения голеностопа',
+  'glute-bridge': 'Ягодичный мост', 'bird-dog': 'Bird Dog',
+  'wall-squat': 'Присед у стены', 'box-squat': 'Присед на тумбу',
+  'rdl': 'Румынская тяга', 'db-press': 'Жим гантелей',
+  'lat-pulldown': 'Тяга верхнего блока', 'cable-row': 'Тяга горизонт. блока',
+  'abductor': 'Разведение ног', 'dead-bug': 'Dead Bug',
+}
+
+type Log = { exercise_id: string; w1?: string; w2?: string; w3?: string; saved_at: string }
+
+function ArtName({ name }: { name: string }) {
+  if (!name) return null
+  const split = Math.max(1, name.length - 2)
+  const main = name.slice(0, split)
+  const accent = name.slice(split)
+  return (
+    <h1 style={{
+      fontFamily: 'Epilogue, sans-serif',
+      fontWeight: 400,
+      fontStyle: 'italic',
+      fontSize: '52px',
+      lineHeight: 1.0,
+      margin: '0 0 4px',
+      letterSpacing: '-1px',
+    }}>
+      <span style={{ color: '#2d1f0e' }}>{main}</span>
+      <span style={{ color: '#7a4a20' }}>{accent}</span>
+      <span style={{ color: '#7a4a20' }}>.</span>
+    </h1>
+  )
 }
 
 export default function ClientPage() {
   const [profile, setProfile] = useState<{ name: string; role: string } | null>(null)
+  const [logs, setLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) {
-        router.push('/')
-        return
-      }
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('name, role')
-        .eq('id', data.user.id)
-        .single()
+      if (!data.user) { router.push('/'); return }
 
-      if (prof?.role === 'coach') {
-        router.push('/coach')
-        return
-      }
+      const { data: prof } = await supabase
+        .from('profiles').select('name, role').eq('id', data.user.id).single()
+
+      if (prof?.role === 'coach') { router.push('/coach'); return }
+
+      const { data: workoutLogs } = await supabase
+        .from('workout_logs').select('exercise_id, w1, w2, w3, saved_at')
+        .eq('player', data.user.id).order('saved_at', { ascending: false })
 
       setProfile(prof)
+      setLogs(workoutLogs || [])
       setLoading(false)
     })
   }, [])
@@ -69,126 +78,170 @@ export default function ClientPage() {
     router.push('/')
   }
 
+  // Stats
+  const totalSessions = logs.length
+
+  const maxWeights: Record<string, number> = {}
+  logs.forEach(log => {
+    const maxW = Math.max(
+      parseFloat(log.w1 || '0') || 0,
+      parseFloat(log.w2 || '0') || 0,
+      parseFloat(log.w3 || '0') || 0,
+    )
+    if (maxW > (maxWeights[log.exercise_id] || 0)) maxWeights[log.exercise_id] = maxW
+  })
+
+  const totalKg = Object.values(maxWeights).reduce((a, b) => a + b, 0)
+
+  // Top 3 exercises by max weight for progress bars
+  const top3 = Object.entries(maxWeights)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+  const maxBar = top3[0]?.[1] || 1
+
   if (loading) return (
-    <div style={{ ...bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(255,255,255,0.4)', fontSize: '16px' }}>
-        Загружаем...
-      </p>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <AnimatedBackground />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+      </div>
     </div>
   )
 
   return (
-    <div style={{ ...bg, padding: '24px' }}>
-      <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <AnimatedBackground />
+      <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px 48px' }}>
+        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
-        {/* HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <div>
-            <h1 style={{
-              fontFamily: 'Epilogue, sans-serif',
-              fontWeight: 400,
-              color: '#CFA764',
-              fontSize: '32px',
-              margin: 0,
-              lineHeight: 1.1,
-            }}>
-              Привет, {profile?.name}.
-            </h1>
-            <p style={{
+          {/* HEADER */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '36px' }}>
+            <div>
+              <ArtName name={profile?.name || ''} />
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', margin: 0 }}>
+                Your personal training story
+              </p>
+            </div>
+            <button onClick={handleLogout} style={{
+              marginTop: '8px',
+              background: 'rgba(0,0,0,0.06)',
+              border: 'none',
+              borderRadius: '999px',
+              color: 'rgba(45,31,14,0.5)',
               fontFamily: 'Chillax, sans-serif',
               fontWeight: 300,
-              color: 'rgba(255,255,255,0.4)',
               fontSize: '13px',
-              margin: '4px 0 0',
+              padding: '8px 20px',
+              cursor: 'pointer',
             }}>
-              Your personal training story
-            </p>
+              Выйти
+            </button>
           </div>
-          <button onClick={handleLogout} style={{
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '999px',
-            color: 'rgba(255,255,255,0.5)',
-            fontFamily: 'Chillax, sans-serif',
-            fontWeight: 300,
-            fontSize: '13px',
-            padding: '8px 20px',
-            cursor: 'pointer',
-          }}>
-            Выйти
-          </button>
-        </div>
 
-        {/* ЗАНЯТИЕ */}
-        <div style={{ ...glassCard, marginBottom: '16px' }}>
-          <p style={{
-            fontFamily: 'Chillax, sans-serif',
-            fontWeight: 300,
-            fontSize: '11px',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: '#CFA764',
-            margin: '0 0 8px',
-          }}>
-            Текущее занятие
-          </p>
-          <h2 style={{
-            fontFamily: 'Epilogue, sans-serif',
-            fontWeight: 400,
-            color: '#ffffff',
-            fontSize: '26px',
-            margin: '0 0 6px',
-          }}>
-            Занятие 2
-          </h2>
-          <p style={{
-            fontFamily: 'Chillax, sans-serif',
-            fontWeight: 300,
-            color: 'rgba(255,255,255,0.45)',
-            fontSize: '14px',
-            margin: '0 0 24px',
-          }}>
-            Без воды. Без сюсюканий.
-          </p>
-          <button
-            style={pillBtn}
-            onClick={() => router.push('/workout/2')}
-          >
+          {/* CURRENT SESSION CARD */}
+          <div style={{ ...glassCard, marginBottom: '16px', position: 'relative', overflow: 'hidden' }}>
+            {/* Decorative number */}
             <span style={{
-              position: 'absolute', inset: 0, borderRadius: '999px',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)',
-              pointerEvents: 'none', zIndex: 1,
-            }} />
-            <span style={{ position: 'relative', zIndex: 2 }}>Открыть тренировку</span>
-          </button>
-        </div>
+              position: 'absolute',
+              right: '20px',
+              bottom: '-10px',
+              fontFamily: 'Epilogue, sans-serif',
+              fontWeight: 400,
+              fontSize: '120px',
+              color: '#2d1f0e',
+              opacity: 0.04,
+              lineHeight: 1,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}>2</span>
 
-        {/* ПРОГРЕСС */}
-        <div style={glassCard}>
-          <p style={{
-            fontFamily: 'Chillax, sans-serif',
-            fontWeight: 300,
-            fontSize: '11px',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.35)',
-            margin: '0 0 16px',
-          }}>
-            Прогресс
-          </p>
-          <p style={{
-            fontFamily: 'Chillax, sans-serif',
-            fontWeight: 300,
-            color: 'rgba(255,255,255,0.3)',
-            fontSize: '14px',
-            margin: 0,
-            textAlign: 'center',
-            padding: '24px 0',
-          }}>
-            Заполни первую тренировку —<br />здесь появятся твои графики 📈
-          </p>
-        </div>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>
+              Текущее занятие
+            </p>
+            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '28px', margin: '0 0 6px' }}>
+              Занятие 2
+            </h2>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '14px', margin: '0 0 28px' }}>
+              Без воды. Без сюсюканий.
+            </p>
 
+            <button
+              onClick={() => router.push('/workout/2')}
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '999px',
+                background: '#7a4a20',
+                border: 'none',
+                color: '#ffffff',
+                fontFamily: 'Chillax, sans-serif',
+                fontWeight: 500,
+                fontSize: '15px',
+                padding: '12px 28px',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '999px', background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)', pointerEvents: 'none', zIndex: 1 }} />
+              <span style={{ position: 'relative', zIndex: 2 }}>Открыть тренировку</span>
+            </button>
+          </div>
+
+          {/* STATS GRID */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ ...glassCard, padding: '22px', textAlign: 'center' }}>
+              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '40px', margin: '0 0 6px', lineHeight: 1 }}>
+                {totalSessions}
+              </p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '11px', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                Занятий всего
+              </p>
+            </div>
+            <div style={{ ...glassCard, padding: '22px', textAlign: 'center' }}>
+              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '40px', margin: '0 0 6px', lineHeight: 1 }}>
+                {Math.round(totalKg)}
+              </p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '11px', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                Прогресс в кг
+              </p>
+            </div>
+          </div>
+
+          {/* PROGRESS BARS */}
+          <div style={glassCard}>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 20px' }}>
+              Топ упражнений
+            </p>
+
+            {top3.length === 0 ? (
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '14px', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+                Заполни первую тренировку —<br />здесь появятся твои результаты
+              </p>
+            ) : (
+              top3.map(([exId, weight]) => (
+                <div key={exId} style={{ marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '7px' }}>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.7)' }}>
+                      {EXERCISE_NAMES[exId] || exId}
+                    </span>
+                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#7a4a20' }}>
+                      {weight} кг
+                    </span>
+                  </div>
+                  <div style={{ height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      borderRadius: '999px',
+                      width: `${(weight / maxBar) * 100}%`,
+                      background: 'linear-gradient(90deg, rgba(122,74,32,0.6) 0%, #7a4a20 100%)',
+                      transition: 'width 0.6s ease',
+                    }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   )
