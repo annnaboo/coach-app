@@ -46,10 +46,25 @@ function ArtName({ name }: { name: string }) {
   )
 }
 
+function getMonday(d: Date): Date {
+  const date = new Date(d)
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+  date.setDate(diff)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
 export default function ClientPage() {
   const [profile, setProfile] = useState<{ name: string; role: string } | null>(null)
   const [logs, setLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
+  const [weekLogs, setWeekLogs] = useState<string[]>([])
+  const [mood, setMood] = useState<number | null>(null)
+  const [energy, setEnergy] = useState<number>(5)
+  const [musclePain, setMusclePain] = useState<number>(3)
+  const [moodSaved, setMoodSaved] = useState(false)
+  const [moodLoading, setMoodLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -66,6 +81,34 @@ export default function ClientPage() {
         .from('workout_logs').select('exercise_id, w1, w2, w3, saved_at')
         .eq('player', data.user.id).order('saved_at', { ascending: false })
 
+      // Fetch week logs
+      const weekStart = getMonday(new Date())
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekEnd.getDate() + 7)
+      const { data: wLogs } = await supabase
+        .from('workout_logs')
+        .select('saved_at')
+        .eq('player', data.user.id)
+        .gte('saved_at', weekStart.toISOString())
+        .lt('saved_at', weekEnd.toISOString())
+      const days = [...new Set((wLogs || []).map((l: any) => l.saved_at.slice(0, 10)))]
+      setWeekLogs(days)
+
+      // Fetch today's mood
+      const today = new Date().toISOString().slice(0, 10)
+      const { data: moodData } = await supabase
+        .from('mood_logs')
+        .select('*')
+        .eq('player_id', data.user.id)
+        .eq('logged_date', today)
+        .single()
+      if (moodData) {
+        setMood(moodData.mood)
+        setEnergy(moodData.energy)
+        setMusclePain(moodData.muscle_pain)
+        setMoodSaved(true)
+      }
+
       setProfile(prof)
       setLogs(workoutLogs || [])
       setLoading(false)
@@ -76,6 +119,24 @@ export default function ClientPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  async function saveMood() {
+    if (!profile) return
+    setMoodLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const today = new Date().toISOString().slice(0, 10)
+    await supabase.from('mood_logs').upsert({
+      player_id: user.id,
+      logged_date: today,
+      mood,
+      energy,
+      muscle_pain: musclePain,
+    }, { onConflict: 'player_id,logged_date' })
+    setMoodSaved(true)
+    setMoodLoading(false)
   }
 
   // Stats
@@ -136,6 +197,122 @@ export default function ClientPage() {
             }}>
               Выйти
             </button>
+          </div>
+
+          {/* WEEK CALENDAR */}
+          <div style={{ ...glassCard, marginBottom: '16px', padding: '20px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>
+                Эта неделя
+              </p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, i) => {
+                const monday = getMonday(new Date())
+                const date = new Date(monday)
+                date.setDate(monday.getDate() + i)
+                const dateStr = date.toISOString().slice(0, 10)
+                const isToday = dateStr === new Date().toISOString().slice(0, 10)
+                const isDone = weekLogs.includes(dateStr)
+                return (
+                  <div key={day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>{day}</span>
+                    <div style={{
+                      width: '32px', height: '32px', borderRadius: '50%',
+                      background: isDone ? '#7a4a20' : 'rgba(0,0,0,0.07)',
+                      border: isToday ? '2px solid #7a4a20' : '2px solid transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isDone && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />}
+                    </div>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)' }}>{date.getDate()}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* MOOD TRACKER */}
+          <div style={{ ...glassCard, marginBottom: '16px', padding: '20px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>
+                Самочувствие
+              </p>
+              <button
+                onClick={saveMood}
+                disabled={moodLoading}
+                style={{
+                  padding: '5px 14px',
+                  borderRadius: '999px',
+                  background: moodSaved ? 'rgba(122,74,32,0.1)' : '#7a4a20',
+                  color: moodSaved ? '#7a4a20' : '#fff',
+                  border: moodSaved ? '1px solid rgba(122,74,32,0.2)' : 'none',
+                  fontFamily: 'Chillax, sans-serif',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                }}
+              >
+                {moodSaved ? 'Сохранено' : 'Сохранить'}
+              </button>
+            </div>
+
+            {/* Mood emojis */}
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: '0 0 8px' }}>Настроение</p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['😔', '😕', '😐', '🙂', '😄'].map((emoji, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setMood(i + 1); setMoodSaved(false) }}
+                    style={{
+                      fontSize: '22px',
+                      background: 'none',
+                      border: mood === i + 1 ? '2px solid #7a4a20' : '2px solid transparent',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      cursor: 'pointer',
+                      transition: 'transform 0.15s',
+                      transform: mood === i + 1 ? 'scale(1.2)' : 'scale(1)',
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Energy slider */}
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Энергия</p>
+                <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#7a4a20' }}>{energy}</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={energy}
+                onChange={e => { setEnergy(Number(e.target.value)); setMoodSaved(false) }}
+                style={{ width: '100%', accentColor: '#7a4a20', cursor: 'pointer' }}
+              />
+            </div>
+
+            {/* Muscle pain slider */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Боль мышц</p>
+                <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#7a4a20' }}>{musclePain}</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={musclePain}
+                onChange={e => { setMusclePain(Number(e.target.value)); setMoodSaved(false) }}
+                style={{ width: '100%', accentColor: '#7a4a20', cursor: 'pointer' }}
+              />
+            </div>
           </div>
 
           {/* CURRENT SESSION CARD */}
@@ -239,6 +416,26 @@ export default function ClientPage() {
                 </div>
               ))
             )}
+          </div>
+
+          {/* REPORT BUTTON */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+            <button
+              onClick={() => router.push('/report')}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '999px',
+                background: 'rgba(122,74,32,0.1)',
+                border: '1px solid rgba(122,74,32,0.2)',
+                color: '#7a4a20',
+                fontFamily: 'Chillax, sans-serif',
+                fontWeight: 300,
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Отчёт недели →
+            </button>
           </div>
 
         </div>

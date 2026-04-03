@@ -33,6 +33,7 @@ export default function CoachPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [openClient, setOpenClient] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [reports, setReports] = useState<Record<string, any>>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -61,6 +62,34 @@ export default function CoachPage() {
       )
 
       setClients(clientsData)
+
+      // Fetch reports
+      const { data: reportsList } = await supabase
+        .from('weekly_reports')
+        .select('*')
+        .in('player_id', profiles.map((p: any) => p.id))
+        .order('week_start', { ascending: false })
+
+      // Get latest per client
+      const latestReports: Record<string, any> = {}
+      ;(reportsList || []).forEach((r: any) => {
+        if (!latestReports[r.player_id]) latestReports[r.player_id] = r
+      })
+
+      // Get signed URLs for photos
+      for (const [, report] of Object.entries(latestReports)) {
+        const supabaseClient = createClient()
+        const paths = ['photo_front', 'photo_side', 'photo_back'] as const
+        for (const key of paths) {
+          const path = (report as any)[key]
+          if (path) {
+            const { data: signedData } = await supabaseClient.storage.from('reports').createSignedUrl(path, 3600)
+            if (signedData) (report as any)[`${key}_url`] = signedData.signedUrl
+          }
+        }
+      }
+
+      setReports(latestReports)
       setLoading(false)
     })
   }, [])
@@ -215,6 +244,80 @@ export default function CoachPage() {
               )}
             </div>
           ))}
+
+          {/* REPORTS SECTION */}
+          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '24px 0 12px' }}>
+            Еженедельные отчёты
+          </p>
+
+          {clients.map(client => {
+            const report = reports[client.id]
+            return (
+              <div key={client.id} style={{ ...glassCard }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: report ? '16px' : 0 }}>
+                  <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '18px', margin: 0 }}>{client.name}</h3>
+                  {report && (
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '11px', margin: 0 }}>
+                      {new Date(report.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                    </p>
+                  )}
+                </div>
+
+                {!report ? (
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '13px', margin: 0 }}>Отчёт ещё не отправлен</p>
+                ) : (
+                  <>
+                    {/* Photos */}
+                    {(report.photo_front_url || report.photo_side_url || report.photo_back_url) && (
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                        {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
+                          report[key] ? (
+                            <img
+                              key={i}
+                              src={report[key]}
+                              alt=""
+                              style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)' }}
+                            />
+                          ) : (
+                            <div
+                              key={i}
+                              style={{ width: '80px', height: '80px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}
+                            />
+                          )
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Params */}
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: report.notes ? '12px' : 0 }}>
+                      {report.weight && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 10px' }}>Вес {report.weight} кг</span>}
+                      {report.chest && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 10px' }}>Грудь {report.chest} см</span>}
+                      {report.waist && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 10px' }}>Талия {report.waist} см</span>}
+                      {report.hips && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 10px' }}>Бёдра {report.hips} см</span>}
+                    </div>
+
+                    {/* Notes */}
+                    {report.notes && (
+                      <p style={{
+                        fontFamily: 'Chillax, sans-serif',
+                        fontWeight: 300,
+                        color: 'rgba(45,31,14,0.5)',
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        margin: 0,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      } as React.CSSProperties}>
+                        "{report.notes}"
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )
+          })}
 
         </div>
       </div>
