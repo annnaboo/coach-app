@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
@@ -15,22 +15,35 @@ const sectionLabel: React.CSSProperties = {
 }
 
 const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.6)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(0,0,0,0.06)',
-  borderRadius: '24px',
-  padding: '24px',
+  background: 'rgba(255,255,255,0.55)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255,255,255,0.7)',
+  borderRadius: '20px',
+  padding: '22px',
   marginBottom: '12px',
 }
 
 type PhotoPosition = 'front' | 'side' | 'back'
+
+const TOOLTIPS: Record<string, string> = {
+  'Вес': '',
+  'Грудь': 'Измеряй по самой выступающей части груди, лента параллельно полу',
+  'Талия': 'Самое узкое место, обычно на 2–3 см выше пупка. Не задерживай дыхание',
+  'Пупок': 'Строго по линии пупка, лента параллельно полу',
+  'Бёдра': 'По самой широкой части ягодиц, стопы вместе',
+  'Одно бедро': 'Самая широкая часть правого бедра, стоя прямо',
+  'Рука': 'Бицепс правой руки в расслабленном состоянии, середина между плечом и локтем',
+}
 
 export default function ReportPage() {
   const [weight, setWeight] = useState('')
   const [chest, setChest] = useState('')
   const [waist, setWaist] = useState('')
   const [hips, setHips] = useState('')
+  const [waistNavel, setWaistNavel] = useState('')
+  const [oneThigh, setOneThigh] = useState('')
+  const [arm, setArm] = useState('')
   const [notes, setNotes] = useState('')
   const [photos, setPhotos] = useState<{ front: File | null; side: File | null; back: File | null }>({
     front: null, side: null, back: null,
@@ -41,16 +54,14 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push('/')
-      } else {
-        setUserId(data.user.id)
-      }
+      if (!data.user) router.push('/')
+      else setUserId(data.user.id)
     })
   }, [])
 
@@ -65,15 +76,13 @@ export default function ReportPage() {
   }
 
   function handlePhotoChange(position: PhotoPosition, file: File) {
-    const url = URL.createObjectURL(file)
     setPhotos(prev => ({ ...prev, [position]: file }))
-    setPreviews(prev => ({ ...prev, [position]: url }))
+    setPreviews(prev => ({ ...prev, [position]: URL.createObjectURL(file) }))
   }
 
   async function handleSubmit() {
     if (!userId) return
     setLoading(true)
-
     const supabase = createClient()
 
     let photo_front: string | null = null
@@ -90,14 +99,10 @@ export default function ReportPage() {
       const file = photos[key]
       if (file) {
         const path = `${userId}/${Date.now()}_${key}.jpg`
-        const { error: uploadError } = await supabase.storage
-          .from('reports')
-          .upload(path, file, { contentType: 'image/jpeg' })
-        if (!uploadError) {
-          const { data: signedData } = await supabase.storage
-            .from('reports')
-            .createSignedUrl(path, 3600 * 24 * 365)
-          if (signedData) setter(signedData.signedUrl)
+        const { error } = await supabase.storage.from('reports').upload(path, file, { contentType: 'image/jpeg' })
+        if (!error) {
+          const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600 * 24 * 365)
+          if (s) setter(s.signedUrl)
         }
       }
     }
@@ -109,6 +114,9 @@ export default function ReportPage() {
       chest: parseFloat(chest) || null,
       waist: parseFloat(waist) || null,
       hips: parseFloat(hips) || null,
+      waist_navel: parseFloat(waistNavel) || null,
+      one_thigh: parseFloat(oneThigh) || null,
+      arm: parseFloat(arm) || null,
       notes,
       photo_front,
       photo_side,
@@ -118,6 +126,16 @@ export default function ReportPage() {
     setLoading(false)
     setSuccess(true)
   }
+
+  const FIELDS = [
+    { label: 'Вес', unit: 'кг', value: weight, setter: setWeight },
+    { label: 'Грудь', unit: 'см', value: chest, setter: setChest },
+    { label: 'Талия', unit: 'см', value: waist, setter: setWaist },
+    { label: 'Пупок', unit: 'см', value: waistNavel, setter: setWaistNavel },
+    { label: 'Бёдра', unit: 'см', value: hips, setter: setHips },
+    { label: 'Одно бедро', unit: 'см', value: oneThigh, setter: setOneThigh },
+    { label: 'Рука', unit: 'см', value: arm, setter: setArm },
+  ]
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
@@ -130,21 +148,15 @@ export default function ReportPage() {
             <button
               onClick={() => router.push('/client')}
               style={{
-                background: 'rgba(0,0,0,0.06)',
-                border: 'none',
-                borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)',
-                fontFamily: 'Chillax, sans-serif',
-                fontWeight: 300,
-                fontSize: '13px',
-                padding: '8px 18px',
-                cursor: 'pointer',
-                flexShrink: 0,
+                background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px',
+                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
+                fontWeight: 300, fontSize: '13px', padding: '8px 18px',
+                cursor: 'pointer', flexShrink: 0,
               }}
             >
-              назад
+              ← назад
             </button>
-            <div style={{ flex: 1 }}>
+            <div>
               <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>
                 Отчёт недели
               </h1>
@@ -154,7 +166,6 @@ export default function ReportPage() {
             </div>
           </div>
 
-          {/* SUCCESS STATE */}
           {success ? (
             <div style={{ ...glassCard, textAlign: 'center', padding: '40px 24px' }}>
               <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '22px', margin: '0 0 20px' }}>
@@ -163,15 +174,9 @@ export default function ReportPage() {
               <button
                 onClick={() => router.push('/client')}
                 style={{
-                  padding: '12px 28px',
-                  borderRadius: '999px',
-                  background: '#7a4a20',
-                  color: '#fff',
-                  border: 'none',
-                  fontFamily: 'Chillax, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '15px',
-                  cursor: 'pointer',
+                  padding: '12px 28px', borderRadius: '999px', background: '#7a4a20',
+                  color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif',
+                  fontWeight: 500, fontSize: '15px', cursor: 'pointer',
                 }}
               >
                 Вернуться
@@ -183,61 +188,30 @@ export default function ReportPage() {
               <div style={{ marginBottom: '12px' }}>
                 <p style={sectionLabel}>ФОТО</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                  {(['front', 'side', 'back'] as PhotoPosition[]).map((pos) => {
+                  {(['front', 'side', 'back'] as PhotoPosition[]).map(pos => {
                     const labelMap = { front: 'Спереди', side: 'Сбоку', back: 'Сзади' }
                     const preview = previews[pos]
                     return (
                       <div key={pos}>
                         <div style={{
-                          position: 'relative',
-                          borderRadius: '16px',
+                          position: 'relative', borderRadius: '16px',
                           background: preview ? 'transparent' : 'rgba(0,0,0,0.05)',
-                          border: '1px dashed rgba(0,0,0,0.12)',
-                          overflow: 'hidden',
+                          border: '1px dashed rgba(0,0,0,0.12)', overflow: 'hidden',
                         }}>
                           <div style={{ paddingBottom: '100%', position: 'relative' }}>
                             {preview ? (
-                              <img
-                                src={preview}
-                                alt={labelMap[pos]}
-                                style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  borderRadius: '16px',
-                                }}
-                              />
+                              <img src={preview} alt={labelMap[pos]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
                             ) : (
-                              <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}>
+                              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="rgba(45,31,14,0.25)" strokeWidth="1.5" fill="none" />
                                   <circle cx="12" cy="13" r="4" stroke="rgba(45,31,14,0.25)" strokeWidth="1.5" fill="none" />
                                 </svg>
                               </div>
                             )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={e => {
-                                const file = e.target.files?.[0]
-                                if (file) handlePhotoChange(pos, file)
-                              }}
-                              style={{
-                                position: 'absolute',
-                                inset: 0,
-                                opacity: 0,
-                                cursor: 'pointer',
-                                width: '100%',
-                                height: '100%',
-                              }}
+                            <input type="file" accept="image/*"
+                              onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoChange(pos, f) }}
+                              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
                             />
                           </div>
                         </div>
@@ -251,46 +225,91 @@ export default function ReportPage() {
               </div>
 
               {/* PARAMS */}
-              <div style={glassCard}>
+              <div style={glassCard} onClick={() => setActiveTooltip(null)}>
                 <p style={sectionLabel}>ПАРАМЕТРЫ</p>
-                {[
-                  { label: 'Вес', value: weight, setter: setWeight },
-                  { label: 'Грудь', value: chest, setter: setChest },
-                  { label: 'Талия', value: waist, setter: setWaist },
-                  { label: 'Бёдра', value: hips, setter: setHips },
-                ].map(({ label, value, setter }, i, arr) => (
-                  <div
-                    key={label}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: i < arr.length - 1 ? '12px' : 0,
-                    }}
-                  >
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>
-                      {label}
-                    </span>
-                    <input
-                      type="number"
-                      value={value}
-                      onChange={e => setter(e.target.value)}
-                      placeholder="—"
-                      style={{
-                        width: '100px',
-                        background: 'rgba(0,0,0,0.05)',
-                        border: 'none',
-                        borderRadius: '999px',
-                        padding: '8px 14px',
-                        textAlign: 'center',
-                        fontFamily: 'Chillax, sans-serif',
-                        fontSize: '14px',
-                        color: '#2d1f0e',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                ))}
+                {FIELDS.map(({ label, unit, value, setter }, i) => {
+                  const hasTooltip = !!TOOLTIPS[label]
+                  const isOpen = activeTooltip === label
+                  return (
+                    <div key={label} style={{ marginBottom: i < FIELDS.length - 1 ? '14px' : 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>
+                            {label}
+                          </span>
+                          {hasTooltip && (
+                            <button
+                              onClick={e => { e.stopPropagation(); setActiveTooltip(isOpen ? null : label) }}
+                              style={{
+                                width: '18px', height: '18px', borderRadius: '50%',
+                                background: 'rgba(122,74,32,0.1)',
+                                border: 'none',
+                                color: '#7a4a20',
+                                fontFamily: 'Chillax, sans-serif',
+                                fontSize: '10px',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                padding: 0, flexShrink: 0,
+                              }}
+                            >
+                              ?
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input
+                            type="number"
+                            value={value}
+                            onChange={e => setter(e.target.value)}
+                            placeholder="—"
+                            className="no-spin"
+                            style={{
+                              width: '80px', background: 'rgba(0,0,0,0.05)', border: 'none',
+                              borderRadius: '999px', padding: '7px 12px', textAlign: 'center',
+                              fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none',
+                            }}
+                          />
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)', width: '20px' }}>
+                            {unit}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* TOOLTIP */}
+                      {isOpen && hasTooltip && (
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          style={{ position: 'relative', marginTop: '8px' }}
+                        >
+                          {/* Arrow */}
+                          <div style={{
+                            position: 'absolute', top: 0, left: '14px',
+                            width: 0, height: 0,
+                            borderLeft: '6px solid transparent',
+                            borderRight: '6px solid transparent',
+                            borderBottom: '6px solid rgba(255,255,255,0.95)',
+                            filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.06))',
+                          }} />
+                          <div style={{
+                            marginTop: '6px',
+                            background: 'rgba(255,255,255,0.95)',
+                            border: '1px solid rgba(0,0,0,0.07)',
+                            borderRadius: '12px',
+                            padding: '8px 12px',
+                            fontFamily: 'Chillax, sans-serif',
+                            fontWeight: 300,
+                            fontSize: '11px',
+                            color: 'rgba(45,31,14,0.6)',
+                            lineHeight: 1.55,
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
+                          }}>
+                            {TOOLTIPS[label]}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* NOTES */}
@@ -301,20 +320,11 @@ export default function ReportPage() {
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   style={{
-                    width: '100%',
-                    minHeight: '100px',
-                    background: 'rgba(0,0,0,0.04)',
-                    border: 'none',
-                    borderRadius: '16px',
-                    padding: '14px 16px',
-                    fontFamily: 'Chillax, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '14px',
-                    color: '#2d1f0e',
-                    outline: 'none',
-                    resize: 'none',
-                    boxSizing: 'border-box',
-                    lineHeight: 1.65,
+                    width: '100%', minHeight: '100px', background: 'rgba(0,0,0,0.04)',
+                    border: 'none', borderRadius: '16px', padding: '14px 16px',
+                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
+                    color: '#2d1f0e', outline: 'none', resize: 'none',
+                    boxSizing: 'border-box', lineHeight: 1.65,
                   }}
                 />
               </div>
@@ -324,17 +334,11 @@ export default function ReportPage() {
                 onClick={handleSubmit}
                 disabled={loading}
                 style={{
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '999px',
-                  background: '#7a4a20',
-                  color: '#fff',
-                  border: 'none',
-                  fontFamily: 'Chillax, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '16px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  marginTop: '16px',
+                  width: '100%', padding: '14px', borderRadius: '999px',
+                  background: '#7a4a20', color: '#fff', border: 'none',
+                  fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+                  cursor: loading ? 'not-allowed' : 'pointer', marginTop: '16px',
+                  opacity: loading ? 0.7 : 1,
                 }}
               >
                 {loading ? 'Отправляем...' : 'Отправить отчёт'}
