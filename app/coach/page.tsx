@@ -85,6 +85,7 @@ type NutritionForm = { calories: string; protein: string; fat: string; carbs: st
 
 export default function CoachPage() {
   const [coachName, setCoachName] = useState('')
+  const [coachId, setCoachId] = useState<string | null>(null)
   const [clients, setClients] = useState<ClientData[]>([])
   const [loading, setLoading] = useState(true)
   const [openClient, setOpenClient] = useState<string | null>(null)
@@ -116,6 +117,7 @@ export default function CoachPage() {
     const { data: prof } = await supabase.from('profiles').select('name, role').eq('id', authData.user.id).single()
     if (prof?.role !== 'coach') { router.push('/client'); return }
     setCoachName(prof.name || 'Тренер')
+    setCoachId(authData.user.id)
 
     const { data: profiles } = await supabase.from('profiles').select('id, name').eq('role', 'client')
     if (!profiles) { setLoading(false); return }
@@ -248,6 +250,14 @@ export default function CoachPage() {
       setInviteError(data.error || 'Ошибка при отправке')
       setInviteSending(false)
     }
+  }
+
+  async function deleteWorkout(workoutId: string) {
+    if (!confirm('Удалить тренировку?')) return
+    const supabase = createClient()
+    await supabase.from('workouts').delete().eq('id', workoutId)
+    setWorkoutsList(prev => prev.filter(w => w.id !== workoutId))
+    setClients(prev => prev.map(c => c.assignedWorkout?.id === workoutId ? { ...c, assignedWorkout: null } : c))
   }
 
   async function handleLogout() {
@@ -659,20 +669,27 @@ export default function CoachPage() {
                           <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>Нет созданных тренировок</p>
                         ) : (
                           workoutsList.map(w => (
-                            <button
-                              key={w.id}
-                              onClick={() => assignWorkout(client.id, w.id)}
-                              disabled={savingWorkout === client.id}
-                              style={{
-                                padding: '9px 14px', borderRadius: '12px', textAlign: 'left',
-                                background: assignedWorkout?.id === w.id ? 'rgba(122,74,32,0.12)' : 'rgba(0,0,0,0.04)',
-                                border: assignedWorkout?.id === w.id ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>{w.title}</p>
-                              {w.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '2px 0 0' }}>{w.subtitle}</p>}
-                            </button>
+                            <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                onClick={() => assignWorkout(client.id, w.id)}
+                                disabled={savingWorkout === client.id}
+                                style={{
+                                  flex: 1, padding: '9px 14px', borderRadius: '12px', textAlign: 'left',
+                                  background: assignedWorkout?.id === w.id ? 'rgba(122,74,32,0.12)' : 'rgba(0,0,0,0.04)',
+                                  border: assignedWorkout?.id === w.id ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>{w.title}</p>
+                                {w.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '2px 0 0' }}>{w.subtitle}</p>}
+                              </button>
+                              <button
+                                onClick={() => deleteWorkout(w.id)}
+                                style={{ background: 'none', border: 'none', color: 'rgba(138,37,32,0.4)', fontSize: '14px', cursor: 'pointer', padding: '6px', flexShrink: 0 }}
+                              >
+                                ✕
+                              </button>
+                            </div>
                           ))
                         )}
                       </div>

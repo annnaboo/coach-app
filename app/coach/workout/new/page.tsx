@@ -58,7 +58,7 @@ type ClientProfile = { id: string; name: string }
 export default function NewWorkoutPage() {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
-  const [assignedTo, setAssignedTo] = useState<string>('all')
+  const [assignedToMultiple, setAssignedToMultiple] = useState<string[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([newExercise()])
   const [clients, setClients] = useState<ClientProfile[]>([])
   const [loading, setLoading] = useState(false)
@@ -101,7 +101,7 @@ export default function NewWorkoutPage() {
       title: title.trim(),
       subtitle: subtitle.trim() || null,
       exercises: exercisesPayload,
-      assigned_to: assignedTo === 'all' ? null : assignedTo,
+      assigned_to_multiple: assignedToMultiple,
       created_by: authData.user.id,
     })
 
@@ -161,27 +161,35 @@ export default function NewWorkoutPage() {
             </div>
 
             <div>
-              <span style={fieldLabel}>Назначить клиенту</span>
-              <select
-                value={assignedTo}
-                onChange={e => setAssignedTo(e.target.value)}
-                style={{
-                  ...inputStyle,
-                  borderRadius: '999px',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  cursor: 'pointer',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(45,31,14,0.35)' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 14px center',
-                  paddingRight: '36px',
-                }}
-              >
-                <option value="all">Для всех</option>
+              <span style={fieldLabel}>Назначить клиентам</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={assignedToMultiple.length === 0}
+                    onChange={() => setAssignedToMultiple([])}
+                    style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>Для всех клиентов</span>
+                </label>
                 {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={assignedToMultiple.includes(c.id)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setAssignedToMultiple(prev => [...prev, c.id])
+                        } else {
+                          setAssignedToMultiple(prev => prev.filter(id => id !== c.id))
+                        }
+                      }}
+                      style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>{c.name}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
           </div>
 

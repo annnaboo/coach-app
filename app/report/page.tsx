@@ -85,46 +85,49 @@ export default function ReportPage() {
     setLoading(true)
     const supabase = createClient()
 
-    let photo_front: string | null = null
-    let photo_side: string | null = null
-    let photo_back: string | null = null
-
-    const positions: { key: PhotoPosition; setter: (v: string | null) => void }[] = [
-      { key: 'front', setter: v => { photo_front = v } },
-      { key: 'side', setter: v => { photo_side = v } },
-      { key: 'back', setter: v => { photo_back = v } },
-    ]
-
-    for (const { key, setter } of positions) {
-      const file = photos[key]
-      if (file) {
-        const path = `${userId}/${Date.now()}_${key}.jpg`
-        const { error } = await supabase.storage.from('reports').upload(path, file, { contentType: 'image/jpeg' })
-        if (!error) {
-          const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600 * 24 * 365)
-          if (s) setter(s.signedUrl)
-        }
+    const uploadPhoto = async (file: File | null, position: string): Promise<string | null> => {
+      if (!file) return null
+      const path = `${userId}/${Date.now()}_${position}`
+      const { error } = await supabase.storage
+        .from('reports')
+        .upload(path, file, { contentType: file.type || 'image/jpeg' })
+      if (error) {
+        console.error('Upload error:', error)
+        return null
       }
+      return path
     }
 
-    await supabase.from('weekly_reports').insert({
+    const photo_front = await uploadPhoto(photos.front, 'front')
+    const photo_side = await uploadPhoto(photos.side, 'side')
+    const photo_back = await uploadPhoto(photos.back, 'back')
+
+    const { error: insertError } = await supabase.from('weekly_reports').insert({
       player_id: userId,
       week_start: getWeekStart(),
-      weight: parseFloat(weight) || null,
-      chest: parseFloat(chest) || null,
-      waist: parseFloat(waist) || null,
-      hips: parseFloat(hips) || null,
-      waist_navel: parseFloat(waistNavel) || null,
-      one_thigh: parseFloat(oneThigh) || null,
-      arm: parseFloat(arm) || null,
-      notes,
+      weight: weight ? parseFloat(weight) : null,
+      chest: chest ? parseFloat(chest) : null,
+      waist: waist ? parseFloat(waist) : null,
+      hips: hips ? parseFloat(hips) : null,
+      waist_navel: waistNavel ? parseFloat(waistNavel) : null,
+      one_thigh: oneThigh ? parseFloat(oneThigh) : null,
+      arm: arm ? parseFloat(arm) : null,
+      notes: notes || null,
       photo_front,
       photo_side,
       photo_back,
     })
 
+    if (insertError) {
+      console.error('Insert error:', insertError)
+      alert('Ошибка сохранения: ' + insertError.message)
+      setLoading(false)
+      return
+    }
+
     setLoading(false)
     setSuccess(true)
+    setTimeout(() => router.push('/client'), 2000)
   }
 
   const FIELDS = [

@@ -88,7 +88,7 @@ export default function ClientPage() {
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
         supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
-        supabase.from('workouts').select('id, title, subtitle, exercises').or(`assigned_to.eq.${data.user.id},assigned_to.is.null`).order('created_at', { ascending: false }),
+        supabase.from('workouts').select('id, title, subtitle, exercises').or(`assigned_to_multiple.cs.{${data.user.id}},assigned_to_multiple.eq.{}`).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
       ])
 
@@ -207,27 +207,43 @@ export default function ClientPage() {
                 const scheduled = weekSchedule[dateStr]
                 const isPickerOpen = schedulingDay === dateStr
 
+                const circleStyle: React.CSSProperties = isDone
+                  ? { background: '#7a4a20', border: '1.5px solid transparent' }
+                  : scheduled
+                    ? { background: 'transparent', border: '1.5px solid rgba(122,74,32,0.4)' }
+                    : { background: 'rgba(0,0,0,0.06)', border: '1.5px solid transparent' }
+
+                const numColor = isDone ? '#fff' : scheduled ? '#7a4a20' : 'rgba(45,31,14,0.35)'
+
+                const emoji = isDone ? '✅' : scheduled ? '💪' : null
+
                 return (
-                  <div key={day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flex: 1, position: 'relative' }}>
+                  <div key={day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1, position: 'relative' }}>
                     <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)' }}>{day}</span>
                     <button
                       onClick={e => { e.stopPropagation(); setSchedulingDay(isPickerOpen ? null : dateStr) }}
                       style={{
                         width: '36px', height: '36px', borderRadius: '50%',
-                        background: isDone ? '#7a4a20' : scheduled ? 'rgba(122,74,32,0.15)' : 'rgba(0,0,0,0.06)',
-                        border: isToday ? '2px solid #7a4a20' : '2px solid transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', padding: 0,
+                        ...circleStyle,
                       }}
                     >
-                      {isDone
-                        ? <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />
-                        : scheduled
-                          ? <span style={{ fontSize: '14px' }}>💪</span>
-                          : <span style={{ fontSize: '10px', color: 'rgba(45,31,14,0.2)' }}>+</span>
-                      }
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: numColor, lineHeight: 1 }}>
+                        {date.getDate()}
+                      </span>
                     </button>
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)' }}>{date.getDate()}</span>
+                    <div style={{ height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isToday && !emoji && (
+                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#7a4a20' }} />
+                      )}
+                      {emoji && (
+                        <span style={{ fontSize: '10px', lineHeight: 1 }}>{emoji}</span>
+                      )}
+                      {isToday && emoji && (
+                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#7a4a20', marginLeft: '3px' }} />
+                      )}
+                    </div>
 
                     {/* Workout picker dropdown */}
                     {isPickerOpen && (
