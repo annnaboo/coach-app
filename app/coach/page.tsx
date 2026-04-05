@@ -100,6 +100,10 @@ export default function CoachPage() {
   // Workout assignment
   const [assigningWorkout, setAssigningWorkout] = useState<string | null>(null)
   const [savingWorkout, setSavingWorkout] = useState<string | null>(null)
+  // Payment form
+  const [addingPayment, setAddingPayment] = useState<string | null>(null)
+  const [paymentForms, setPaymentForms] = useState<Record<string, { period_start: string; period_end: string; amount: string; paid: boolean }>>({})
+  const [savingPayment, setSavingPayment] = useState<string | null>(null)
   // Invite client
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteName, setInviteName] = useState('')
@@ -252,6 +256,24 @@ export default function CoachPage() {
     }
   }
 
+  async function addPayment(clientId: string) {
+    const form = paymentForms[clientId]
+    if (!form?.period_start || !form?.period_end) return
+    setSavingPayment(clientId)
+    const supabase = createClient()
+    const { data } = await supabase.from('payments').insert({
+      player_id: clientId,
+      period_start: form.period_start,
+      period_end: form.period_end,
+      amount: form.amount ? parseFloat(form.amount) : null,
+      paid: form.paid,
+    }).select().single()
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: data || null } : c))
+    if (data?.paid) setPayments(prev => ({ ...prev, paid: prev.paid + 1 }))
+    setAddingPayment(null)
+    setSavingPayment(null)
+  }
+
   async function deleteWorkout(workoutId: string) {
     if (!confirm('Удалить тренировку?')) return
     const supabase = createClient()
@@ -323,12 +345,12 @@ export default function CoachPage() {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
             <button
               onClick={() => router.push('/coach/workout/new')}
               style={{
                 position: 'relative', overflow: 'hidden', borderRadius: '999px',
-                padding: '10px 20px', border: 'none', cursor: 'pointer',
+                padding: '10px 18px', border: 'none', cursor: 'pointer',
                 fontFamily: 'Chillax, sans-serif', fontSize: '13px', fontWeight: 500, color: '#fff',
                 background: 'transparent',
               }}
@@ -336,6 +358,12 @@ export default function CoachPage() {
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(122,74,32,0.85)', borderRadius: '999px' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%)', borderRadius: '999px' }} />
               <span style={{ position: 'relative' }}>+ Создать тренировку</span>
+            </button>
+            <button
+              onClick={() => router.push('/coach/workouts')}
+              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+            >
+              Все тренировки ({workoutsList.length})
             </button>
             <button
               onClick={() => { setShowInviteForm(v => !v); setInviteSuccess(false); setInviteError('') }}
@@ -498,11 +526,47 @@ export default function CoachPage() {
                   </div>
                 </div>
 
-                {/* Mark paid */}
-                {payment && !payment.paid && (
-                  <button onClick={e => { e.stopPropagation(); markPaid(client.id, payment.id) }} disabled={updatingPayment === client.id} style={{ marginTop: '10px', padding: '5px 14px', borderRadius: '999px', background: 'rgba(39,174,96,0.12)', border: '1px solid rgba(39,174,96,0.25)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}>
-                    ✓ Отметить
-                  </button>
+                {/* Mark paid + Add payment */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  {payment && !payment.paid && (
+                    <button onClick={e => { e.stopPropagation(); markPaid(client.id, payment.id) }} disabled={updatingPayment === client.id} style={{ padding: '5px 14px', borderRadius: '999px', background: 'rgba(39,174,96,0.12)', border: '1px solid rgba(39,174,96,0.25)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}>
+                      ✓ Отметить
+                    </button>
+                  )}
+                  {!payment && (
+                    <button onClick={e => { e.stopPropagation(); setAddingPayment(addingPayment === client.id ? null : client.id); if (!paymentForms[client.id]) setPaymentForms(prev => ({ ...prev, [client.id]: { period_start: '', period_end: '', amount: '', paid: false } })) }} style={{ padding: '5px 14px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}>
+                      + Добавить оплату
+                    </button>
+                  )}
+                </div>
+
+                {/* Payment form */}
+                {addingPayment === client.id && (
+                  <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                      <div>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>С какого</p>
+                        <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>По какое</p>
+                        <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                      <div>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма ₽</p>
+                        <input type="number" placeholder="5000" value={paymentForms[client.id]?.amount || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], amount: e.target.value } }))} className="no-spin" style={{ ...inputSm, borderRadius: '10px' }} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '18px' }}>
+                        <input type="checkbox" id={`paid-${client.id}`} checked={paymentForms[client.id]?.paid || false} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], paid: e.target.checked } }))} style={{ accentColor: '#7a4a20', width: '16px', height: '16px' }} />
+                        <label htmlFor={`paid-${client.id}`} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', cursor: 'pointer' }}>Оплачено</label>
+                      </div>
+                    </div>
+                    <button onClick={() => addPayment(client.id)} disabled={savingPayment === client.id} style={{ padding: '7px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
+                      {savingPayment === client.id ? 'Сохраняем...' : 'Сохранить'}
+                    </button>
+                  </div>
                 )}
 
                 {/* EXPANDED */}
@@ -602,45 +666,74 @@ export default function CoachPage() {
 
                     {/* Г — ОТЧЁТ */}
                     <Divider />
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>Отчёт недели</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Отчёт недели</p>
                     {!latestReport ? (
                       <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Отчёт ещё не отправлен</p>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                          {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
-                            latestReport[key] ? (
-                              <img key={i} src={latestReport[key]} alt="" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }} />
-                            ) : (
-                              <div key={i} style={{ width: '64px', height: '64px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /><circle cx="12" cy="13" r="4" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /></svg>
+                    ) : (() => {
+                      // Spark line from reports
+                      const sparkWeights = client.reports.filter((r: any) => r.weight != null).map((r: any) => r.weight as number).reverse()
+                      let sparkSvg = null
+                      if (sparkWeights.length >= 2) {
+                        const W = 80, H = 30, PAD = 3
+                        const minW = Math.min(...sparkWeights)
+                        const maxW = Math.max(...sparkWeights)
+                        const range = maxW - minW || 1
+                        const pts = sparkWeights.map((w, i) => ({
+                          x: PAD + (i / (sparkWeights.length - 1)) * (W - PAD * 2),
+                          y: H - PAD - ((w - minW) / range) * (H - PAD * 2),
+                        }))
+                        sparkSvg = pts.map(p => `${p.x},${p.y}`).join(' ')
+                      }
+                      return (
+                        <>
+                          {/* Date + weight + sparkline row */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '0 0 2px' }}>{fmtDate(latestReport.week_start)}</p>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                {latestReport.weight != null && (
+                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#2d1f0e', lineHeight: 1 }}>{latestReport.weight} кг</span>
+                                )}
+                                {weightDiff !== null && (
+                                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px', color: weightDiff <= 0 ? '#1a7a3c' : '#8a2520' }}>
+                                    {weightDiff <= 0 ? `↓${Math.abs(weightDiff)}` : `↑${weightDiff}`}
+                                  </span>
+                                )}
                               </div>
-                            )
-                          ))}
-                        </div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 6px', lineHeight: 1.8 }}>
-                          {[
-                            latestReport.weight != null && `Вес: ${latestReport.weight}кг`,
-                            latestReport.chest != null && `Грудь: ${latestReport.chest}см`,
-                            latestReport.waist != null && `Талия: ${latestReport.waist}см`,
-                            latestReport.waist_navel != null && `Пупок: ${latestReport.waist_navel}см`,
-                            latestReport.hips != null && `Бёдра: ${latestReport.hips}см`,
-                            latestReport.one_thigh != null && `Бедро: ${latestReport.one_thigh}см`,
-                            latestReport.arm != null && `Рука: ${latestReport.arm}см`,
-                          ].filter(Boolean).join(' · ')}
-                        </p>
-                        {latestReport.notes && (
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '12px', fontStyle: 'italic', margin: '0 0 6px' }}>
-                            "{latestReport.notes}"
+                            </div>
+                            {sparkSvg && (
+                              <svg width="80" height="30" viewBox="0 0 80 30" style={{ flexShrink: 0 }}>
+                                <polyline points={sparkSvg} fill="none" stroke="#7a4a20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+                              </svg>
+                            )}
+                          </div>
+                          {/* Params inline */}
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.45)', margin: '0 0 8px', lineHeight: 1.8 }}>
+                            {[
+                              latestReport.chest != null && `Гр: ${latestReport.chest}`,
+                              latestReport.waist != null && `Тал: ${latestReport.waist}`,
+                              latestReport.hips != null && `Бёд: ${latestReport.hips}`,
+                              latestReport.waist_navel != null && `Пуп: ${latestReport.waist_navel}`,
+                              latestReport.one_thigh != null && `Бедро: ${latestReport.one_thigh}`,
+                              latestReport.arm != null && `Рука: ${latestReport.arm}`,
+                            ].filter(Boolean).join(' · ')}
                           </p>
-                        )}
-                        {weightDiff !== null && weeksBetween !== null && (
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: weightDiff <= 0 ? '#1a7a3c' : '#8a2520', margin: 0 }}>
-                            {weightDiff > 0 ? `+${weightDiff}` : `${weightDiff}`}кг за {weeksBetween} {weeksBetween === 1 ? 'неделю' : 'недели'}
-                          </p>
-                        )}
-                      </>
-                    )}
+                          {/* Photos */}
+                          <div style={{ display: 'flex', gap: '6px', marginBottom: latestReport.notes ? '8px' : 0 }}>
+                            {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
+                              latestReport[key] ? (
+                                <img key={i} src={latestReport[key]} alt="" style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }} />
+                              ) : null
+                            ))}
+                          </div>
+                          {latestReport.notes && (
+                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.45)', fontSize: '11px', fontStyle: 'italic', margin: 0 }}>
+                              "{latestReport.notes}"
+                            </p>
+                          )}
+                        </>
+                      )
+                    })()}
 
                     {/* Д — НАСТРОЕНИЕ */}
                     {mood && (

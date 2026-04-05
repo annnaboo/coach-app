@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Area, AreaChart, defs, linearGradient,
+} from 'recharts'
 
 const glass: React.CSSProperties = {
   background: 'rgba(255,255,255,0.55)',
@@ -33,90 +37,46 @@ type Report = {
   photo_back_url?: string
 }
 
-function fmtWeek(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
-function WeightChart({ reports }: { reports: Report[] }) {
-  const withWeight = [...reports].reverse().filter(r => r.weight !== null)
-  if (withWeight.length < 2) return null
+function fmtShort(iso: string): string {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
+}
 
-  const weights = withWeight.map(r => r.weight as number)
-  const minW = Math.min(...weights)
-  const maxW = Math.max(...weights)
-  const range = maxW - minW || 1
+function isThisWeek(iso: string): boolean {
+  const d = new Date(iso)
+  const now = new Date()
+  const monday = new Date(now)
+  const day = monday.getDay()
+  monday.setDate(monday.getDate() - (day === 0 ? 6 : day - 1))
+  monday.setHours(0, 0, 0, 0)
+  const sunday = new Date(monday)
+  sunday.setDate(sunday.getDate() + 7)
+  return d >= monday && d < sunday
+}
 
-  const W = 280
-  const H = 80
-  const PAD = 12
-
-  const points = weights.map((w, i) => ({
-    x: PAD + (i / (weights.length - 1)) * (W - PAD * 2),
-    y: H - PAD - ((w - minW) / range) * (H - PAD * 2),
-  }))
-
-  const polyline = points.map(p => `${p.x},${p.y}`).join(' ')
-
-  const first = weights[0]
-  const last = weights[weights.length - 1]
-  const diff = +(last - first).toFixed(1)
-  const diffColor = diff <= 0 ? '#1a7a3c' : '#8a2520'
-  const diffStr = diff > 0 ? `+${diff}` : `${diff}`
-
+function CustomTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null
   return (
-    <div style={glass}>
-      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>
-        Динамика веса
-      </p>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', overflow: 'visible' }}>
-        <defs>
-          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="rgba(122,74,32,0.3)" />
-            <stop offset="100%" stopColor="#7a4a20" />
-          </linearGradient>
-        </defs>
-        <polyline
-          points={polyline}
-          fill="none"
-          stroke="url(#lineGrad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {points.map((p, i) => (
-          <circle
-            key={i}
-            cx={p.x}
-            cy={p.y}
-            r={i === points.length - 1 ? 5 : 3}
-            fill={i === points.length - 1 ? '#7a4a20' : 'rgba(255,255,255,0.9)'}
-            stroke="#7a4a20"
-            strokeWidth="1.5"
-          />
-        ))}
-      </svg>
-      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)' }}>
-          Начало: <strong style={{ color: '#2d1f0e' }}>{first}кг</strong>
-        </span>
-        <span style={{ color: 'rgba(45,31,14,0.25)', fontSize: '10px' }}>→</span>
-        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)' }}>
-          Сейчас: <strong style={{ color: '#2d1f0e' }}>{last}кг</strong>
-        </span>
-        <span style={{ color: 'rgba(45,31,14,0.25)', fontSize: '10px' }}>→</span>
-        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '12px', color: diffColor }}>
-          {diffStr}кг
-        </span>
-      </div>
+    <div style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '12px', padding: '8px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '16px', color: '#2d1f0e', margin: 0 }}>{payload[0].value} кг</p>
+      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>{payload[0].payload.date}</p>
     </div>
   )
+}
+
+const PARAM_LABELS: Record<string, string> = {
+  chest: 'Грудь', waist: 'Талия', hips: 'Бёдра',
+  waist_navel: 'Пупок', one_thigh: 'Бедро', arm: 'Рука',
 }
 
 export default function ReportsHistoryPage() {
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
   const [modalUrl, setModalUrl] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -130,9 +90,8 @@ export default function ReportsHistoryPage() {
         .eq('player_id', data.user.id)
         .order('week_start', { ascending: false })
 
-      if (!rows) { setLoading(false); return }
+      if (!rows || rows.length === 0) { setLoading(false); return }
 
-      // Get signed URLs
       for (const row of rows) {
         for (const key of ['photo_front', 'photo_side', 'photo_back'] as const) {
           const path = row[key]
@@ -157,6 +116,20 @@ export default function ReportsHistoryPage() {
     </div>
   )
 
+  // Sorted oldest → newest for chart
+  const chronological = [...reports].reverse()
+  const withWeight = chronological.filter(r => r.weight !== null)
+  const chartData = withWeight.map(r => ({ date: fmtShort(r.week_start), weight: r.weight }))
+
+  const first = reports[reports.length - 1]
+  const last = reports[0]
+  const totalWeeks = reports.length >= 2
+    ? Math.round((new Date(last.week_start).getTime() - new Date(first.week_start).getTime()) / (7 * 86400000))
+    : 0
+  const weightDiffTotal = first?.weight != null && last?.weight != null
+    ? +(last.weight - first.weight).toFixed(1)
+    : null
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
@@ -165,30 +138,10 @@ export default function ReportsHistoryPage() {
       {modalUrl && (
         <div
           onClick={() => setModalUrl(null)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(0,0,0,0.85)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px',
-          }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
         >
-          <button
-            onClick={() => setModalUrl(null)}
-            style={{
-              position: 'absolute', top: '20px', right: '20px',
-              background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
-              width: '36px', height: '36px', color: '#fff', fontSize: '18px',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            ✕
-          </button>
-          <img
-            src={modalUrl}
-            alt=""
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '16px', objectFit: 'contain' }}
-          />
+          <button onClick={() => setModalUrl(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', color: '#fff', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+          <img src={modalUrl} alt="" onClick={e => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '16px', objectFit: 'contain' }} />
         </div>
       )}
 
@@ -197,154 +150,194 @@ export default function ReportsHistoryPage() {
 
           {/* HEADER */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
-            <button
-              onClick={() => router.push('/client')}
-              style={{
-                background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
-                fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0,
-              }}
-            >
+            <button onClick={() => router.push('/client')} style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}>
               ← назад
             </button>
             <div>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>
-                Мои отчёты
-              </h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#7a4a20', margin: 0 }}>
-                История замеров
-              </p>
+              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>Мои отчёты</h1>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#7a4a20', margin: 0 }}>История замеров</p>
             </div>
           </div>
 
           {reports.length === 0 ? (
-            /* EMPTY STATE */
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center', gap: '12px' }}>
               <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
                 <rect x="8" y="6" width="34" height="44" rx="5" stroke="rgba(45,31,14,0.2)" strokeWidth="2" fill="none" />
                 <path d="M16 18h20M16 26h20M16 34h12" stroke="rgba(45,31,14,0.2)" strokeWidth="2" strokeLinecap="round" />
               </svg>
-              <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '20px', margin: 0 }}>
-                Ещё нет отчётов
-              </h2>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>
-                Заполни первый отчёт — он появится здесь
-              </p>
-              <button
-                onClick={() => router.push('/report')}
-                style={{
-                  marginTop: '8px', padding: '12px 28px', borderRadius: '999px',
-                  background: '#7a4a20', color: '#fff', border: 'none',
-                  fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Отправить отчёт
+              <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '20px', margin: 0 }}>Ещё нет отчётов</h2>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>Заполни первый отчёт — он появится здесь</p>
+              <button onClick={() => router.push('/report')} style={{ marginTop: '8px', padding: '12px 28px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}>
+                Отправить первый отчёт
               </button>
             </div>
           ) : (
             <>
-              {/* WEIGHT CHART */}
-              <WeightChart reports={reports} />
-
-              {/* REPORTS LIST */}
-              {reports.map((report, idx) => {
-                const prev = reports[idx + 1]
-                const weightDiff = report.weight !== null && prev?.weight !== null && prev?.weight !== undefined
-                  ? +(report.weight - prev.weight).toFixed(1)
-                  : null
-
-                const photos = [
-                  report.photo_front_url,
-                  report.photo_side_url,
-                  report.photo_back_url,
-                ].filter(Boolean) as string[]
-
-                const params: { label: string; value: number | null; unit: string }[] = [
-                  { label: 'Грудь', value: report.chest, unit: 'см' },
-                  { label: 'Талия', value: report.waist, unit: 'см' },
-                  { label: 'Пупок', value: report.waist_navel, unit: 'см' },
-                  { label: 'Бёдра', value: report.hips, unit: 'см' },
-                  { label: 'Бедро', value: report.one_thigh, unit: 'см' },
-                  { label: 'Рука', value: report.arm, unit: 'см' },
-                ].filter(p => p.value !== null)
-
-                return (
-                  <div key={report.id} style={glass}>
-                    {/* A — HEADER */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                      <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '0 0 2px', letterSpacing: '0.5px' }}>
-                          Неделя {fmtWeek(report.week_start)}
-                        </p>
-                        <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '32px', color: '#2d1f0e', lineHeight: 1 }}>
-                          {report.weight ?? '—'}
-                        </span>
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', marginLeft: '4px' }}>кг</span>
-                      </div>
-                      {weightDiff !== null && (
-                        <span style={{
-                          fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '12px',
-                          padding: '4px 10px', borderRadius: '999px',
-                          background: weightDiff <= 0 ? 'rgba(26,122,60,0.1)' : 'rgba(138,37,32,0.08)',
-                          color: weightDiff <= 0 ? '#1a7a3c' : '#8a2520',
-                          border: weightDiff <= 0 ? '1px solid rgba(26,122,60,0.2)' : '1px solid rgba(138,37,32,0.15)',
-                          marginTop: '6px',
-                        }}>
-                          {weightDiff > 0 ? `+${weightDiff}` : `${weightDiff}`} кг
-                        </span>
-                      )}
+              {/* DYNAMICS BLOCK */}
+              {withWeight.length >= 2 && (
+                <div style={glass}>
+                  {/* A — TREND ROW */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                    <div>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '0 0 2px', letterSpacing: '1px', textTransform: 'uppercase' }}>Начало</p>
+                      <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '26px', color: '#2d1f0e', lineHeight: 1 }}>{first.weight}</span>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', marginLeft: '3px' }}>кг</span>
                     </div>
-
-                    {/* B — PHOTOS */}
-                    {photos.length > 0 && (
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-                        {photos.map((url, i) => (
-                          <img
-                            key={i}
-                            src={url}
-                            alt=""
-                            onClick={() => setModalUrl(url)}
-                            style={{
-                              width: '80px', height: '80px', objectFit: 'cover',
-                              borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)',
-                              cursor: 'pointer',
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* C — PARAMS */}
-                    {params.length > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: '12px' }}>
-                        {params.map(({ label, value, unit }) => (
-                          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)' }}>
-                              {label}
-                            </span>
-                            <span>
-                              <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '16px', color: '#2d1f0e' }}>{value}</span>
-                              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', marginLeft: '2px' }}>{unit}</span>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* D — NOTES */}
-                    {report.notes && (
-                      <p style={{
-                        fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '13px',
-                        color: 'rgba(45,31,14,0.5)', fontStyle: 'italic', margin: 0,
+                    <span style={{ color: 'rgba(45,31,14,0.2)', fontSize: '16px' }}>→</span>
+                    <div>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '0 0 2px', letterSpacing: '1px', textTransform: 'uppercase' }}>Сейчас</p>
+                      <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '26px', color: '#2d1f0e', lineHeight: 1 }}>{last.weight}</span>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', marginLeft: '3px' }}>кг</span>
+                    </div>
+                    {weightDiffTotal !== null && (
+                      <span style={{
+                        fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '12px',
+                        padding: '5px 12px', borderRadius: '999px', marginLeft: 'auto',
+                        background: weightDiffTotal <= 0 ? 'rgba(26,122,60,0.1)' : 'rgba(138,37,32,0.08)',
+                        color: weightDiffTotal <= 0 ? '#1a7a3c' : '#8a2520',
+                        border: weightDiffTotal <= 0 ? '1px solid rgba(26,122,60,0.2)' : '1px solid rgba(138,37,32,0.15)',
                       }}>
-                        "{report.notes}"
-                      </p>
+                        {weightDiffTotal <= 0 ? '↓' : '↑'} {Math.abs(weightDiffTotal)} кг за {totalWeeks} нед.
+                      </span>
                     )}
                   </div>
-                )
-              })}
+
+                  {/* B — RECHARTS LINECHART */}
+                  <ResponsiveContainer width="100%" height={120}>
+                    <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                      <defs>
+                        <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#7a4a20" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#7a4a20" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} stroke="rgba(45,31,14,0.05)" />
+                      <XAxis dataKey="date" tick={{ fontFamily: 'Chillax, sans-serif', fontSize: 8, fill: 'rgba(45,31,14,0.25)' }} axisLine={false} tickLine={false} />
+                      <YAxis hide domain={['auto', 'auto']} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area
+                        type="monotone"
+                        dataKey="weight"
+                        stroke="#7a4a20"
+                        strokeWidth={1.5}
+                        fill="url(#weightGrad)"
+                        dot={{ fill: '#f5f0e8', stroke: '#7a4a20', strokeWidth: 1.5, r: 3 }}
+                        activeDot={{ fill: '#7a4a20', r: 5, strokeWidth: 0 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+
+                  {/* C — PARAMS GRID from latest report */}
+                  {(['chest','waist','hips','waist_navel','one_thigh','arm'] as const).some(k => last[k] != null) && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '16px' }}>
+                      {(['chest','waist','hips','waist_navel','one_thigh','arm'] as const).map(key => {
+                        const val = last[key]
+                        const firstVal = first[key]
+                        if (val == null) return null
+                        const diff = firstVal != null ? +(val - firstVal).toFixed(1) : null
+                        return (
+                          <div key={key} style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '10px 12px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '3px' }}>
+                              <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '18px', color: '#2d1f0e' }}>{val}</span>
+                              {diff !== null && diff !== 0 && (
+                                <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '10px', color: diff < 0 ? '#1a7a3c' : '#8a2520' }}>
+                                  {diff < 0 ? `↓${Math.abs(diff)}` : `↑${diff}`}
+                                </span>
+                              )}
+                            </div>
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{PARAM_LABELS[key]}</p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* LIST BY WEEKS */}
+              <div style={glass}>
+                {reports.map((report, idx) => {
+                  const prev = reports[idx + 1]
+                  const wDiff = report.weight != null && prev?.weight != null
+                    ? +(report.weight - prev.weight).toFixed(1)
+                    : null
+                  const isExpanded = expandedId === report.id
+                  const isLast = idx === 0
+                  const photos = [report.photo_front_url, report.photo_side_url, report.photo_back_url].filter(Boolean) as string[]
+
+                  const shortParams = [
+                    report.waist != null && `Тал ${report.waist}`,
+                    report.hips != null && `Бёд ${report.hips}`,
+                    report.arm != null && `Рука ${report.arm}`,
+                  ].filter(Boolean).join(' · ')
+
+                  return (
+                    <div key={report.id}>
+                      {/* ROW */}
+                      <div
+                        onClick={() => setExpandedId(isExpanded ? null : report.id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', cursor: 'pointer' }}
+                      >
+                        {/* dot */}
+                        <div style={{ width: isLast ? 10 : 8, height: isLast ? 10 : 8, borderRadius: '50%', background: '#7a4a20', opacity: isLast ? 1 : 0.5, flexShrink: 0 }} />
+                        {/* info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.6)', margin: '0 0 2px' }}>
+                            {fmtDate(report.week_start)}{isLast && isThisWeek(report.week_start) ? ' · эта неделя' : ''}
+                          </p>
+                          {shortParams && (
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: 0 }}>{shortParams}</p>
+                          )}
+                        </div>
+                        {/* weight */}
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          {report.weight != null && (
+                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '18px', color: '#2d1f0e' }}>{report.weight}</span>
+                          )}
+                          {wDiff !== null && (
+                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '10px', color: wDiff <= 0 ? '#1a7a3c' : '#8a2520', marginLeft: '4px' }}>
+                              {wDiff <= 0 ? `↓${Math.abs(wDiff)}` : `↑${wDiff}`}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ color: 'rgba(45,31,14,0.2)', fontSize: '11px', flexShrink: 0 }}>{isExpanded ? '▴' : '▾'}</span>
+                      </div>
+
+                      {/* EXPANDED */}
+                      {isExpanded && (
+                        <div style={{ paddingBottom: '12px', paddingLeft: '20px' }}>
+                          {photos.length > 0 && (
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                              {photos.map((url, i) => (
+                                <img key={i} src={url} alt="" onClick={() => setModalUrl(url)} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', cursor: 'pointer' }} />
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', marginBottom: '10px' }}>
+                            {(['chest','waist','waist_navel','hips','one_thigh','arm'] as const).map(key => {
+                              const val = report[key]
+                              if (val == null) return null
+                              return (
+                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)' }}>{PARAM_LABELS[key]}</span>
+                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '15px', color: '#2d1f0e' }}>{val} <span style={{ fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>см</span></span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                          {report.notes && (
+                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', fontStyle: 'italic', margin: 0 }}>"{report.notes}"</p>
+                          )}
+                        </div>
+                      )}
+
+                      {idx < reports.length - 1 && (
+                        <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </>
           )}
 
