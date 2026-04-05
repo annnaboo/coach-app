@@ -130,27 +130,20 @@ export default function CoachPage() {
     const { data: wList } = await supabase.from('workouts').select('id, title, subtitle').order('created_at', { ascending: false })
     setWorkoutsList(wList || [])
 
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString()
-    const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10)
-
     const clientsData: ClientData[] = await Promise.all(
       profiles.map(async (p) => {
         const [logsRes, reportsRes, paymentRes, moodRes, nutritionRes, workoutRes] = await Promise.all([
-          supabase.from('workout_logs').select('*').eq('player', p.id).order('saved_at', { ascending: false }).limit(20),
-          supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(3),
-          supabase.from('payments').select('*').eq('player_id', p.id).gte('period_start', monthStart).lte('period_end', monthEnd).order('period_start', { ascending: false }).limit(1).single(),
-          supabase.from('mood_logs').select('*').eq('player_id', p.id).gte('logged_date', twoDaysAgo).order('logged_date', { ascending: false }).limit(1).single(),
+          supabase.from('workout_logs').select('*').eq('player', p.id).order('saved_at', { ascending: false }).limit(30),
+          supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(5),
+          supabase.from('payments').select('*').eq('player_id', p.id).order('created_at', { ascending: false }).limit(1).single(),
+          supabase.from('mood_logs').select('*').eq('player_id', p.id).order('logged_date', { ascending: false }).limit(1).single(),
           supabase.from('nutrition_plans').select('*').eq('player_id', p.id).single(),
           supabase.from('workouts').select('id, title, subtitle').eq('assigned_to', p.id).order('created_at', { ascending: false }).limit(1).single(),
         ])
 
-        console.log(`[coach] ${p.name} — reports:`, reportsRes.data, 'error:', reportsRes.error)
-        console.log(`[coach] ${p.name} — workout_logs:`, logsRes.data?.length, 'error:', logsRes.error)
-        console.log(`[coach] ${p.name} — payment:`, paymentRes.data, 'error:', paymentRes.error)
-        console.log(`[coach] ${p.name} — mood:`, moodRes.data, 'error:', moodRes.error)
-        console.log(`[coach] ${p.name} — nutrition:`, nutritionRes.data, 'error:', nutritionRes.error)
+        console.log(`[coach] ${p.name} — reports:`, reportsRes.data?.length ?? 0, reportsRes.error?.message ?? 'ok')
+        console.log(`[coach] ${p.name} — logs:`, logsRes.data?.length ?? 0, logsRes.error?.message ?? 'ok')
+        console.log(`[coach] ${p.name} — payment:`, paymentRes.data?.id ?? 'none', paymentRes.error?.message ?? 'ok')
 
         const reports = reportsRes.data || []
         return {

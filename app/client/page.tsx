@@ -74,8 +74,9 @@ export default function ClientPage() {
       setUserId(data.user.id)
 
       const { data: prof } = await supabase
-        .from('profiles').select('name, role').eq('id', data.user.id).single()
+        .from('profiles').select('name, role, onboarded').eq('id', data.user.id).single()
       if (prof?.role === 'coach') { router.push('/coach'); return }
+      if (!prof?.onboarded) { router.push('/welcome'); return }
 
       const weekStart = getMonday(new Date())
       const weekEnd = new Date(weekStart)
