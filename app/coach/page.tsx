@@ -145,6 +145,13 @@ export default function CoachPage() {
           supabase.from('nutrition_plans').select('*').eq('player_id', p.id).single(),
           supabase.from('workouts').select('id, title, subtitle').eq('assigned_to', p.id).order('created_at', { ascending: false }).limit(1).single(),
         ])
+
+        console.log(`[coach] ${p.name} — reports:`, reportsRes.data, 'error:', reportsRes.error)
+        console.log(`[coach] ${p.name} — workout_logs:`, logsRes.data?.length, 'error:', logsRes.error)
+        console.log(`[coach] ${p.name} — payment:`, paymentRes.data, 'error:', paymentRes.error)
+        console.log(`[coach] ${p.name} — mood:`, moodRes.data, 'error:', moodRes.error)
+        console.log(`[coach] ${p.name} — nutrition:`, nutritionRes.data, 'error:', nutritionRes.error)
+
         const reports = reportsRes.data || []
         return {
           id: p.id, name: p.name,

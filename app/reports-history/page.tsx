@@ -171,6 +171,64 @@ export default function ReportsHistoryPage() {
                 Отправить первый отчёт
               </button>
             </div>
+          ) : reports.length === 1 ? (
+            /* SINGLE REPORT — first report card, no chart/dynamics */
+            <>
+              <div style={glass}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#7a4a20', flexShrink: 0 }} />
+                  <div>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.6)', margin: '0 0 2px' }}>
+                      {fmtDate(reports[0].week_start)}{isThisWeek(reports[0].week_start) ? ' · эта неделя' : ''}
+                    </p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Первый отчёт</p>
+                  </div>
+                  {reports[0].weight != null && (
+                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '26px', color: '#2d1f0e', marginLeft: 'auto', lineHeight: 1 }}>
+                      {reports[0].weight} <span style={{ fontFamily: 'Chillax, sans-serif', fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Params grid */}
+                {(['chest','waist','hips','waist_navel','one_thigh','arm'] as const).some(k => reports[0][k] != null) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
+                    {(['chest','waist','hips','waist_navel','one_thigh','arm'] as const).map(key => {
+                      const val = reports[0][key]
+                      if (val == null) return null
+                      return (
+                        <div key={key} style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '10px 12px', textAlign: 'center' }}>
+                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '18px', color: '#2d1f0e', display: 'block' }}>{val}</span>
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', letterSpacing: '0.5px' }}>{PARAM_LABELS[key]}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Photos */}
+                {[reports[0].photo_front_url, reports[0].photo_side_url, reports[0].photo_back_url].some(Boolean) && (
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: reports[0].notes ? '12px' : 0 }}>
+                    {[reports[0].photo_front_url, reports[0].photo_side_url, reports[0].photo_back_url].map((url, i) =>
+                      url ? <img key={i} src={url} alt="" onClick={() => setModalUrl(url)} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', cursor: 'pointer' }} /> : null
+                    )}
+                  </div>
+                )}
+
+                {reports[0].notes && (
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', fontStyle: 'italic', margin: 0 }}>"{reports[0].notes}"</p>
+                )}
+              </div>
+
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>
+                  После следующего отчёта появится график динамики
+                </p>
+                <button onClick={() => router.push('/report')} style={{ padding: '10px 24px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}>
+                  + Новый отчёт
+                </button>
+              </div>
+            </>
           ) : (
             <>
               {/* DYNAMICS BLOCK */}
