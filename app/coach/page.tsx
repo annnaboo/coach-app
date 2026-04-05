@@ -44,6 +44,7 @@ type ClientData = {
   name: string
   lastSeen: string | null
   logs: any[]
+  reports: any[]
   report: any | null
   payment: any | null
   moodLog: any | null
@@ -130,19 +131,21 @@ export default function CoachPage() {
 
     const clientsData: ClientData[] = await Promise.all(
       profiles.map(async (p) => {
-        const [logsRes, reportRes, paymentRes, moodRes, nutritionRes, workoutRes] = await Promise.all([
-          supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', p.id).order('saved_at', { ascending: false }),
-          supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(1).single(),
+        const [logsRes, reportsRes, paymentRes, moodRes, nutritionRes, workoutRes] = await Promise.all([
+          supabase.from('workout_logs').select('*').eq('player', p.id).order('saved_at', { ascending: false }).limit(20),
+          supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(3),
           supabase.from('payments').select('*').eq('player_id', p.id).gte('period_start', monthStart).lte('period_end', monthEnd).order('period_start', { ascending: false }).limit(1).single(),
           supabase.from('mood_logs').select('*').eq('player_id', p.id).gte('logged_date', twoDaysAgo).order('logged_date', { ascending: false }).limit(1).single(),
           supabase.from('nutrition_plans').select('*').eq('player_id', p.id).single(),
           supabase.from('workouts').select('id, title, subtitle').eq('assigned_to', p.id).order('created_at', { ascending: false }).limit(1).single(),
         ])
+        const reports = reportsRes.data || []
         return {
           id: p.id, name: p.name,
           lastSeen: logsRes.data?.[0]?.saved_at || null,
           logs: logsRes.data || [],
-          report: reportRes.data || null,
+          reports,
+          report: reports[0] || null,
           payment: paymentRes.data || null,
           moodLog: moodRes.data || null,
           nutrition: nutritionRes.data || null,
@@ -151,7 +154,7 @@ export default function CoachPage() {
       })
     )
 
-    // Signed URLs for reports
+    // Signed URLs for latest report photos
     for (const c of clientsData) {
       if (!c.report) continue
       for (const key of ['photo_front', 'photo_side', 'photo_back'] as const) {
@@ -439,6 +442,22 @@ export default function CoachPage() {
             const top3 = Object.entries(maxByEx).sort(([, a], [, b]) => b - a).slice(0, 3)
             const clientMax = top3[0]?.[1] || 1
 
+            // Last workout session logs
+            const lastDate = client.logs[0]?.saved_at?.slice(0, 10)
+            const lastSessionLogs = lastDate
+              ? client.logs.filter(l => l.saved_at?.slice(0, 10) === lastDate && (l.w1 || l.reps))
+              : []
+
+            // Reports
+            const latestReport = client.report
+            const prevReport = client.reports[1] || null
+            const weightDiff = latestReport?.weight != null && prevReport?.weight != null
+              ? +(latestReport.weight - prevReport.weight).toFixed(1)
+              : null
+            const weeksBetween = latestReport && prevReport
+              ? Math.round((new Date(latestReport.week_start).getTime() - new Date(prevReport.week_start).getTime()) / (7 * 86400000))
+              : null
+
             return (
               <div key={client.id} style={glass}>
                 {/* A — HEADER */}
@@ -542,54 +561,72 @@ export default function CoachPage() {
                       <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Не задано</p>
                     )}
 
-                    {/* В — ПРОГРЕСС */}
+                    {/* В — ПОСЛЕДНЯЯ ТРЕНИРОВКА */}
                     <Divider />
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>Прогресс по весам</p>
-                    {top3.length === 0 ? (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Нет данных</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Последняя тренировка</p>
+                    {lastSessionLogs.length === 0 ? (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Тренировок ещё не было</p>
                     ) : (
-                      top3.map(([exId, weight]) => (
-                        <div key={exId} style={{ marginBottom: '12px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)' }}>{EXERCISE_NAMES[exId] || exId}</span>
-                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20' }}>{weight} кг</span>
-                          </div>
-                          <div style={{ height: '4px', borderRadius: '999px', background: 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: '999px', width: `${(weight / clientMax) * 100}%`, background: 'linear-gradient(90deg, rgba(122,74,32,0.4), #7a4a20)', transition: 'width 0.5s ease' }} />
-                          </div>
-                        </div>
-                      ))
+                      <>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '0 0 8px' }}>{fmtDate(lastDate!)}</p>
+                        {lastSessionLogs.map((l: any, i: number) => {
+                          const parts: string[] = []
+                          if (l.w1) parts.push(`П1: ${l.w1}кг`)
+                          if (l.w2) parts.push(`П2: ${l.w2}кг`)
+                          if (l.w3) parts.push(`П3: ${l.w3}кг`)
+                          if (l.reps) parts.push(`${l.reps} повт`)
+                          return (
+                            <div key={i} style={{ marginBottom: l.notes ? '6px' : '4px' }}>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.65)', margin: 0 }}>
+                                {EXERCISE_NAMES[l.exercise_id] || l.exercise_id}
+                                {parts.length > 0 && <span style={{ color: 'rgba(45,31,14,0.4)' }}> — {parts.join(' · ')}</span>}
+                              </p>
+                              {l.notes && (
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', fontStyle: 'italic', margin: '1px 0 0' }}>{l.notes}</p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </>
                     )}
 
                     {/* Г — ОТЧЁТ */}
-                    {report && (
+                    <Divider />
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>Отчёт недели</p>
+                    {!latestReport ? (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Отчёт ещё не отправлен</p>
+                    ) : (
                       <>
-                        <Divider />
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>Отчёт недели</p>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                            {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
-                              report[key] ? (
-                                <img key={i} src={report[key]} alt="" style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }} />
-                              ) : (
-                                <div key={i} style={{ width: '52px', height: '52px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /><circle cx="12" cy="13" r="4" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /></svg>
-                                </div>
-                              )
-                            ))}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
-                              {[['weight', 'кг'], ['chest', 'см'], ['waist', 'см'], ['hips', 'см'], ['waist_navel', 'см'], ['one_thigh', 'см'], ['arm', 'см']].map(([field, unit]) =>
-                                report[field] ? <span key={field} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.6)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '2px 8px' }}>{report[field]} {unit}</span> : null
-                              )}
-                            </div>
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: 0 }}>{fmtDate(report.week_start)}</p>
-                          </div>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                          {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
+                            latestReport[key] ? (
+                              <img key={i} src={latestReport[key]} alt="" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }} />
+                            ) : (
+                              <div key={i} style={{ width: '64px', height: '64px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /><circle cx="12" cy="13" r="4" stroke="rgba(45,31,14,0.2)" strokeWidth="1.5" fill="none" /></svg>
+                              </div>
+                            )
+                          ))}
                         </div>
-                        {report.notes && (
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '12px', fontStyle: 'italic', marginTop: '10px', marginBottom: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                            "{report.notes}"
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 6px', lineHeight: 1.8 }}>
+                          {[
+                            latestReport.weight != null && `Вес: ${latestReport.weight}кг`,
+                            latestReport.chest != null && `Грудь: ${latestReport.chest}см`,
+                            latestReport.waist != null && `Талия: ${latestReport.waist}см`,
+                            latestReport.waist_navel != null && `Пупок: ${latestReport.waist_navel}см`,
+                            latestReport.hips != null && `Бёдра: ${latestReport.hips}см`,
+                            latestReport.one_thigh != null && `Бедро: ${latestReport.one_thigh}см`,
+                            latestReport.arm != null && `Рука: ${latestReport.arm}см`,
+                          ].filter(Boolean).join(' · ')}
+                        </p>
+                        {latestReport.notes && (
+                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '12px', fontStyle: 'italic', margin: '0 0 6px' }}>
+                            "{latestReport.notes}"
+                          </p>
+                        )}
+                        {weightDiff !== null && weeksBetween !== null && (
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: weightDiff <= 0 ? '#1a7a3c' : '#8a2520', margin: 0 }}>
+                            {weightDiff > 0 ? `+${weightDiff}` : `${weightDiff}`}кг за {weeksBetween} {weeksBetween === 1 ? 'неделю' : 'недели'}
                           </p>
                         )}
                       </>
