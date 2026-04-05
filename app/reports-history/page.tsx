@@ -105,7 +105,7 @@ function WeightChart({ reports }: { reports: Report[] }) {
           Сейчас: <strong style={{ color: '#2d1f0e' }}>{last}кг</strong>
         </span>
         <span style={{ color: 'rgba(45,31,14,0.25)', fontSize: '10px' }}>→</span>
-        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: diffColor, fontWeight: 500 }}>
+        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '12px', color: diffColor }}>
           {diffStr}кг
         </span>
       </div>
