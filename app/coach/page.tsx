@@ -135,15 +135,19 @@ export default function CoachPage() {
         const [logsRes, reportsRes, paymentRes, moodRes, nutritionRes, workoutRes] = await Promise.all([
           supabase.from('workout_logs').select('*').eq('player', p.id).order('saved_at', { ascending: false }).limit(30),
           supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(5),
-          supabase.from('payments').select('*').eq('player_id', p.id).order('created_at', { ascending: false }).limit(1).single(),
-          supabase.from('mood_logs').select('*').eq('player_id', p.id).order('logged_date', { ascending: false }).limit(1).single(),
+          supabase.from('payments').select('*').eq('player_id', p.id).order('created_at', { ascending: false }).limit(1),
+          supabase.from('mood_logs').select('*').eq('player_id', p.id).order('logged_date', { ascending: false }).limit(1),
           supabase.from('nutrition_plans').select('*').eq('player_id', p.id).single(),
           supabase.from('workouts').select('id, title, subtitle').eq('assigned_to', p.id).order('created_at', { ascending: false }).limit(1).single(),
         ])
 
+        const payment = paymentRes.data?.[0] || null
+        const moodLog = moodRes.data?.[0] || null
+
         console.log(`[coach] ${p.name} — reports:`, reportsRes.data?.length ?? 0, reportsRes.error?.message ?? 'ok')
         console.log(`[coach] ${p.name} — logs:`, logsRes.data?.length ?? 0, logsRes.error?.message ?? 'ok')
-        console.log(`[coach] ${p.name} — payment:`, paymentRes.data?.id ?? 'none', paymentRes.error?.message ?? 'ok')
+        console.log(`[coach] ${p.name} — payment:`, payment?.id ?? 'none', paymentRes.error?.message ?? 'ok')
+        console.log(`[coach] ${p.name} — mood:`, moodLog?.id ?? 'none', moodRes.error?.message ?? 'ok')
 
         const reports = reportsRes.data || []
         return {
@@ -152,8 +156,8 @@ export default function CoachPage() {
           logs: logsRes.data || [],
           reports,
           report: reports[0] || null,
-          payment: paymentRes.data || null,
-          moodLog: moodRes.data || null,
+          payment,
+          moodLog,
           nutrition: nutritionRes.data || null,
           assignedWorkout: workoutRes.data || null,
         }
