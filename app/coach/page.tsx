@@ -173,7 +173,7 @@ export default function CoachPage() {
     setTotalReports(rCount || 0)
 
     const paid = clientsData.filter(c => c.payment?.paid === true).length
-    const total = clientsData.filter(c => c.payment !== null).length
+    const total = profiles.length
     setPayments({ paid, total })
 
     // Init nutrition forms

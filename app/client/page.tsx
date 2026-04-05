@@ -187,9 +187,14 @@ export default function ClientPage() {
                 Your personal training story
               </p>
             </div>
-            <button onClick={handleLogout} style={{ marginTop: '8px', background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 20px', cursor: 'pointer' }}>
-              Выйти
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button onClick={() => router.push('/settings')} style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 14px', cursor: 'pointer' }}>
+                ⚙️
+              </button>
+              <button onClick={handleLogout} style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 20px', cursor: 'pointer' }}>
+                Выйти
+              </button>
+            </div>
           </div>
 
           {/* WEEK CALENDAR */}
