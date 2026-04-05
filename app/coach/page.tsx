@@ -103,7 +103,7 @@ export default function CoachPage() {
   const [inviteName, setInviteName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteSending, setInviteSending] = useState(false)
-  const [inviteSuccess, setInviteSuccess] = useState('')
+  const [inviteSuccess, setInviteSuccess] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const router = useRouter()
 
@@ -228,23 +228,23 @@ export default function CoachPage() {
     if (!inviteName.trim() || !inviteEmail.trim()) return
     setInviteSending(true)
     setInviteError('')
-    setInviteSuccess('')
     const res = await fetch('/api/invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: inviteEmail.trim(), name: inviteName.trim() }),
     })
-    const json = await res.json()
-    if (!res.ok) {
-      setInviteError(json.error || 'Ошибка при отправке')
+    const data = await res.json()
+    if (data.success) {
+      setInviteSuccess(true)
+      setTimeout(() => {
+        setShowInviteForm(false)
+        setInviteSuccess(false)
+        window.location.reload()
+      }, 2000)
+    } else {
+      setInviteError(data.error || 'Ошибка при отправке')
       setInviteSending(false)
-      return
     }
-    setInviteSuccess(`Приглашение отправлено на ${inviteEmail.trim()}`)
-    setInviteName('')
-    setInviteEmail('')
-    setInviteSending(false)
-    loadData()
   }
 
   async function handleLogout() {
@@ -310,29 +310,31 @@ export default function CoachPage() {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
             <button
               onClick={() => router.push('/coach/workout/new')}
               style={{
-                padding: '13px', borderRadius: '999px',
-                background: '#7a4a20', color: '#fff', border: 'none',
-                fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
-                cursor: 'pointer', letterSpacing: '0.3px',
+                position: 'relative', overflow: 'hidden', borderRadius: '999px',
+                padding: '10px 20px', border: 'none', cursor: 'pointer',
+                fontFamily: 'Chillax, sans-serif', fontSize: '13px', fontWeight: 500, color: '#fff',
+                background: 'transparent',
               }}
             >
-              + Тренировку
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(122,74,32,0.85)', borderRadius: '999px' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%)', borderRadius: '999px' }} />
+              <span style={{ position: 'relative' }}>+ Создать тренировку</span>
             </button>
             <button
-              onClick={() => { setShowInviteForm(v => !v); setInviteSuccess(''); setInviteError('') }}
+              onClick={() => { setShowInviteForm(v => !v); setInviteSuccess(false); setInviteError('') }}
               style={{
-                padding: '13px', borderRadius: '999px',
-                background: showInviteForm ? 'rgba(122,74,32,0.15)' : 'rgba(122,74,32,0.1)',
-                color: '#7a4a20', border: '1px solid rgba(122,74,32,0.2)',
-                fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
-                cursor: 'pointer', letterSpacing: '0.3px',
+                position: 'relative', overflow: 'hidden', borderRadius: '999px',
+                padding: '10px 20px', border: '1px solid rgba(122,74,32,0.3)', cursor: 'pointer',
+                fontFamily: 'Chillax, sans-serif', fontSize: '13px', fontWeight: 500, color: '#7a4a20',
+                background: 'rgba(122,74,32,0.4)',
               }}
             >
-              + Клиента
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%)', borderRadius: '999px' }} />
+              <span style={{ position: 'relative' }}>+ Добавить клиента</span>
             </button>
           </div>
 
@@ -342,67 +344,72 @@ export default function CoachPage() {
               ...glass,
               marginBottom: '16px',
             }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>
-                Пригласить клиента
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="Имя клиента"
-                  value={inviteName}
-                  onChange={e => setInviteName(e.target.value)}
-                  style={{
-                    width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none',
-                    borderRadius: '999px', padding: '11px 18px',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                    color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
-                  }}
-                />
-                <input
-                  type="email"
-                  placeholder="Email клиента"
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  style={{
-                    width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none',
-                    borderRadius: '999px', padding: '11px 18px',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                    color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
-                  }}
-                />
-                {inviteError && (
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#8a2520', margin: 0 }}>{inviteError}</p>
-                )}
-                {inviteSuccess && (
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#1a7a3c', margin: 0 }}>{inviteSuccess}</p>
-                )}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={sendInvite}
-                    disabled={inviteSending || !inviteName.trim() || !inviteEmail.trim()}
+              <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 16px' }}>
+                Новый клиент
+              </h3>
+              {inviteSuccess ? (
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#1a7a3c', margin: 0, textAlign: 'center', padding: '8px 0' }}>
+                  Приглашение отправлено на {inviteEmail}
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="Имя"
+                    value={inviteName}
+                    onChange={e => setInviteName(e.target.value)}
                     style={{
-                      flex: 1, padding: '11px', borderRadius: '999px',
-                      background: inviteName.trim() && inviteEmail.trim() ? '#7a4a20' : 'rgba(122,74,32,0.3)',
-                      color: '#fff', border: 'none',
-                      fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px',
-                      cursor: inviteSending || !inviteName.trim() || !inviteEmail.trim() ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {inviteSending ? 'Отправляем...' : 'Отправить приглашение'}
-                  </button>
-                  <button
-                    onClick={() => { setShowInviteForm(false); setInviteSuccess(''); setInviteError('') }}
-                    style={{
-                      padding: '11px 18px', borderRadius: '999px',
-                      background: 'rgba(0,0,0,0.05)', color: 'rgba(45,31,14,0.5)', border: 'none',
+                      width: '100%', background: 'rgba(255,255,255,0.6)',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      borderRadius: '999px', padding: '12px 18px',
                       fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                      cursor: 'pointer',
+                      color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
                     }}
-                  >
-                    Отмена
-                  </button>
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={inviteEmail}
+                    onChange={e => setInviteEmail(e.target.value)}
+                    style={{
+                      width: '100%', background: 'rgba(255,255,255,0.6)',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      borderRadius: '999px', padding: '12px 18px',
+                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
+                      color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                  {inviteError && (
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#8a2520', margin: 0 }}>{inviteError}</p>
+                  )}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={sendInvite}
+                      disabled={inviteSending || !inviteName.trim() || !inviteEmail.trim()}
+                      style={{
+                        flex: 1, padding: '12px', borderRadius: '999px',
+                        background: '#7a4a20', color: '#fff', border: 'none',
+                        fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px',
+                        cursor: inviteSending || !inviteName.trim() || !inviteEmail.trim() ? 'not-allowed' : 'pointer',
+                        opacity: inviteSending || !inviteName.trim() || !inviteEmail.trim() ? 0.5 : 1,
+                      }}
+                    >
+                      {inviteSending ? 'Отправляем...' : 'Отправить приглашение'}
+                    </button>
+                    <button
+                      onClick={() => { setShowInviteForm(false); setInviteError('') }}
+                      style={{
+                        padding: '12px 18px', borderRadius: '999px',
+                        background: 'rgba(0,0,0,0.05)', color: 'rgba(45,31,14,0.5)', border: 'none',
+                        fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Отмена
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
