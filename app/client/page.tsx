@@ -62,10 +62,17 @@ export default function ClientPage() {
   const [weekSchedule, setWeekSchedule] = useState<Record<string, Workout>>({})
   const [schedulingDay, setSchedulingDay] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [program, setProgram] = useState<{ title: string; workout_ids: string[]; start_date: string } | null>(null)
+  const [programWorkouts, setProgramWorkouts] = useState<Record<string, Workout>>({})
+  const [swapReason, setSwapReason] = useState('')
+  const [showSwapForm, setShowSwapForm] = useState(false)
+  const [swapSent, setSwapSent] = useState(false)
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
-  const todayWorkout = weekSchedule[today] || null
+  const programTodayId = program && programWorkouts ? Object.keys(programWorkouts)[0] : null
+  const programTodayWorkout = programTodayId ? programWorkouts[programTodayId] : null
+  const todayWorkout = weekSchedule[today] || programTodayWorkout || null
 
   useEffect(() => {
     const supabase = createClient()
@@ -84,13 +91,14 @@ export default function ClientPage() {
       const weekStartStr = weekStart.toISOString().slice(0, 10)
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
         supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
         supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
+        supabase.from('programs').select('title, workout_ids, start_date').contains('assigned_to', [data.user.id]).eq('is_active', true).order('start_date', { ascending: false }).limit(1),
       ])
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
@@ -120,6 +128,21 @@ export default function ClientPage() {
         if (s.workouts) schedMap[s.scheduled_date] = s.workouts
       })
       setWeekSchedule(schedMap)
+
+      // Program-based workout
+      const prog = programsRes.data?.[0] || null
+      if (prog && Array.isArray(prog.workout_ids) && prog.workout_ids.length > 0) {
+        setProgram(prog)
+        const startDate = new Date(prog.start_date)
+        const todayDate = new Date()
+        const weekOffset = Math.max(0, Math.floor((todayDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
+        const workoutIndex = weekOffset % prog.workout_ids.length
+        const thisWeekId = prog.workout_ids[workoutIndex]
+        const found = (workoutsRes.data || []).find((w: any) => w.id === thisWeekId)
+        if (found) {
+          setProgramWorkouts({ [thisWeekId]: found })
+        }
+      }
 
       setProfile(prof)
       setLogs(logsRes.data || [])
@@ -157,6 +180,19 @@ export default function ClientPage() {
     await supabase.from('workout_schedule').delete().eq('player_id', userId).eq('scheduled_date', dateStr)
     setWeekSchedule(prev => { const n = { ...prev }; delete n[dateStr]; return n })
     setSchedulingDay(null)
+  }
+
+  async function sendSwapRequest() {
+    if (!userId || !todayWorkout) return
+    const supabase = createClient()
+    await supabase.from('workout_swap_requests').insert({
+      player_id: userId,
+      current_workout_id: todayWorkout.id,
+      reason: swapReason,
+      status: 'pending',
+    })
+    setSwapSent(true)
+    setShowSwapForm(false)
   }
 
   // Stats
@@ -379,6 +415,11 @@ export default function ClientPage() {
             {todayWorkout ? (
               <>
                 <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: '0 0 4px' }}>{todayWorkout.title}</h2>
+                {program && (
+                  <span style={{ display: 'inline-flex', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', borderRadius: '999px', padding: '2px 10px', fontSize: '10px', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, marginBottom: '16px', marginTop: '-4px' }}>
+                    Программа: {program.title}
+                  </span>
+                )}
                 {todayWorkout.subtitle && (
                   <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '14px', margin: '0 0 20px' }}>{todayWorkout.subtitle}</p>
                 )}
@@ -401,6 +442,33 @@ export default function ClientPage() {
                   <span style={{ position: 'absolute', inset: 0, borderRadius: '999px', background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)', pointerEvents: 'none', zIndex: 1 }} />
                   <span style={{ position: 'relative', zIndex: 2 }}>Открыть тренировку</span>
                 </button>
+                {/* Swap request */}
+                <div style={{ marginTop: '10px' }}>
+                  {swapSent ? (
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#1a7a3c', margin: 0 }}>✓ Запрос отправлен тренеру</p>
+                  ) : showSwapForm ? (
+                    <div style={{ marginTop: '8px' }}>
+                      <input
+                        type="text"
+                        value={swapReason}
+                        onChange={e => setSwapReason(e.target.value)}
+                        placeholder="Причина (необязательно)"
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '9px 16px', fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none', boxSizing: 'border-box', marginBottom: '8px' }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={sendSwapRequest} style={{ flex: 1, padding: '9px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontSize: '13px', cursor: 'pointer' }}>Отправить</button>
+                        <button onClick={() => setShowSwapForm(false)} style={{ padding: '9px 16px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', color: 'rgba(45,31,14,0.5)', border: 'none', fontFamily: 'Chillax, sans-serif', fontSize: '13px', cursor: 'pointer' }}>Отмена</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowSwapForm(true)}
+                      style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.35)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                    >
+                      Запросить замену тренировки
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>

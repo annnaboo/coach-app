@@ -116,6 +116,8 @@ export default function CoachPage() {
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const router = useRouter()
+  const [swapRequests, setSwapRequests] = useState<any[]>([])
+  const [swapRequestCount, setSwapRequestCount] = useState(0)
 
   async function loadData() {
     const supabase = createClient()
@@ -214,6 +216,21 @@ export default function CoachPage() {
     setNutritionForms(forms)
 
     setClients(clientsData)
+
+    const { data: swapReqData } = await supabase
+      .from('workout_swap_requests')
+      .select('id, player_id, reason, status, created_at, current_workout_id')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+
+    const swapWithNames = (swapReqData || []).map((req: any) => ({
+      ...req,
+      player_name: profiles.find((p: any) => p.id === req.player_id)?.name || 'Клиент',
+      current_workout_title: allWorkouts.find((w: any) => w.id === req.current_workout_id)?.title || '—',
+    }))
+    setSwapRequests(swapWithNames)
+    setSwapRequestCount(swapWithNames.length)
+
     setLoading(false)
   }
 
@@ -361,6 +378,13 @@ export default function CoachPage() {
     setClients(prev => prev.map(c => c.assignedWorkout?.id === workoutId ? { ...c, assignedWorkout: null } : c))
   }
 
+  async function dismissSwap(id: string) {
+    const supabase = createClient()
+    await supabase.from('workout_swap_requests').update({ status: 'reviewed' }).eq('id', id)
+    setSwapRequests(prev => prev.filter(r => r.id !== id))
+    setSwapRequestCount(prev => Math.max(0, prev - 1))
+  }
+
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -451,6 +475,12 @@ export default function CoachPage() {
               Все тренировки ({workoutsList.length})
             </button>
             <button
+              onClick={() => router.push('/coach/programs/new')}
+              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+            >
+              + Программа
+            </button>
+            <button
               onClick={() => { setShowInviteForm(v => !v); setInviteSuccess(false); setInviteError('') }}
               style={{
                 position: 'relative', overflow: 'hidden', borderRadius: '999px',
@@ -536,6 +566,32 @@ export default function CoachPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* SWAP REQUESTS */}
+          {swapRequests.length > 0 && (
+            <div style={{ ...glass, marginBottom: '16px', borderLeft: '3px solid rgba(122,74,32,0.4)' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>
+                Запросы на замену тренировки · {swapRequests.length}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {swapRequests.map(req => (
+                  <div key={req.id} style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#2d1f0e', margin: '0 0 2px' }}>{req.player_name}</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
+                      {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
+                    </div>
+                    <button
+                      onClick={() => dismissSwap(req.id)}
+                      style={{ flexShrink: 0, padding: '4px 12px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', border: 'none', color: 'rgba(45,31,14,0.4)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                    >
+                      Просмотрено
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
