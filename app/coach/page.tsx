@@ -104,6 +104,10 @@ export default function CoachPage() {
   const [addingPayment, setAddingPayment] = useState<string | null>(null)
   const [paymentForms, setPaymentForms] = useState<Record<string, { period_start: string; period_end: string; amount: string; paid: boolean }>>({})
   const [savingPayment, setSavingPayment] = useState<string | null>(null)
+  // Starter report
+  const [addingStarterReport, setAddingStarterReport] = useState<string | null>(null)
+  const [starterForms, setStarterForms] = useState<Record<string, { date: string; weight: string; chest: string; waist: string; waist_navel: string; hips: string; one_thigh: string; arm: string; notes: string }>>({})
+  const [savingStarterReport, setSavingStarterReport] = useState<string | null>(null)
   // Invite client
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteName, setInviteName] = useState('')
@@ -235,6 +239,8 @@ export default function CoachPage() {
       fat: parseFloat(form.fat) || null,
       carbs: parseFloat(form.carbs) || null,
       notes: form.notes || null,
+      created_by: coachId,
+      updated_at: new Date().toISOString(),
     }, { onConflict: 'player_id' })
     // Update local state
     setClients(prev => prev.map(c => c.id === clientId ? {
@@ -247,7 +253,34 @@ export default function CoachPage() {
   async function assignWorkout(clientId: string, workoutId: string) {
     setSavingWorkout(clientId)
     const supabase = createClient()
-    await supabase.from('workouts').update({ assigned_to: clientId }).eq('id', workoutId)
+
+    // Remove client from their previous workout first
+    const prevWorkout = clients.find(c => c.id === clientId)?.assignedWorkout
+    if (prevWorkout && prevWorkout.id !== workoutId) {
+      const { data: prevData } = await supabase.from('workouts').select('assigned_to_multiple').eq('id', prevWorkout.id).single()
+      const prevArr = (prevData?.assigned_to_multiple || []).filter((id: string) => id !== clientId)
+      await supabase.from('workouts').update({ assigned_to_multiple: prevArr }).eq('id', prevWorkout.id)
+    }
+
+    // Add client to new workout's assigned_to_multiple
+    const { data: workoutData } = await supabase.from('workouts').select('assigned_to_multiple').eq('id', workoutId).single()
+    const current = workoutData?.assigned_to_multiple || []
+    if (!current.includes(clientId)) {
+      await supabase.from('workouts').update({ assigned_to_multiple: [...current, clientId] }).eq('id', workoutId)
+    }
+
+    // Update local workoutsList
+    setWorkoutsList(prev => prev.map(w => {
+      if (w.id === workoutId) {
+        const arr = w.assigned_to_multiple || []
+        return { ...w, assigned_to_multiple: arr.includes(clientId) ? arr : [...arr, clientId] }
+      }
+      if (prevWorkout && w.id === prevWorkout.id) {
+        return { ...w, assigned_to_multiple: (w.assigned_to_multiple || []).filter((id: string) => id !== clientId) }
+      }
+      return w
+    }))
+
     const workout = workoutsList.find(w => w.id === workoutId)
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, assignedWorkout: workout || null } : c))
     setAssigningWorkout(null)
@@ -293,6 +326,31 @@ export default function CoachPage() {
     if (data?.paid) setPayments(prev => ({ ...prev, paid: prev.paid + 1 }))
     setAddingPayment(null)
     setSavingPayment(null)
+  }
+
+  async function saveStarterReport(clientId: string) {
+    const form = starterForms[clientId]
+    if (!form?.date) return
+    setSavingStarterReport(clientId)
+    const supabase = createClient()
+    const { data, error } = await supabase.from('weekly_reports').insert({
+      player_id: clientId,
+      week_start: form.date,
+      weight: form.weight ? parseFloat(form.weight) : null,
+      chest: form.chest ? parseFloat(form.chest) : null,
+      waist: form.waist ? parseFloat(form.waist) : null,
+      waist_navel: form.waist_navel ? parseFloat(form.waist_navel) : null,
+      hips: form.hips ? parseFloat(form.hips) : null,
+      one_thigh: form.one_thigh ? parseFloat(form.one_thigh) : null,
+      arm: form.arm ? parseFloat(form.arm) : null,
+      notes: form.notes || null,
+    }).select().single()
+    if (error) { alert('Ошибка: ' + error.message); setSavingStarterReport(null); return }
+    setClients(prev => prev.map(c => c.id === clientId ? {
+      ...c, report: data, reports: [data, ...c.reports]
+    } : c))
+    setAddingStarterReport(null)
+    setSavingStarterReport(null)
   }
 
   async function deleteWorkout(workoutId: string) {
@@ -706,10 +764,72 @@ export default function CoachPage() {
 
                     {/* Г — ОТЧЁТ */}
                     <Divider />
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Отчёт недели</p>
-                    {!latestReport ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Отчёт недели</p>
+                      {!latestReport && (
+                        <button
+                          onClick={() => {
+                            const today = new Date().toISOString().slice(0, 10)
+                            if (!starterForms[client.id]) setStarterForms(prev => ({ ...prev, [client.id]: { date: today, weight: '', chest: '', waist: '', waist_navel: '', hips: '', one_thigh: '', arm: '', notes: '' } }))
+                            setAddingStarterReport(addingStarterReport === client.id ? null : client.id)
+                          }}
+                          style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}
+                        >
+                          {addingStarterReport === client.id ? 'Отмена' : '+ Стартовый отчёт'}
+                        </button>
+                      )}
+                    </div>
+                    {!latestReport && addingStarterReport === client.id && (
+                      <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginBottom: '10px' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ marginBottom: '8px' }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Дата</p>
+                          <input type="date" value={starterForms[client.id]?.date || ''} onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], date: e.target.value } }))} style={{ ...inputSm }} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          {[
+                            { key: 'weight', label: 'Вес (кг)' },
+                            { key: 'chest', label: 'Грудь (см)' },
+                            { key: 'waist', label: 'Талия (см)' },
+                            { key: 'waist_navel', label: 'Пупок (см)' },
+                            { key: 'hips', label: 'Бёдра (см)' },
+                            { key: 'one_thigh', label: 'Бедро (см)' },
+                            { key: 'arm', label: 'Рука (см)' },
+                          ].map(({ key, label }) => (
+                            <div key={key}>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
+                              <input
+                                type="number"
+                                className="no-spin"
+                                placeholder="—"
+                                value={(starterForms[client.id] as any)?.[key] || ''}
+                                onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], [key]: e.target.value } }))}
+                                style={inputSm}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginBottom: '10px' }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Заметки</p>
+                          <textarea
+                            value={starterForms[client.id]?.notes || ''}
+                            onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], notes: e.target.value } }))}
+                            placeholder="Стартовые показатели..."
+                            rows={2}
+                            style={{ ...inputSm, borderRadius: '10px', resize: 'none', lineHeight: 1.5 }}
+                          />
+                        </div>
+                        <button
+                          onClick={() => saveStarterReport(client.id)}
+                          disabled={savingStarterReport === client.id}
+                          style={{ padding: '7px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          {savingStarterReport === client.id ? 'Сохраняем...' : 'Сохранить отчёт'}
+                        </button>
+                      </div>
+                    )}
+                    {!latestReport && addingStarterReport !== client.id ? (
                       <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Отчёт ещё не отправлен</p>
-                    ) : (() => {
+                    ) : latestReport ? (() => {
                       // Spark line from reports
                       const sparkWeights = client.reports.filter((r: any) => r.weight != null).map((r: any) => r.weight as number).reverse()
                       let sparkSvg = null
@@ -773,7 +893,7 @@ export default function CoachPage() {
                           )}
                         </>
                       )
-                    })()}
+                    })() : null}
 
                     {/* Д — НАСТРОЕНИЕ */}
                     {mood && (
