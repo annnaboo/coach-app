@@ -126,28 +126,45 @@ export default function CoachPage() {
     const { data: profiles } = await supabase.from('profiles').select('id, name').eq('role', 'client')
     if (!profiles) { setLoading(false); return }
 
-    // Load workouts list for assignment
-    const { data: wList } = await supabase.from('workouts').select('id, title, subtitle').order('created_at', { ascending: false })
-    setWorkoutsList(wList || [])
+    // Load workouts list once for assignment UI + client tags
+    const { data: allWorkoutsData } = await supabase
+      .from('workouts')
+      .select('id, title, subtitle, assigned_to_multiple')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+
+    const allWorkouts = allWorkoutsData || []
+    setWorkoutsList(allWorkouts)
+
+    // Helper: find workout assigned to a specific client (personal first, then "for all")
+    const getClientWorkout = (clientId: string) => {
+      const personal = allWorkouts.find(w =>
+        Array.isArray(w.assigned_to_multiple) && w.assigned_to_multiple.includes(clientId)
+      )
+      if (personal) return personal
+      const forAll = allWorkouts.find(w =>
+        !w.assigned_to_multiple || w.assigned_to_multiple.length === 0
+      )
+      return forAll || null
+    }
 
     const clientsData: ClientData[] = await Promise.all(
       profiles.map(async (p) => {
-        const [logsRes, reportsRes, paymentRes, moodRes, nutritionRes, workoutRes] = await Promise.all([
+        const [logsRes, reportsRes, paymentRes, moodRes, nutritionRes] = await Promise.all([
           supabase.from('workout_logs').select('*').eq('player', p.id).order('saved_at', { ascending: false }).limit(30),
           supabase.from('weekly_reports').select('*').eq('player_id', p.id).order('week_start', { ascending: false }).limit(5),
           supabase.from('payments').select('*').eq('player_id', p.id).order('created_at', { ascending: false }).limit(1),
           supabase.from('mood_logs').select('*').eq('player_id', p.id).order('logged_date', { ascending: false }).limit(1),
           supabase.from('nutrition_plans').select('*').eq('player_id', p.id).single(),
-          supabase.from('workouts').select('id, title, subtitle').eq('assigned_to', p.id).order('created_at', { ascending: false }).limit(1).single(),
         ])
 
         const payment = paymentRes.data?.[0] || null
         const moodLog = moodRes.data?.[0] || null
+        const assignedWorkout = getClientWorkout(p.id)
 
         console.log(`[coach] ${p.name} — reports:`, reportsRes.data?.length ?? 0, reportsRes.error?.message ?? 'ok')
         console.log(`[coach] ${p.name} — logs:`, logsRes.data?.length ?? 0, logsRes.error?.message ?? 'ok')
-        console.log(`[coach] ${p.name} — payment:`, payment?.id ?? 'none', paymentRes.error?.message ?? 'ok')
-        console.log(`[coach] ${p.name} — mood:`, moodLog?.id ?? 'none', moodRes.error?.message ?? 'ok')
+        console.log(`[coach] ${p.name} — workout:`, assignedWorkout?.title ?? 'none')
 
         const reports = reportsRes.data || []
         return {
@@ -159,7 +176,7 @@ export default function CoachPage() {
           payment,
           moodLog,
           nutrition: nutritionRes.data || null,
-          assignedWorkout: workoutRes.data || null,
+          assignedWorkout,
         }
       })
     )
@@ -514,7 +531,20 @@ export default function CoachPage() {
                     {client.name[0]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '17px', margin: '0 0 2px' }}>{client.name}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                      <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '17px', margin: 0 }}>{client.name}</h3>
+                      {assignedWorkout && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center',
+                          background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)',
+                          borderRadius: '999px', padding: '2px 10px',
+                          fontSize: '10px', color: '#7a4a20',
+                          fontFamily: 'Chillax, sans-serif', fontWeight: 300, flexShrink: 0,
+                        }}>
+                          {assignedWorkout.title}
+                        </span>
+                      )}
+                    </div>
                     <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', margin: 0, color: inactive ? '#8a2520' : 'rgba(45,31,14,0.4)' }}>
                       {client.lastSeen ? (inactive ? `Не заходила ${daysOff} дн.` : `Активна ${fmtDate(client.lastSeen)}`) : 'Ещё нет записей'}
                     </p>

@@ -81,25 +81,31 @@ export default function ReportsHistoryPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { router.push('/'); return }
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { router.push('/'); return }
+      const userId = user.id
 
-      const { data: rows } = await supabase
+      const { data: rows, error } = await supabase
         .from('weekly_reports')
         .select('*')
-        .eq('player_id', data.user.id)
+        .eq('player_id', userId)
         .order('week_start', { ascending: false })
+
+      console.log('Reports:', rows?.length ?? 0, 'Error:', error?.message ?? 'none', 'UserId:', userId)
 
       if (!rows || rows.length === 0) { setLoading(false); return }
 
+      const getUrl = async (path: string | null): Promise<string | null> => {
+        if (!path) return null
+        if (path.startsWith('http')) return path
+        const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600)
+        return s?.signedUrl || null
+      }
+
       for (const row of rows) {
-        for (const key of ['photo_front', 'photo_side', 'photo_back'] as const) {
-          const path = row[key]
-          if (path) {
-            const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600)
-            if (s) row[`${key}_url`] = s.signedUrl
-          }
-        }
+        row.photo_front_url = await getUrl(row.photo_front)
+        row.photo_side_url = await getUrl(row.photo_side)
+        row.photo_back_url = await getUrl(row.photo_back)
       }
 
       setReports(rows)
