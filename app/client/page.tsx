@@ -395,7 +395,7 @@ export default function ClientPage() {
                   </div>
                 )}
                 <button
-                  onClick={() => router.push('/workout/2')}
+                  onClick={() => router.push(todayWorkout.id ? `/workout/${todayWorkout.id}` : '/workout/2')}
                   style={{ position: 'relative', overflow: 'hidden', borderRadius: '999px', background: '#7a4a20', border: 'none', color: '#ffffff', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '15px', padding: '12px 28px', cursor: 'pointer' }}
                 >
                   <span style={{ position: 'absolute', inset: 0, borderRadius: '999px', background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)', pointerEvents: 'none', zIndex: 1 }} />
