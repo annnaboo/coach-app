@@ -56,7 +56,8 @@ export default function AllWorkoutsPage() {
   async function deleteWorkout(id: string) {
     if (!confirm('Удалить тренировку?')) return
     const supabase = createClient()
-    await supabase.from('workouts').delete().eq('id', id)
+    const { error } = await supabase.from('workouts').delete().eq('id', id)
+    if (error) { alert('Ошибка: ' + error.message); return }
     setWorkouts(prev => prev.filter(w => w.id !== id))
   }
 
@@ -129,12 +130,20 @@ export default function AllWorkoutsPage() {
                       </span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => deleteWorkout(w.id)}
-                    style={{ background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.15)', borderRadius: '999px', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer', flexShrink: 0, marginLeft: '12px' }}
-                  >
-                    Удалить
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>
+                    <button
+                      onClick={() => router.push(`/coach/workout/edit/${w.id}`)}
+                      style={{ background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', borderRadius: '999px', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
+                    >
+                      Изменить
+                    </button>
+                    <button
+                      onClick={() => deleteWorkout(w.id)}
+                      style={{ background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.15)', borderRadius: '999px', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
+                    >
+                      Удалить
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

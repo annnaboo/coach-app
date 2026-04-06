@@ -89,7 +89,7 @@ export default function ClientPage() {
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
         supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
-        supabase.from('workouts').select('id, title, subtitle, exercises').or(`assigned_to_multiple.cs.{${data.user.id}},assigned_to_multiple.eq.{}`).order('created_at', { ascending: false }),
+        supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
       ])
 
@@ -104,7 +104,15 @@ export default function ClientPage() {
       }
 
       if (nutritionRes.data) setNutrition(nutritionRes.data)
-      setWorkouts(workoutsRes.data || [])
+
+      // Filter workouts for this client: [] = all, or array contains userId
+      const allWorkouts = workoutsRes.data || []
+      const myWorkouts = allWorkouts.filter((w: any) =>
+        !w.assigned_to_multiple ||
+        w.assigned_to_multiple.length === 0 ||
+        w.assigned_to_multiple.includes(data.user.id)
+      )
+      setWorkouts(myWorkouts)
 
       // Build weekSchedule map: date → workout
       const schedMap: Record<string, Workout> = {}

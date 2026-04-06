@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const glass: React.CSSProperties = {
@@ -55,10 +55,13 @@ function newExercise(): Exercise {
 
 type ClientProfile = { id: string; name: string }
 
-export default function NewWorkoutPage() {
+export default function EditWorkoutPage() {
+  const params = useParams()
+  const workoutId = params.id as string
+
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
-  const [assignedToMultiple, setAssignedToMultiple] = useState<string[]>([])
+  const [selectedClients, setSelectedClients] = useState<string[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([newExercise()])
   const [clients, setClients] = useState<ClientProfile[]>([])
   const [loading, setLoading] = useState(false)
@@ -72,11 +75,29 @@ export default function NewWorkoutPage() {
       const { data: prof } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
       if (prof?.role !== 'coach') { router.push('/client'); return }
 
-      const { data: clientsList } = await supabase.from('profiles').select('id, name').eq('role', 'client').order('name')
-      setClients(clientsList || [])
+      const [workoutRes, clientsRes] = await Promise.all([
+        supabase.from('workouts').select('*').eq('id', workoutId).single(),
+        supabase.from('profiles').select('id, name').eq('role', 'client').order('name'),
+      ])
+
+      if (workoutRes.data) {
+        const w = workoutRes.data
+        setTitle(w.title || '')
+        setSubtitle(w.subtitle || '')
+        setSelectedClients(w.assigned_to_multiple || [])
+
+        let exs: Exercise[] = []
+        try {
+          const raw = Array.isArray(w.exercises) ? w.exercises : JSON.parse(w.exercises || '[]')
+          exs = raw.map((e: any) => ({ id: Math.random().toString(36).slice(2), name: e.name || '', muscleGroup: e.muscleGroup || '', sets: e.sets || '', reps: e.reps || '', description: e.description || '', youtube: e.youtube || '' }))
+        } catch {}
+        setExercises(exs.length > 0 ? exs : [newExercise()])
+      }
+
+      setClients(clientsRes.data || [])
       setAuthChecked(true)
     })
-  }, [])
+  }, [workoutId])
 
   function updateExercise(id: string, field: keyof Exercise, value: string) {
     setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, [field]: value } : ex))
@@ -86,25 +107,28 @@ export default function NewWorkoutPage() {
     setExercises(prev => prev.filter(ex => ex.id !== id))
   }
 
+  function toggleClient(clientId: string) {
+    setSelectedClients(prev =>
+      prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]
+    )
+  }
+
   async function handleSave() {
     if (!title.trim()) return
     setLoading(true)
     const supabase = createClient()
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData.user) { setLoading(false); return }
 
     const exercisesPayload = exercises
       .filter(ex => ex.name.trim())
       .map(({ id: _, ...rest }) => rest)
 
-    const { error } = await supabase.from('workouts').insert({
+    const { error } = await supabase.from('workouts').update({
       title: title.trim(),
       subtitle: subtitle.trim() || null,
       exercises: exercisesPayload,
-      assigned_to_multiple: assignedToMultiple,
-      created_by: authData.user.id,
+      assigned_to_multiple: selectedClients,
       is_active: true,
-    })
+    }).eq('id', workoutId)
 
     if (error) { alert('Ошибка: ' + error.message); setLoading(false); return }
     router.push('/coach/workouts')
@@ -128,7 +152,7 @@ export default function NewWorkoutPage() {
           {/* HEADER */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <button
-              onClick={() => router.push('/coach')}
+              onClick={() => router.push('/coach/workouts')}
               style={{
                 background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
                 border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
@@ -140,10 +164,10 @@ export default function NewWorkoutPage() {
             </button>
             <div>
               <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: 0 }}>
-                Новая тренировка
+                Редактировать
               </h1>
               <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>
-                Заполни и сохрани
+                Изменить тренировку
               </p>
             </div>
           </div>
@@ -165,31 +189,42 @@ export default function NewWorkoutPage() {
             <div>
               <span style={fieldLabel}>Назначить клиентам</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={assignedToMultiple.length === 0}
-                    onChange={() => setAssignedToMultiple([])}
-                    style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
-                  />
+                {/* Для всех */}
+                <div
+                  onClick={() => setSelectedClients([])}
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                    background: selectedClients.length === 0 ? '#7a4a20' : 'rgba(0,0,0,0.06)',
+                    border: selectedClients.length === 0 ? 'none' : '1px solid rgba(0,0,0,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {selectedClients.length === 0 && (
+                      <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>
+                    )}
+                  </div>
                   <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>Для всех клиентов</span>
-                </label>
+                </div>
+
                 {clients.map(c => (
-                  <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={assignedToMultiple.includes(c.id)}
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setAssignedToMultiple(prev => [...prev, c.id])
-                        } else {
-                          setAssignedToMultiple(prev => prev.filter(id => id !== c.id))
-                        }
-                      }}
-                      style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
-                    />
+                  <div
+                    key={c.id}
+                    onClick={() => toggleClient(c.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                  >
+                    <div style={{
+                      width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                      background: selectedClients.includes(c.id) ? '#7a4a20' : 'rgba(0,0,0,0.06)',
+                      border: selectedClients.includes(c.id) ? 'none' : '1px solid rgba(0,0,0,0.15)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {selectedClients.includes(c.id) && (
+                        <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>
+                      )}
+                    </div>
                     <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>{c.name}</span>
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -220,12 +255,10 @@ export default function NewWorkoutPage() {
                   <span style={fieldLabel}>Название упражнения</span>
                   <input type="text" value={ex.name} onChange={e => updateExercise(ex.id, 'name', e.target.value)} placeholder="Румынская тяга" style={inputStyle} />
                 </div>
-
                 <div style={{ marginBottom: '10px' }}>
                   <span style={fieldLabel}>Группа мышц</span>
                   <input type="text" value={ex.muscleGroup} onChange={e => updateExercise(ex.id, 'muscleGroup', e.target.value)} placeholder="Бицепс бедра" style={inputStyle} />
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                   <div>
                     <span style={fieldLabel}>Подходы</span>
@@ -236,18 +269,16 @@ export default function NewWorkoutPage() {
                     <input type="text" value={ex.reps} onChange={e => updateExercise(ex.id, 'reps', e.target.value)} placeholder="12" style={inputStyle} />
                   </div>
                 </div>
-
                 <div style={{ marginBottom: '10px' }}>
                   <span style={fieldLabel}>Описание / почему</span>
                   <textarea
                     value={ex.description}
                     onChange={e => updateExercise(ex.id, 'description', e.target.value)}
-                    placeholder="Укрепляет заднюю цепь, улучшает стабильность поясницы"
+                    placeholder="Укрепляет заднюю цепь"
                     rows={2}
                     style={{ ...inputStyle, borderRadius: '12px', resize: 'none', lineHeight: 1.55 }}
                   />
                 </div>
-
                 <div>
                   <span style={fieldLabel}>YouTube</span>
                   <input type="url" value={ex.youtube} onChange={e => updateExercise(ex.id, 'youtube', e.target.value)} placeholder="https://youtube.com/..." style={inputStyle} />
@@ -256,7 +287,6 @@ export default function NewWorkoutPage() {
             </div>
           ))}
 
-          {/* ADD EXERCISE */}
           <button
             onClick={() => setExercises(prev => [...prev, newExercise()])}
             style={{
@@ -269,7 +299,6 @@ export default function NewWorkoutPage() {
             + Добавить упражнение
           </button>
 
-          {/* SAVE */}
           <button
             onClick={handleSave}
             disabled={loading || !title.trim()}
@@ -282,7 +311,7 @@ export default function NewWorkoutPage() {
               transition: 'background 0.2s',
             }}
           >
-            {loading ? 'Сохраняем...' : 'Сохранить тренировку'}
+            {loading ? 'Сохраняем...' : 'Сохранить изменения'}
           </button>
 
         </div>

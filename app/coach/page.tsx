@@ -318,14 +318,20 @@ export default function CoachPage() {
                 Тренерский дашборд
               </p>
             </div>
-            <button onClick={handleLogout} style={{
-              background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
-              color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
-              fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', marginTop: '6px',
-            }}>
-              Выйти
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+              <button onClick={() => window.location.reload()} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'rgba(45,31,14,0.35)', fontSize: '18px', padding: '6px 8px', lineHeight: 1,
+              }}>↻</button>
+              <button onClick={handleLogout} style={{
+                background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
+                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
+                fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer',
+              }}>
+                Выйти
+              </button>
+            </div>
           </div>
 
           {/* STATS — 4 cards */}
