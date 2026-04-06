@@ -35,6 +35,9 @@ type Report = {
   photo_front_url?: string
   photo_side_url?: string
   photo_back_url?: string
+  photoFrontUrl?: string | null
+  photoSideUrl?: string | null
+  photoBackUrl?: string | null
 }
 
 function fmtDate(iso: string): string {
@@ -80,37 +83,42 @@ export default function ReportsHistoryPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    const load = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/'); return }
-      const userId = user.id
 
-      const { data: rows, error } = await supabase
+      const { data, error } = await supabase
         .from('weekly_reports')
         .select('*')
-        .eq('player_id', userId)
+        .eq('player_id', user.id)
         .order('week_start', { ascending: false })
 
-      console.log('Reports:', rows?.length ?? 0, 'Error:', error?.message ?? 'none', 'UserId:', userId)
-
-      if (!rows || rows.length === 0) { setLoading(false); return }
+      if (error) {
+        setLoading(false)
+        return
+      }
 
       const getUrl = async (path: string | null): Promise<string | null> => {
         if (!path) return null
         if (path.startsWith('http')) return path
-        const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600)
-        return s?.signedUrl || null
+        const { data: urlData } = await supabase.storage
+          .from('reports')
+          .createSignedUrl(path, 3600)
+        return urlData?.signedUrl || null
       }
 
-      for (const row of rows) {
-        row.photo_front_url = await getUrl(row.photo_front)
-        row.photo_side_url = await getUrl(row.photo_side)
-        row.photo_back_url = await getUrl(row.photo_back)
-      }
+      const reportsWithUrls = await Promise.all((data || []).map(async (report: any) => ({
+        ...report,
+        photoFrontUrl: await getUrl(report.photo_front),
+        photoSideUrl: await getUrl(report.photo_side),
+        photoBackUrl: await getUrl(report.photo_back),
+      })))
 
-      setReports(rows)
+      setReports(reportsWithUrls)
       setLoading(false)
-    })
+    }
+    load()
   }, [])
 
   if (loading) return (
@@ -213,9 +221,9 @@ export default function ReportsHistoryPage() {
                 )}
 
                 {/* Photos */}
-                {[reports[0].photo_front_url, reports[0].photo_side_url, reports[0].photo_back_url].some(Boolean) && (
+                {[reports[0].photoFrontUrl, reports[0].photoSideUrl, reports[0].photoBackUrl].some(Boolean) && (
                   <div style={{ display: 'flex', gap: '8px', marginBottom: reports[0].notes ? '12px' : 0 }}>
-                    {[reports[0].photo_front_url, reports[0].photo_side_url, reports[0].photo_back_url].map((url, i) =>
+                    {[reports[0].photoFrontUrl, reports[0].photoSideUrl, reports[0].photoBackUrl].map((url, i) =>
                       url ? <img key={i} src={url} alt="" onClick={() => setModalUrl(url)} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', cursor: 'pointer' }} /> : null
                     )}
                   </div>
@@ -327,7 +335,7 @@ export default function ReportsHistoryPage() {
                     : null
                   const isExpanded = expandedId === report.id
                   const isLast = idx === 0
-                  const photos = [report.photo_front_url, report.photo_side_url, report.photo_back_url].filter(Boolean) as string[]
+                  const photos = [report.photoFrontUrl, report.photoSideUrl, report.photoBackUrl].filter(Boolean) as string[]
 
                   const shortParams = [
                     report.waist != null && `Тал ${report.waist}`,

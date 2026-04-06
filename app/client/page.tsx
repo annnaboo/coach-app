@@ -207,13 +207,26 @@ export default function ClientPage() {
   const maxBar = top3[0]?.[1] || 1
 
   if (loading) return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+  <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <AnimatedBackground />
+    <div style={{ position: 'relative', zIndex: 1, padding: '32px 20px 56px' }}>
+      <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+        {/* Skeleton header */}
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{ height: '48px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', width: '55%', marginBottom: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '12px', background: 'rgba(255,255,255,0.4)', borderRadius: '6px', width: '35%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </div>
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{ background: 'rgba(255,255,255,0.45)', borderRadius: '20px', padding: '20px', marginBottom: '10px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+            <div style={{ height: '10px', background: 'rgba(0,0,0,0.06)', borderRadius: '5px', width: '30%', marginBottom: '12px' }} />
+            <div style={{ height: '14px', background: 'rgba(0,0,0,0.05)', borderRadius: '5px', width: '70%', marginBottom: '8px' }} />
+            <div style={{ height: '10px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', width: '50%' }} />
+          </div>
+        ))}
       </div>
     </div>
-  )
+  </div>
+)
 
   const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
   const monday = getMonday(new Date())

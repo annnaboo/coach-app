@@ -118,6 +118,7 @@ export default function CoachPage() {
   const router = useRouter()
   const [swapRequests, setSwapRequests] = useState<any[]>([])
   const [swapRequestCount, setSwapRequestCount] = useState(0)
+  const [viewingReport, setViewingReport] = useState<{ client: string; report: any } | null>(null)
 
   async function loadData() {
     const supabase = createClient()
@@ -167,10 +168,6 @@ export default function CoachPage() {
         const payment = paymentRes.data?.[0] || null
         const moodLog = moodRes.data?.[0] || null
         const assignedWorkout = getClientWorkout(p.id)
-
-        console.log(`[coach] ${p.name} — reports:`, reportsRes.data?.length ?? 0, reportsRes.error?.message ?? 'ok')
-        console.log(`[coach] ${p.name} — logs:`, logsRes.data?.length ?? 0, logsRes.error?.message ?? 'ok')
-        console.log(`[coach] ${p.name} — workout:`, assignedWorkout?.title ?? 'none')
 
         const reports = reportsRes.data || []
         return {
@@ -392,13 +389,37 @@ export default function CoachPage() {
   }
 
   if (loading) return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+  <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <AnimatedBackground />
+    <div style={{ position: 'relative', zIndex: 1, padding: '28px 20px 60px' }}>
+      <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{ height: '40px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', width: '50%', marginBottom: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '10px', background: 'rgba(255,255,255,0.4)', borderRadius: '5px', width: '30%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.45)', borderRadius: '16px', padding: '16px 10px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+              <div style={{ height: '28px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', marginBottom: '6px' }} />
+              <div style={{ height: '8px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }} />
+            </div>
+          ))}
+        </div>
+        {[1, 2].map(i => (
+          <div key={i} style={{ background: 'rgba(255,255,255,0.45)', borderRadius: '20px', padding: '22px', marginBottom: '12px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,0,0,0.06)' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ height: '16px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', width: '55%', marginBottom: '6px' }} />
+                <div style={{ height: '10px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px', width: '35%' }} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
-  )
+  </div>
+)
 
   const totalLogs = clients.reduce((s, c) => s + c.logs.length, 0)
   const allPaid = payments.total > 0 && payments.paid === payments.total
@@ -947,6 +968,12 @@ export default function CoachPage() {
                               "{latestReport.notes}"
                             </p>
                           )}
+                          <button
+                            onClick={e => { e.stopPropagation(); setViewingReport({ client: client.name, report: latestReport }) }}
+                            style={{ marginTop: '10px', padding: '7px 16px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Открыть полный отчёт
+                          </button>
                         </>
                       )
                     })() : null}
@@ -1018,6 +1045,83 @@ export default function CoachPage() {
 
         </div>
       </div>
+
+      {/* REPORT MODAL */}
+      {viewingReport && (
+        <div
+          onClick={() => setViewingReport(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: '480px', background: '#f5f0e8', borderRadius: '24px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setViewingReport(null)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.07)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(45,31,14,0.5)' }}
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e', margin: '0 0 4px' }}>{viewingReport.client}</h2>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: '0 0 20px' }}>
+              {viewingReport.report.week_start ? new Date(viewingReport.report.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+            </p>
+
+            {/* Photos */}
+            {(viewingReport.report.photo_front_url || viewingReport.report.photo_side_url || viewingReport.report.photo_back_url) && (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                {[
+                  { url: viewingReport.report.photo_front_url, label: 'Спереди' },
+                  { url: viewingReport.report.photo_side_url, label: 'Сбоку' },
+                  { url: viewingReport.report.photo_back_url, label: 'Сзади' },
+                ].map(({ url, label }) => url ? (
+                  <div key={label} style={{ flex: 1 }}>
+                    <img
+                      src={url}
+                      alt={label}
+                      style={{ width: '100%', height: '130px', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
+                    />
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', textAlign: 'center', margin: '4px 0 0' }}>{label}</p>
+                  </div>
+                ) : null)}
+              </div>
+            )}
+
+            {/* Weight */}
+            {viewingReport.report.weight && (
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '40px', color: '#2d1f0e', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report.weight}</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1.5px' }}>кг</p>
+              </div>
+            )}
+
+            {/* Params grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+              {[
+                { key: 'chest', label: 'Грудь' },
+                { key: 'waist', label: 'Талия' },
+                { key: 'waist_navel', label: 'Пупок' },
+                { key: 'hips', label: 'Бёдра' },
+                { key: 'one_thigh', label: 'Бедро' },
+                { key: 'arm', label: 'Рука' },
+              ].filter(({ key }) => viewingReport.report[key] != null).map(({ key, label }) => (
+                <div key={key} style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#2d1f0e', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key]}</p>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>{label} см</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Notes */}
+            {viewingReport.report.notes && (
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>«{viewingReport.report.notes}»</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

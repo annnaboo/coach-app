@@ -94,13 +94,20 @@ export default function WorkoutPage() {
     if (!userId) return
     const supabase = createClient()
     const f = fields[exId] || {}
-    await supabase.from('workout_logs').insert({
-      player: userId, exercise_id: exId,
-      w1: f.w1||null, w2: f.w2||null, w3: f.w3||null,
-      reps: f.reps||null, reps1: f.reps1||null, reps2: f.reps2||null,
-      t1: f.t1||null, t2: f.t2||null, t3: f.t3||null,
-    })
-    setSaved(prev => ({ ...prev, [exId]: true }))
+
+    const { error } = await supabase.from('workout_logs').upsert({
+      player: userId,
+      exercise_id: exId,
+      w1: parseFloat(f.w1 || '') || null,
+      w2: parseFloat(f.w2 || '') || null,
+      w3: parseFloat(f.w3 || '') || null,
+      reps: parseInt(f.reps || '') || null,
+      saved_at: new Date().toISOString(),
+    }, { onConflict: 'player,exercise_id' })
+
+    if (!error) {
+      setSaved(prev => ({ ...prev, [exId]: true }))
+    }
   }
 
   const doneCount = Object.values(saved).filter(Boolean).length

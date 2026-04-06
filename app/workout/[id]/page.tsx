@@ -97,16 +97,22 @@ export default function DynamicWorkoutPage() {
     setSaving(key)
     const supabase = createClient()
     const f = fields[key] || {}
-    await supabase.from('workout_logs').insert({
+    const today = new Date().toISOString().slice(0, 10)
+
+    const { error } = await supabase.from('workout_logs').upsert({
       player: userId,
       exercise_id: key,
-      w1: f.w1 || null,
-      w2: f.w2 || null,
-      w3: f.w3 || null,
-      reps: f.reps || null,
+      w1: parseFloat(f.w1 || '') || null,
+      w2: parseFloat(f.w2 || '') || null,
+      w3: parseFloat(f.w3 || '') || null,
+      reps: parseInt(f.reps || '') || null,
       saved_at: new Date().toISOString(),
-    })
-    setSaved(prev => ({ ...prev, [key]: true }))
+      workout_id: workoutId,
+    }, { onConflict: 'player,exercise_id' })
+
+    if (!error) {
+      setSaved(prev => ({ ...prev, [key]: true }))
+    }
     setSaving(null)
   }
 
@@ -222,9 +228,9 @@ export default function DynamicWorkoutPage() {
                       onClick={() => saveExercise(ex, idx)}
                       disabled={isSaving}
                       style={{
-                        width: '100%', padding: '10px', borderRadius: '999px', border: 'none',
-                        background: isSaved ? 'rgba(26,122,60,0.1)' : '#7a4a20',
-                        color: isSaved ? '#1a7a3c' : '#fff',
+                        width: '100%', padding: '10px', borderRadius: '999px', border: isSaved ? '1px solid rgba(122,74,32,0.3)' : 'none',
+                        background: isSaved ? 'rgba(122,74,32,0.15)' : '#7a4a20',
+                        color: isSaved ? '#7a4a20' : '#fff',
                         fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
                         cursor: isSaving ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
                       }}

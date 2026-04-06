@@ -60,3 +60,13 @@ input[type=number] {
   transform: translateY(0px);
   box-shadow: 0 4px 16px rgba(122, 74, 32, 0.2);
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Prevent iOS auto-zoom on input focus */
+input, textarea, select {
+  font-size: 16px !important;
+}
