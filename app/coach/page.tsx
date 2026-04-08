@@ -119,6 +119,9 @@ export default function CoachPage() {
   const [swapRequests, setSwapRequests] = useState<any[]>([])
   const [swapRequestCount, setSwapRequestCount] = useState(0)
   const [viewingReport, setViewingReport] = useState<{ client: string; report: any } | null>(null)
+  const [viewingReportHistory, setViewingReportHistory] = useState<{ client: string; reports: any[] } | null>(null)
+  const [approvingSwap, setApprovingSwap] = useState<string | null>(null)
+  const [swapWorkoutSelected, setSwapWorkoutSelected] = useState<Record<string, string>>({})
 
   async function loadData() {
     const supabase = createClient()
@@ -382,6 +385,22 @@ export default function CoachPage() {
     setSwapRequestCount(prev => Math.max(0, prev - 1))
   }
 
+  async function approveWithWorkout(req: any) {
+    const workoutId = swapWorkoutSelected[req.id]
+    if (!workoutId) return
+    const supabase = createClient()
+    await supabase.from('workout_swap_requests').update({ status: 'approved' }).eq('id', req.id)
+    // Add player to assigned_to_multiple of chosen workout
+    const { data: w } = await supabase.from('workouts').select('assigned_to_multiple').eq('id', workoutId).single()
+    const current: string[] = w?.assigned_to_multiple || []
+    if (!current.includes(req.player_id)) {
+      await supabase.from('workouts').update({ assigned_to_multiple: [...current, req.player_id] }).eq('id', workoutId)
+    }
+    setSwapRequests(prev => prev.filter(r => r.id !== req.id))
+    setSwapRequestCount(prev => Math.max(0, prev - 1))
+    setApprovingSwap(null)
+  }
+
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -598,26 +617,49 @@ export default function CoachPage() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {swapRequests.map(req => (
-                  <div key={req.id} style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#2d1f0e', margin: '0 0 2px' }}>{req.player_name}</p>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
-                      {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
+                  <div key={req.id} style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#2d1f0e', margin: '0 0 2px' }}>{req.player_name}</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
+                        {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button
+                          onClick={() => setApprovingSwap(approvingSwap === req.id ? null : req.id)}
+                          style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(26,122,60,0.1)', border: '1px solid rgba(26,122,60,0.25)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          ✓ Одобрить
+                        </button>
+                        <button
+                          onClick={() => resolveSwap(req.id, 'declined')}
+                          style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.2)', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          ✕ Отклонить
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                      <button
-                        onClick={() => resolveSwap(req.id, 'approved')}
-                        style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(26,122,60,0.1)', border: '1px solid rgba(26,122,60,0.25)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
-                      >
-                        ✓ Одобрить
-                      </button>
-                      <button
-                        onClick={() => resolveSwap(req.id, 'declined')}
-                        style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.2)', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
-                      >
-                        ✕ Отклонить
-                      </button>
-                    </div>
+                    {approvingSwap === req.id && (
+                      <div style={{ marginTop: '10px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <select
+                          value={swapWorkoutSelected[req.id] || ''}
+                          onChange={e => setSwapWorkoutSelected(prev => ({ ...prev, [req.id]: e.target.value }))}
+                          style={{ flex: 1, background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none' }}
+                        >
+                          <option value="">— выбери тренировку —</option>
+                          {workoutsList.map(w => (
+                            <option key={w.id} value={w.id}>{w.title}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => approveWithWorkout(req)}
+                          disabled={!swapWorkoutSelected[req.id]}
+                          style={{ padding: '8px 16px', borderRadius: '999px', background: swapWorkoutSelected[req.id] ? '#1a7a3c' : 'rgba(26,122,60,0.3)', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: swapWorkoutSelected[req.id] ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
+                        >
+                          Назначить
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -728,11 +770,11 @@ export default function CoachPage() {
                   <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>С какого</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Начало периода</p>
                         <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>По какое</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Конец периода</p>
                         <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                     </div>
@@ -976,12 +1018,22 @@ export default function CoachPage() {
                               "{latestReport.notes}"
                             </p>
                           )}
-                          <button
-                            onClick={e => { e.stopPropagation(); setViewingReport({ client: client.name, report: latestReport }) }}
-                            style={{ marginTop: '10px', padding: '7px 16px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
-                          >
-                            Открыть полный отчёт
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={e => { e.stopPropagation(); setViewingReport({ client: client.name, report: latestReport }) }}
+                              style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                            >
+                              Открыть полный отчёт
+                            </button>
+                            {client.reports && client.reports.length > 1 && (
+                              <button
+                                onClick={e => { e.stopPropagation(); setViewingReportHistory({ client: client.name, reports: client.reports }) }}
+                                style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                              >
+                                Все отчёты ({client.reports.length})
+                              </button>
+                            )}
+                          </div>
                         </>
                       )
                     })() : null}
@@ -1127,6 +1179,65 @@ export default function CoachPage() {
             {viewingReport.report.notes && (
               <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>«{viewingReport.report.notes}»</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* REPORT HISTORY MODAL */}
+      {viewingReportHistory && (
+        <div
+          onClick={() => setViewingReportHistory(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: '24px', padding: '28px 24px', width: '100%', maxWidth: '480px', marginTop: '40px', position: 'relative' }}
+          >
+            <button onClick={() => setViewingReportHistory(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'rgba(45,31,14,0.3)', lineHeight: 1 }}>✕</button>
+            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e', margin: '0 0 4px' }}>{viewingReportHistory.client}</h2>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: '0 0 20px', letterSpacing: '1px', textTransform: 'uppercase' }}>Все отчёты · {viewingReportHistory.reports.length}</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[...viewingReportHistory.reports].sort((a, b) => new Date(b.week_start || b.created_at || 0).getTime() - new Date(a.week_start || a.created_at || 0).getTime()).map((r, i, arr) => {
+                const next = arr[i + 1]
+                const diff = r.weight != null && next?.weight != null ? +(r.weight - next.weight).toFixed(1) : null
+                return (
+                  <div key={r.id || i} style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '16px', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {r.week_start ? new Date(r.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                      </p>
+                      {r.weight != null && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '20px', color: '#2d1f0e' }}>{r.weight} кг</span>
+                          {diff !== null && (
+                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px', color: diff <= 0 ? '#1a7a3c' : '#8a2520' }}>
+                              {diff <= 0 ? `↓${Math.abs(diff)}` : `↑${diff}`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {(r.photo_front_url || r.photo_side_url || r.photo_back_url) && (
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                        {[r.photo_front_url, r.photo_side_url, r.photo_back_url].filter(Boolean).map((url, j) => (
+                          <img key={j} src={url} alt="" style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }} />
+                        ))}
+                      </div>
+                    )}
+                    {r.notes && (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)', fontStyle: 'italic', margin: 0 }}>«{r.notes}»</p>
+                    )}
+                    <button
+                      onClick={() => { setViewingReportHistory(null); setViewingReport({ client: viewingReportHistory.client, report: r }) }}
+                      style={{ marginTop: '8px', padding: '5px 14px', borderRadius: '999px', background: 'rgba(122,74,32,0.07)', border: '1px solid rgba(122,74,32,0.18)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                    >
+                      Открыть
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
