@@ -9,8 +9,10 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://coach-app-gray.vercel.app'
+
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: 'https://coach-app-gray.vercel.app/auth/set-password',
+    redirectTo: `${siteUrl}/auth/set-password`,
   })
 
   if (error) {
@@ -21,7 +23,8 @@ export async function POST(request: Request) {
     id: data.user.id,
     name: name,
     role: 'client',
-  })
+    onboarded: false,
+  }, { onConflict: 'id' })
 
   return NextResponse.json({ success: true })
 }
