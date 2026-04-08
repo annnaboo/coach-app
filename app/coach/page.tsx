@@ -375,9 +375,9 @@ export default function CoachPage() {
     setClients(prev => prev.map(c => c.assignedWorkout?.id === workoutId ? { ...c, assignedWorkout: null } : c))
   }
 
-  async function dismissSwap(id: string) {
+  async function resolveSwap(id: string, status: 'approved' | 'declined') {
     const supabase = createClient()
-    await supabase.from('workout_swap_requests').update({ status: 'reviewed' }).eq('id', id)
+    await supabase.from('workout_swap_requests').update({ status }).eq('id', id)
     setSwapRequests(prev => prev.filter(r => r.id !== id))
     setSwapRequestCount(prev => Math.max(0, prev - 1))
   }
@@ -604,12 +604,20 @@ export default function CoachPage() {
                       <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
                       {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
                     </div>
-                    <button
-                      onClick={() => dismissSwap(req.id)}
-                      style={{ flexShrink: 0, padding: '4px 12px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', border: 'none', color: 'rgba(45,31,14,0.4)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
-                    >
-                      Просмотрено
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        onClick={() => resolveSwap(req.id, 'approved')}
+                        style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(26,122,60,0.1)', border: '1px solid rgba(26,122,60,0.25)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                      >
+                        ✓ Одобрить
+                      </button>
+                      <button
+                        onClick={() => resolveSwap(req.id, 'declined')}
+                        style={{ padding: '4px 12px', borderRadius: '999px', background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.2)', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                      >
+                        ✕ Отклонить
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
