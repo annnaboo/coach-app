@@ -98,7 +98,7 @@ export default function ClientPage() {
         supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
         supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
-        supabase.from('programs').select('title, workout_ids, start_date').contains('assigned_to', [data.user.id]).eq('is_active', true).order('start_date', { ascending: false }).limit(1),
+        supabase.from('programs').select('title, workout_ids, start_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
       ])
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
@@ -130,7 +130,7 @@ export default function ClientPage() {
       setWeekSchedule(schedMap)
 
       // Program-based workout
-      const prog = programsRes.data?.[0] || null
+      const prog = (programsRes.data || []).find((p: any) => Array.isArray(p.assigned_to) && p.assigned_to.includes(data.user.id)) || null
       if (prog && Array.isArray(prog.workout_ids) && prog.workout_ids.length > 0) {
         setProgram(prog)
         const startDate = new Date(prog.start_date)

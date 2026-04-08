@@ -738,7 +738,7 @@ export default function CoachPage() {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма ₽</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма €</p>
                         <input type="number" placeholder="5000" value={paymentForms[client.id]?.amount || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], amount: e.target.value } }))} className="no-spin" style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '18px' }}>
