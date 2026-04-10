@@ -187,16 +187,19 @@ export default function CoachPage() {
       })
     )
 
-    // Signed URLs for latest report photos
+    // Signed URLs for all report photos (latest + history)
     for (const c of clientsData) {
-      if (!c.report) continue
-      for (const key of ['photo_front', 'photo_side', 'photo_back'] as const) {
-        const path = c.report[key]
-        if (path) {
-          const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600)
-          if (s) c.report[`${key}_url`] = s.signedUrl
+      for (const r of c.reports) {
+        for (const key of ['photo_front', 'photo_side', 'photo_back'] as const) {
+          const path = r[key]
+          if (path) {
+            const { data: s } = await supabase.storage.from('reports').createSignedUrl(path, 3600)
+            if (s) r[`${key}_url`] = s.signedUrl
+          }
         }
       }
+      // Keep c.report in sync (it's a reference to reports[0])
+      if (c.reports.length > 0) c.report = c.reports[0]
     }
 
     // Stats
