@@ -1,23 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=chillax@300,400,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --ink: #0e0d0c;
+  --pearl: #f2f0ed;
+  --pearl-bg: #e8e4df;
+  --coffee: #6b3f23;
+  --coffee-muted: rgba(107,63,35,0.12);
+  --text-ink: rgba(14,13,12,0.72);
+  --text-muted: rgba(14,13,12,0.38);
+  --background: var(--pearl-bg);
+  --foreground: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--pearl-bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
 }
 
 input[type=number]::-webkit-outer-spin-button,
@@ -30,35 +29,21 @@ input[type=number] {
 }
 
 .login-input::placeholder {
-  color: rgba(45, 31, 14, 0.3);
+  color: rgba(14,13,12,0.28);
 }
 
 .login-btn {
   transition: box-shadow 0.4s ease, transform 0.18s ease;
 }
 
-.login-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: linear-gradient(155deg, #a0622a 0%, #7a4a20 50%, #4a2a0a 100%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.login-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
-
 .login-btn:hover:not(:disabled) {
-  box-shadow: 0 8px 32px rgba(122, 74, 32, 0.3), 0 2px 8px rgba(122, 74, 32, 0.15);
+  box-shadow: 0 8px 32px rgba(107,63,35,0.28), 0 2px 8px rgba(107,63,35,0.14);
   transform: translateY(-1px);
 }
 
 .login-btn:active:not(:disabled) {
   transform: translateY(0px);
-  box-shadow: 0 4px 16px rgba(122, 74, 32, 0.2);
+  box-shadow: 0 4px 16px rgba(107,63,35,0.18);
 }
 
 @keyframes pulse {

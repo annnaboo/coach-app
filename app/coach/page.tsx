@@ -341,15 +341,19 @@ export default function CoachPage() {
     if (!form?.period_start || !form?.period_end) return
     setSavingPayment(clientId)
     const supabase = createClient()
-    const { data } = await supabase.from('payments').insert({
+    const { error: insertError } = await supabase.from('payments').insert({
       player_id: clientId,
       period_start: form.period_start,
       period_end: form.period_end,
       amount: form.amount ? parseFloat(form.amount) : null,
       paid: form.paid,
-    }).select().single()
-    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: data || null } : c))
-    if (data?.paid) setPayments(prev => ({ ...prev, paid: prev.paid + 1 }))
+    })
+    if (insertError) { alert('Ошибка: ' + insertError.message); setSavingPayment(null); return }
+    // Re-fetch to get the real row (avoids RLS issues with select-after-insert)
+    const { data: fetched } = await supabase.from('payments').select('*').eq('player_id', clientId).order('created_at', { ascending: false }).limit(1).single()
+    const payment = fetched || { player_id: clientId, period_start: form.period_start, period_end: form.period_end, amount: form.amount ? parseFloat(form.amount) : null, paid: form.paid }
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment } : c))
+    if (payment.paid) setPayments(prev => ({ ...prev, paid: prev.paid + 1 }))
     setAddingPayment(null)
     setSavingPayment(null)
   }
@@ -550,6 +554,12 @@ export default function CoachPage() {
               style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
             >
               Все тренировки ({workoutsList.length})
+            </button>
+            <button
+              onClick={() => router.push('/coach/programs')}
+              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+            >
+              Программы ({programsList.length})
             </button>
             <button
               onClick={() => router.push('/coach/programs/new')}
