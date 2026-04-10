@@ -93,6 +93,7 @@ export default function CoachPage() {
   const [payments, setPayments] = useState<{ paid: number; total: number }>({ paid: 0, total: 0 })
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
   const [workoutsList, setWorkoutsList] = useState<any[]>([])
+  const [programsList, setProgramsList] = useState<any[]>([])
   // КБЖУ inline editing
   const [editingNutrition, setEditingNutrition] = useState<string | null>(null)
   const [nutritionForms, setNutritionForms] = useState<Record<string, NutritionForm>>({})
@@ -145,6 +146,10 @@ export default function CoachPage() {
 
     const allWorkouts = allWorkoutsData || []
     setWorkoutsList(allWorkouts)
+
+    const { data: programsData } = await supabase
+      .from('programs').select('*').eq('is_active', true)
+    const allPrograms = programsData || []
 
     // Helper: find workout assigned to a specific client (personal first, then "for all")
     const getClientWorkout = (clientId: string) => {
@@ -234,6 +239,7 @@ export default function CoachPage() {
     setSwapRequests(swapWithNames)
     setSwapRequestCount(swapWithNames.length)
 
+    setProgramsList(allPrograms)
     setLoading(false)
   }
 
@@ -402,6 +408,34 @@ export default function CoachPage() {
     setSwapRequests(prev => prev.filter(r => r.id !== req.id))
     setSwapRequestCount(prev => Math.max(0, prev - 1))
     setApprovingSwap(null)
+  }
+
+  async function deleteClient(clientId: string, clientName: string) {
+    if (!confirm(`Удалить клиента ${clientName}?`)) return
+    if (!confirm('Это удалит все данные клиента. Вы уверены?')) return
+    const supabase = createClient()
+    await supabase.from('workout_logs').delete().eq('player', clientId)
+    await supabase.from('mood_logs').delete().eq('player_id', clientId)
+    await supabase.from('weekly_reports').delete().eq('player_id', clientId)
+    await supabase.from('nutrition_plans').delete().eq('player_id', clientId)
+    await supabase.from('payments').delete().eq('player_id', clientId)
+    await supabase.from('workout_swap_requests').delete().eq('player_id', clientId)
+    // Remove from workouts
+    const { data: wks } = await supabase.from('workouts').select('id, assigned_to_multiple')
+    for (const w of wks || []) {
+      if (Array.isArray(w.assigned_to_multiple) && w.assigned_to_multiple.includes(clientId)) {
+        await supabase.from('workouts').update({ assigned_to_multiple: w.assigned_to_multiple.filter((x: string) => x !== clientId) }).eq('id', w.id)
+      }
+    }
+    // Remove from programs
+    const { data: progs } = await supabase.from('programs').select('id, assigned_to')
+    for (const p of progs || []) {
+      if (Array.isArray(p.assigned_to) && p.assigned_to.includes(clientId)) {
+        await supabase.from('programs').update({ assigned_to: p.assigned_to.filter((x: string) => x !== clientId) }).eq('id', p.id)
+      }
+    }
+    await supabase.from('profiles').delete().eq('id', clientId)
+    setClients(prev => prev.filter(c => c.id !== clientId))
   }
 
   async function handleLogout() {
@@ -1100,6 +1134,41 @@ export default function CoachPage() {
                     ) : (
                       <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Не назначено</p>
                     )}
+
+                    {/* Ж — ПРОГРАММА */}
+                    <Divider />
+                    {(() => {
+                      const prog = programsList.find((p: any) => Array.isArray(p.assigned_to) && p.assigned_to.includes(client.id))
+                      return prog ? (
+                        <>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 8px' }}>Программа</p>
+                          <div style={{ background: 'rgba(122,74,32,0.07)', borderRadius: '12px', padding: '10px 14px' }}>
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: '0 0 2px' }}>{prog.title}</p>
+                            {prog.start_date && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>Старт: {new Date(prog.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</p>}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 8px' }}>Программа</p>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Программа не назначена</p>
+                            <button onClick={() => router.push('/coach/programs/new')} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>+ Создать</button>
+                          </div>
+                        </>
+                      )
+                    })()}
+
+                    {/* Удаление клиента */}
+                    <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => deleteClient(client.id, client.name)}
+                        style={{ background: 'none', border: 'none', color: 'rgba(138,37,32,0.5)', fontSize: '12px', fontFamily: 'Chillax, sans-serif', cursor: 'pointer', padding: 0 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#8a2520')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(138,37,32,0.5)')}
+                      >
+                        Удалить клиента
+                      </button>
+                    </div>
                   </>
                 )}
               </div>

@@ -67,6 +67,7 @@ export default function ClientPage() {
   const [swapReason, setSwapReason] = useState('')
   const [showSwapForm, setShowSwapForm] = useState(false)
   const [swapSent, setSwapSent] = useState(false)
+  const [clientPayment, setClientPayment] = useState<any>(null)
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
@@ -91,7 +92,7 @@ export default function ClientPage() {
       const weekStartStr = weekStart.toISOString().slice(0, 10)
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
@@ -99,7 +100,9 @@ export default function ClientPage() {
         supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
         supabase.from('programs').select('title, workout_ids, start_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
+        supabase.from('payments').select('*').eq('player_id', data.user.id).order('created_at', { ascending: false }).limit(1),
       ])
+      setClientPayment(paymentRes.data?.[0] || null)
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
       setWeekLogs(days)
@@ -241,9 +244,24 @@ export default function ClientPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
             <div>
               <ArtName name={profile?.name || ''} />
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', margin: 0 }}>
-                Your personal training story
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', margin: 0 }}>
+                  Your personal training story
+                </p>
+                {clientPayment && (
+                  <span style={{
+                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
+                    padding: '3px 10px', borderRadius: '999px',
+                    background: clientPayment.paid ? 'rgba(26,122,60,0.1)' : 'rgba(138,37,32,0.08)',
+                    color: clientPayment.paid ? '#1a7a3c' : '#8a2520',
+                  }}>
+                    {clientPayment.paid
+                      ? `✓ Оплачено до ${clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}`
+                      : `Оплата до ${clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}`
+                    }
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               <button onClick={() => router.push('/settings')} style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 14px', cursor: 'pointer' }}>

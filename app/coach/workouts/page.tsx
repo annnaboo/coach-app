@@ -53,8 +53,8 @@ export default function AllWorkoutsPage() {
     })
   }, [])
 
-  async function deleteWorkout(id: string) {
-    if (!confirm('Удалить тренировку?')) return
+  async function deleteWorkout(id: string, title: string) {
+    if (!confirm(`Удалить тренировку "${title}"? Это действие нельзя отменить.`)) return
     const supabase = createClient()
     const { error } = await supabase.from('workouts').delete().eq('id', id)
     if (error) { alert('Ошибка: ' + error.message); return }
@@ -138,7 +138,7 @@ export default function AllWorkoutsPage() {
                       Изменить
                     </button>
                     <button
-                      onClick={() => deleteWorkout(w.id)}
+                      onClick={() => deleteWorkout(w.id, w.title)}
                       style={{ background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.15)', borderRadius: '999px', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
                     >
                       Удалить
