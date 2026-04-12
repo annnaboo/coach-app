@@ -4,14 +4,18 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.6)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(0,0,0,0.06)',
-  borderRadius: '20px',
-  padding: '20px 22px',
+const section: React.CSSProperties = {
+  borderBottom: '1px solid rgba(45,31,14,0.07)',
+  paddingBottom: '32px',
+  marginBottom: '32px',
 }
+
+const card: React.CSSProperties = {
+  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  padding: '28px 0',
+}
+
+const glass = card
 
 const EXERCISE_NAMES: Record<string, string> = {
   'foam': 'Миофасциальный релиз', 'ankle': 'Вращения голеностопа',
@@ -30,12 +34,32 @@ function ArtName({ name }: { name: string }) {
   if (!name) return null
   const split = Math.max(1, name.length - 2)
   return (
-    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', lineHeight: 1.0, margin: '0 0 4px', letterSpacing: '-1px' }}>
+    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '62px', lineHeight: 0.95, margin: '0 0 6px', letterSpacing: '-2px' }}>
       <span style={{ color: '#2d1f0e' }}>{name.slice(0, split)}</span>
       <span style={{ color: '#7a4a20' }}>{name.slice(split)}</span>
       <span style={{ color: '#7a4a20' }}>.</span>
     </h1>
   )
+}
+
+const LABEL: React.CSSProperties = {
+  fontFamily: 'Chillax, sans-serif',
+  fontWeight: 300,
+  fontSize: '10px',
+  letterSpacing: '3px',
+  textTransform: 'uppercase',
+  color: 'rgba(45,31,14,0.3)',
+  margin: '0 0 20px',
+}
+
+const BIG_NUM: React.CSSProperties = {
+  fontFamily: 'Epilogue, sans-serif',
+  fontWeight: 400,
+  fontSize: '48px',
+  lineHeight: 1,
+  color: '#2d1f0e',
+  letterSpacing: '-1px',
+  margin: 0,
 }
 
 function getMonday(d: Date): Date {
@@ -267,67 +291,72 @@ export default function ClientPage() {
 
   const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
   const monday = getMonday(new Date())
+  const todayDow = new Date().toLocaleDateString('ru-RU', { weekday: 'long' })
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }} onClick={() => setSchedulingDay(null)}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '32px 20px 56px' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+        <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
           {/* HEADER */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
-            <div>
-              <ArtName name={profile?.name || ''} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', margin: 0 }}>
-                  Your personal training story
+          <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', paddingBottom: '28px', marginBottom: '0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <ArtName name={profile?.name || ''} />
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: '4px 0 12px' }}>
+                  Личный дашборд
                 </p>
-                {clientPayment && clientPayment.paid && (
-                  <span style={{
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
-                    padding: '3px 10px', borderRadius: '999px',
-                    background: 'rgba(26,122,60,0.1)', color: '#1a7a3c',
-                    border: '1px solid rgba(26,122,60,0.2)',
-                  }}>
-                    ✓ Оплачено до {clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}
-                  </span>
-                )}
-                {clientPayment && !clientPayment.paid && (
-                  <span style={{
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px',
-                    padding: '3px 12px', borderRadius: '999px',
-                    background: 'rgba(138,37,32,0.12)', color: '#8a2520',
-                    border: '1px solid rgba(138,37,32,0.3)',
-                    letterSpacing: '0.5px',
-                  }}>
-                    ⚠ Не оплачено
-                  </span>
-                )}
-                {!clientPayment && (
-                  <span style={{
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
-                    padding: '3px 10px', borderRadius: '999px',
-                    background: 'rgba(138,37,32,0.08)', color: '#8a2520',
-                    border: '1px solid rgba(138,37,32,0.15)',
-                  }}>
-                    Оплата не добавлена
-                  </span>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {clientPayment && clientPayment.paid && (
+                    <span style={{
+                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px',
+                      padding: '4px 12px', borderRadius: '999px',
+                      background: 'transparent', color: '#1a7a3c',
+                      border: '1px solid rgba(26,122,60,0.4)',
+                      letterSpacing: '1px',
+                    }}>
+                      ✓ Оплачено до {clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}
+                    </span>
+                  )}
+                  {clientPayment && !clientPayment.paid && (
+                    <span style={{
+                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px',
+                      padding: '4px 12px', borderRadius: '999px',
+                      background: 'transparent', color: '#8a2520',
+                      border: '1px solid rgba(138,37,32,0.4)',
+                      letterSpacing: '1px',
+                    }}>
+                      ⚠ Не оплачено
+                    </span>
+                  )}
+                  {!clientPayment && (
+                    <span style={{
+                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px',
+                      padding: '4px 12px', borderRadius: '999px',
+                      background: 'transparent', color: 'rgba(45,31,14,0.35)',
+                      border: '1px solid rgba(45,31,14,0.15)',
+                      letterSpacing: '1px',
+                    }}>
+                      Оплата не добавлена
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <button onClick={() => router.push('/settings')} style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 14px', cursor: 'pointer' }}>
-                ⚙️
-              </button>
-              <button onClick={handleLogout} style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 20px', cursor: 'pointer' }}>
-                Выйти
-              </button>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button onClick={() => router.push('/settings')} style={{ background: 'none', border: 'none', borderRadius: '999px', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '18px', padding: '6px 10px', cursor: 'pointer' }}>
+                  ⚙️
+                </button>
+                <button onClick={handleLogout} style={{ background: 'none', border: '1px solid rgba(45,31,14,0.12)', borderRadius: '999px', color: 'rgba(45,31,14,0.4)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '8px 18px', cursor: 'pointer', letterSpacing: '0.5px' }}>
+                  Выйти
+                </button>
+              </div>
             </div>
           </div>
 
           {/* WEEK CALENDAR */}
-          <div style={{ ...glass, marginBottom: '12px' }} onClick={e => e.stopPropagation()}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>
+          <div style={{ ...card }} onClick={e => e.stopPropagation()}>
+            <p style={{ ...LABEL }}>
               Эта неделя
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
@@ -430,33 +459,32 @@ export default function ClientPage() {
 
           {/* КБЖУ */}
           {nutrition && (nutrition.calories || nutrition.protein || nutrition.fat || nutrition.carbs) && (
-            <div style={{ ...glass, marginBottom: '12px' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#7a4a20', margin: '0 0 14px' }}>
-                Твоё питание
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+            <div style={{ ...card }}>
+              <p style={{ ...LABEL }}>Твоё питание</p>
+              <div style={{ display: 'flex', gap: '0' }}>
                 {[
                   { value: nutrition.calories, unit: 'ккал', label: 'Калории' },
                   { value: nutrition.protein, unit: 'г', label: 'Белки' },
                   { value: nutrition.fat, unit: 'г', label: 'Жиры' },
                   { value: nutrition.carbs, unit: 'г', label: 'Углеводы' },
-                ].map(({ value, unit, label }) => value ? (
-                  <div key={label} style={{ textAlign: 'center' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '20px', color: '#2d1f0e', margin: '0 0 2px', lineHeight: 1 }}>{value}</p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: 0 }}>{unit} {label.toLowerCase()}</p>
+                ].map(({ value, unit, label }, idx, arr) => value ? (
+                  <div key={label} style={{ flex: 1, textAlign: 'center', borderRight: idx < arr.length - 1 ? '1px solid rgba(45,31,14,0.07)' : 'none' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '32px', color: '#2d1f0e', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-0.5px' }}>{value}</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: 0, letterSpacing: '2px', textTransform: 'uppercase' }}>{unit}</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.25)', margin: '2px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{label}</p>
                   </div>
                 ) : null)}
               </div>
               {nutrition.notes && (
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.45)', fontStyle: 'italic', margin: '12px 0 0' }}>{nutrition.notes}</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', fontStyle: 'italic', margin: '16px 0 0' }}>{nutrition.notes}</p>
               )}
             </div>
           )}
 
           {/* MOOD TRACKER */}
-          <div style={{ ...glass, marginBottom: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Самочувствие</p>
+          <div style={{ ...card }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <p style={{ ...LABEL, margin: 0 }}>Самочувствие</p>
               <button onClick={saveMood} disabled={moodLoading} style={{ padding: '5px 14px', borderRadius: '999px', background: moodSaved ? 'rgba(122,74,32,0.1)' : '#7a4a20', color: moodSaved ? '#7a4a20' : '#fff', border: moodSaved ? '1px solid rgba(122,74,32,0.2)' : 'none', fontFamily: 'Chillax, sans-serif', fontSize: '11px', cursor: 'pointer' }}>
                 {moodSaved ? 'Сохранено' : 'Сохранить'}
               </button>
@@ -488,16 +516,14 @@ export default function ClientPage() {
           </div>
 
           {/* TODAY'S WORKOUT */}
-          <div style={{ ...glass, marginBottom: '12px', position: 'relative', overflow: 'hidden' }}>
-            <span style={{ position: 'absolute', right: '16px', bottom: '-10px', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '110px', color: '#2d1f0e', opacity: 0.04, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
+          <div style={{ ...card, position: 'relative', overflow: 'hidden' }}>
+            <span style={{ position: 'absolute', right: '0', bottom: '-16px', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '120px', color: '#2d1f0e', opacity: 0.03, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
               {todayWorkout ? todayWorkout.title.match(/\d+/)?.[0] || '✦' : '✦'}
             </span>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>
-              Сегодня
-            </p>
+            <p style={{ ...LABEL }}>Сегодня</p>
             {todayWorkout ? (
               <>
-                <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: '0 0 4px' }}>{todayWorkout.title}</h2>
+                <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '32px', margin: '0 0 4px', letterSpacing: '-0.5px' }}>{todayWorkout.title}</h2>
                 {program && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px', marginTop: '2px' }}>
                     <span style={{ display: 'inline-flex', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', borderRadius: '999px', padding: '3px 12px', fontSize: '11px', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
@@ -563,21 +589,19 @@ export default function ClientPage() {
               </>
             ) : (
               <>
-                <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: 'rgba(45,31,14,0.3)', fontSize: '22px', margin: '0 0 6px' }}>Тренировка не назначена</h2>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '13px', margin: '0 0 16px' }}>Нажми + на нужный день выше</p>
+                <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', color: 'rgba(45,31,14,0.2)', fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Тренировка не назначена</h2>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: '0 0 16px' }}>Нажми + на нужный день выше</p>
               </>
             )}
           </div>
 
           {/* AVAILABLE WORKOUTS */}
           {workouts.length > 0 && (
-            <div style={{ ...glass, marginBottom: '12px' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 14px' }}>
-                Все тренировки
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ ...card }}>
+              <p style={{ ...LABEL }}>Все тренировки</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                 {workouts.map(w => (
-                  <div key={w.id} style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px 16px' }}>
+                  <div key={w.id} style={{ borderBottom: '1px solid rgba(45,31,14,0.06)', padding: '14px 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: '0 0 2px' }}>{w.title}</p>
@@ -614,40 +638,40 @@ export default function ClientPage() {
 
           {/* WEIGHT LOSS + BMI BLOCK */}
           {(totalWeightLoss !== null || bmi !== null || latestWeight !== null) && (
-            <div style={{ ...glass, marginBottom: '12px' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>
-                Динамика тела
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: latestWeight && bmi ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px' }}>
+            <div style={{ ...card }}>
+              <p style={{ ...LABEL }}>Динамика тела</p>
+              <div style={{ display: 'flex', gap: '0' }}>
                 {latestWeight !== null && (
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
-                      {latestWeight}
-                    </p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>кг сейчас</p>
+                  <div style={{ flex: 1, borderRight: '1px solid rgba(45,31,14,0.07)', paddingRight: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                      <p style={{ ...BIG_NUM, fontSize: '48px' }}>{latestWeight}</p>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', marginLeft: '4px' }}>кг</span>
+                    </div>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '6px 0 0' }}>Сейчас</p>
                   </div>
                 )}
                 {totalWeightLoss !== null && (
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: totalWeightLoss >= 0 ? '#1a7a3c' : '#8a2520', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
-                      {totalWeightLoss > 0 ? '-' : totalWeightLoss < 0 ? '+' : ''}{Math.abs(totalWeightLoss)}
-                    </p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                      кг за всё время
-                    </p>
+                  <div style={{ flex: 1, paddingLeft: latestWeight !== null ? '20px' : '0', paddingRight: bmi !== null ? '20px' : '0', borderRight: bmi !== null ? '1px solid rgba(45,31,14,0.07)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '44px', lineHeight: 1, color: totalWeightLoss >= 0 ? '#1a7a3c' : '#8a2520', letterSpacing: '-1px', margin: 0 }}>
+                        {totalWeightLoss > 0 ? '−' : totalWeightLoss < 0 ? '+' : ''}{Math.abs(totalWeightLoss)}
+                      </p>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
+                    </div>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '6px 0 0' }}>За всё время</p>
                     {avgWeeklyLoss !== null && (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: avgWeeklyLoss >= 0 ? '#1a7a3c' : 'rgba(45,31,14,0.4)', fontSize: '9px', margin: '3px 0 0', letterSpacing: '0.5px' }}>
-                        ≈ {avgWeeklyLoss > 0 ? '-' : ''}{Math.abs(avgWeeklyLoss)} кг/нед
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: avgWeeklyLoss >= 0 ? '#1a7a3c' : 'rgba(45,31,14,0.4)', margin: '3px 0 0' }}>
+                        ≈ {avgWeeklyLoss > 0 ? '−' : ''}{Math.abs(avgWeeklyLoss)} кг/нед
                       </p>
                     )}
                   </div>
                 )}
                 {bmi !== null && bmiInfo && (
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
-                      {bmi}
-                    </p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: bmiInfo.color, fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  <div style={{ flex: 1, paddingLeft: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                      <p style={{ ...BIG_NUM }}>{bmi}</p>
+                    </div>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: bmiInfo.color, margin: '6px 0 0' }}>
                       ИМТ · {bmiInfo.label}
                     </p>
                   </div>
@@ -656,32 +680,35 @@ export default function ClientPage() {
             </div>
           )}
 
-          {/* STATS GRID */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div style={{ ...glass, textAlign: 'center' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '40px', margin: '0 0 6px', lineHeight: 1 }}>{totalSessions}</p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '11px', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Занятий всего</p>
-            </div>
-            <div style={{ ...glass, textAlign: 'center' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '40px', margin: '0 0 6px', lineHeight: 1 }}>{Math.round(totalKg)}</p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '11px', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Прогресс в кг</p>
+          {/* STATS */}
+          <div style={{ ...card }}>
+            <p style={{ ...LABEL }}>Статистика</p>
+            <div style={{ display: 'flex', gap: '0' }}>
+              <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
+                <p style={{ ...BIG_NUM }}>{totalSessions}</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '10px', margin: '6px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Занятий</p>
+              </div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <p style={{ ...BIG_NUM }}>{Math.round(totalKg)}</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '10px', margin: '6px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Прогресс кг</p>
+              </div>
             </div>
           </div>
 
           {/* PROGRESS BARS */}
-          <div style={{ ...glass, marginBottom: '12px' }}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 20px' }}>Топ упражнений</p>
+          <div style={{ ...card }}>
+            <p style={{ ...LABEL }}>Топ упражнений</p>
             {top3.length === 0 ? (
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '14px', textAlign: 'center', padding: '16px 0', margin: 0 }}>Заполни первую тренировку —<br />здесь появятся твои результаты</p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', textAlign: 'center', padding: '16px 0', margin: 0 }}>Заполни первую тренировку —<br />здесь появятся твои результаты</p>
             ) : (
               top3.map(([exId, weight]) => (
-                <div key={exId} style={{ marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '7px' }}>
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.7)' }}>{EXERCISE_NAMES[exId] || exId}</span>
-                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#7a4a20' }}>{weight} кг</span>
+                <div key={exId} style={{ marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>{EXERCISE_NAMES[exId] || exId}</span>
+                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '15px', color: '#7a4a20' }}>{weight} кг</span>
                   </div>
-                  <div style={{ height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: '999px', width: `${(weight / maxBar) * 100}%`, background: 'linear-gradient(90deg, rgba(122,74,32,0.6) 0%, #7a4a20 100%)', transition: 'width 0.6s ease' }} />
+                  <div style={{ height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>
+                    <div style={{ height: '2px', borderRadius: '999px', width: `${(weight / maxBar) * 100}%`, background: '#7a4a20', transition: 'width 0.6s ease' }} />
                   </div>
                 </div>
               ))
@@ -689,7 +716,7 @@ export default function ClientPage() {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '32px', flexWrap: 'wrap' }}>
             <button onClick={() => router.push('/progress')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
               Мой прогресс →
             </button>

@@ -5,13 +5,20 @@ import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
-  borderRadius: '20px',
-  padding: '22px',
-  marginBottom: '12px',
+  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  padding: '28px 0',
+  marginBottom: '0',
+}
+
+const LABEL: React.CSSProperties = {
+  fontFamily: 'Chillax, sans-serif',
+  fontWeight: 300,
+  fontSize: '10px',
+  letterSpacing: '3px',
+  textTransform: 'uppercase' as const,
+  color: 'rgba(45,31,14,0.3)',
+  marginBottom: '20px',
+  marginTop: 0,
 }
 
 const inputSm: React.CSSProperties = {
@@ -56,7 +63,7 @@ function ArtName({ name }: { name: string }) {
   if (!name) return null
   const split = Math.max(1, name.length - 2)
   return (
-    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '38px', lineHeight: 1.05, margin: '0 0 4px', letterSpacing: '-0.5px' }}>
+    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '56px', lineHeight: 1.0, margin: '0 0 4px', letterSpacing: '-2px' }}>
       <span style={{ color: '#2d1f0e' }}>{name.slice(0, split)}</span>
       <span style={{ color: '#7a4a20' }}>{name.slice(split)}</span>
       <span style={{ color: '#7a4a20' }}>.</span>
@@ -501,50 +508,54 @@ export default function CoachPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '28px 20px 60px' }}>
-        <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '48px 24px 80px' }}>
+        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
           {/* HEADER */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
+          <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', paddingBottom: '28px', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <ArtName name={coachName} />
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', margin: '4px 0 0' }}>
                 Тренерский дашборд
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
               <button onClick={() => window.location.reload()} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(45,31,14,0.35)', fontSize: '18px', padding: '6px 8px', lineHeight: 1,
+                color: 'rgba(45,31,14,0.3)', fontSize: '18px', padding: '6px 8px', lineHeight: 1,
               }}>↻</button>
               <button onClick={handleLogout} style={{
-                background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
-                fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer',
+                background: 'none',
+                border: '1px solid rgba(45,31,14,0.12)', borderRadius: '999px',
+                color: 'rgba(45,31,14,0.4)', fontFamily: 'Chillax, sans-serif',
+                fontWeight: 300, fontSize: '12px', padding: '8px 18px', cursor: 'pointer',
+                letterSpacing: '0.5px',
               }}>
                 Выйти
               </button>
             </div>
           </div>
 
-          {/* STATS — 4 cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-            {[
-              { value: clients.length, label: 'Клиентов' },
-              { value: totalLogs, label: 'Тренировок' },
-              { value: totalReports, label: 'Отчётов' },
-            ].map(({ value, label }) => (
-              <div key={label} style={{ ...glass, marginBottom: 0, borderRadius: '16px', padding: '16px 10px', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '26px', color: '#2d1f0e', margin: '0 0 4px', lineHeight: 1 }}>{value}</p>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>{label}</p>
+          {/* STATS — inline editorial row */}
+          <div style={{ ...glass }}>
+            <p style={{ ...LABEL }}>Обзор</p>
+            <div style={{ display: 'flex', gap: '0' }}>
+              {[
+                { value: clients.length, label: 'Клиентов' },
+                { value: totalLogs, label: 'Тренировок' },
+                { value: totalReports, label: 'Отчётов' },
+              ].map(({ value, label }, idx) => (
+                <div key={label} style={{ flex: 1, textAlign: 'center', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '40px', color: '#2d1f0e', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-1px' }}>{value}</p>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>{label}</p>
+                </div>
+              ))}
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '40px', color: allPaid ? '#1a7a3c' : '#8a2520', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-1px' }}>
+                  {payments.paid}/{payments.total}
+                </p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Оплат</p>
               </div>
-            ))}
-            <div style={{ ...glass, marginBottom: 0, borderRadius: '16px', padding: '16px 10px', textAlign: 'center' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '26px', color: allPaid ? '#1a7a3c' : '#8a2520', margin: '0 0 4px', lineHeight: 1 }}>
-                {payments.paid}/{payments.total}
-              </p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Оплат</p>
             </div>
           </div>
 
@@ -566,49 +577,49 @@ export default function CoachPage() {
               return daysSince > 7
             })
             return (
-              <div style={{ ...glass, marginBottom: '16px', background: 'rgba(122,74,32,0.06)', border: '1px solid rgba(122,74,32,0.15)' }}>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#7a4a20', margin: '0 0 16px' }}>
-                  Дашборд
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                  <div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px' }}>Получено</p>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '32px', color: '#1a7a3c', margin: '0 0 2px', lineHeight: 1 }}>
+              <div style={{ ...glass }}>
+                <p style={{ ...LABEL }}>Финансы</p>
+                {/* Big earnings number */}
+                <div style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '48px', color: '#2d1f0e', margin: '0', lineHeight: 1, letterSpacing: '-1px' }}>
                       €{totalReceived.toLocaleString('ru-RU')}
                     </p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>
-                      из €{totalExpected.toLocaleString('ru-RU')} ожидаемых
-                    </p>
                     {totalExpected > 0 && (
-                      <div style={{ marginTop: '8px', height: '4px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${receivedPct}%`, background: '#1a7a3c', borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                      </div>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>из €{totalExpected.toLocaleString('ru-RU')}</span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {overdueClients.length > 0 && (
-                      <div style={{ background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.18)', borderRadius: '12px', padding: '8px 12px' }}>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: '#8a2520', margin: '0 0 2px', letterSpacing: '0.5px' }}>⚠ Просроченная оплата</p>
-                        {overdueClients.map(c => (
-                          <p key={c.id} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8a2520', margin: 0 }}>{c.name}</p>
-                        ))}
-                      </div>
-                    )}
-                    {noReportThisWeek.length > 0 && (
-                      <div style={{ background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.18)', borderRadius: '12px', padding: '8px 12px' }}>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: '#b8860b', margin: '0 0 2px', letterSpacing: '0.5px' }}>⏳ Нет отчёта</p>
-                        {noReportThisWeek.map(c => (
-                          <p key={c.id} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#b8860b', margin: 0 }}>{c.name}</p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '8px 0 0' }}>Получено в этом месяце</p>
+                  {totalExpected > 0 && (
+                    <div style={{ marginTop: '12px', height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>
+                      <div style={{ height: '2px', width: `${receivedPct}%`, background: '#7a4a20', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                    </div>
+                  )}
                 </div>
-                {/* Client completion grid */}
+                {/* Alerts */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: overdueClients.length > 0 || noReportThisWeek.length > 0 ? '20px' : '0' }}>
+                  {overdueClients.length > 0 && (
+                    <div style={{ borderLeft: '2px solid rgba(138,37,32,0.5)', paddingLeft: '12px' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: '#8a2520', margin: '0 0 2px', letterSpacing: '1px', textTransform: 'uppercase' }}>Просроченная оплата</p>
+                      {overdueClients.map(c => (
+                        <p key={c.id} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#8a2520', margin: 0 }}>{c.name}</p>
+                      ))}
+                    </div>
+                  )}
+                  {noReportThisWeek.length > 0 && (
+                    <div style={{ borderLeft: '2px solid rgba(184,134,11,0.5)', paddingLeft: '12px' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: '#b8860b', margin: '0 0 2px', letterSpacing: '1px', textTransform: 'uppercase' }}>Нет отчёта</p>
+                      {noReportThisWeek.map(c => (
+                        <p key={c.id} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#b8860b', margin: 0 }}>{c.name}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Client activity */}
                 {clients.length > 0 && (
                   <div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Активность клиентов · 4 нед</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <p style={{ ...LABEL, marginBottom: '12px' }}>Активность · 4 недели</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       {clients.map(c => {
                         const daysOff = c.lastSeen ? Math.floor((now.getTime() - new Date(c.lastSeen).getTime()) / 86400000) : null
                         const isActive = daysOff !== null && daysOff <= 3
@@ -618,23 +629,23 @@ export default function CoachPage() {
                         const completionPct = Math.min(100, Math.round((uniqueDays / 16) * 100))
                         const clientProgram = programsList.find(p => Array.isArray(p.assigned_to) && p.assigned_to.includes(c.id))
                         return (
-                          <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(122,74,32,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '12px', color: '#7a4a20' }}>{c.name[0]}</span>
+                          <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(122,74,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#7a4a20' }}>{c.name[0]}</span>
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
-                                <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#2d1f0e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>{c.name}</span>
-                                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: isActive ? '#1a7a3c' : '#8a2520' }}>{isActive ? '● Актив' : '● Нет'}</span>
-                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '11px', color: 'rgba(45,31,14,0.5)' }}>{completionPct}%</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
+                                <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                                <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: isActive ? '#1a7a3c' : 'rgba(45,31,14,0.3)', letterSpacing: '0.5px' }}>{isActive ? '● активна' : '● неактивна'}</span>
+                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: 'rgba(45,31,14,0.5)' }}>{completionPct}%</span>
                                 </div>
                               </div>
-                              <div style={{ height: '3px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${completionPct}%`, background: completionPct >= 75 ? '#1a7a3c' : completionPct >= 40 ? '#b8860b' : '#8a2520', borderRadius: '999px' }} />
+                              <div style={{ height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>
+                                <div style={{ height: '2px', width: `${completionPct}%`, background: completionPct >= 75 ? '#7a4a20' : completionPct >= 40 ? '#b8860b' : '#8a2520', borderRadius: '999px' }} />
                               </div>
                               {clientProgram && (
-                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '2px 0 0', letterSpacing: '0.3px' }}>
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '3px 0 0', letterSpacing: '0.3px' }}>
                                   {clientProgram.title}{clientProgram.end_date ? ` · до ${new Date(clientProgram.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}` : ''}
                                 </p>
                               )}
@@ -650,7 +661,7 @@ export default function CoachPage() {
           })()}
 
           {/* ACTION BUTTONS */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '0', padding: '28px 0', borderBottom: '1px solid rgba(45,31,14,0.08)', flexWrap: 'wrap' }}>
             <button
               onClick={() => router.push('/coach/workout/new')}
               style={{
@@ -698,10 +709,7 @@ export default function CoachPage() {
 
           {/* INVITE FORM */}
           {showInviteForm && (
-            <div style={{
-              ...glass,
-              marginBottom: '16px',
-            }}>
+            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
               <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 16px' }}>
                 Новый клиент
               </h3>
@@ -773,9 +781,9 @@ export default function CoachPage() {
 
           {/* SWAP REQUESTS */}
           {swapRequests.length > 0 && (
-            <div style={{ ...glass, marginBottom: '16px', borderLeft: '3px solid rgba(122,74,32,0.4)' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>
-                Запросы на замену тренировки · {swapRequests.length}
+            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
+              <p style={{ ...LABEL }}>
+                Замена тренировки · {swapRequests.length}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {swapRequests.map(req => (
@@ -829,9 +837,7 @@ export default function CoachPage() {
           )}
 
           {/* CLIENTS */}
-          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 12px' }}>
-            Клиенты
-          </p>
+          <p style={{ ...LABEL, marginTop: '32px' }}>Клиенты</p>
 
           {clients.map(client => {
             const isOpen = openClient === client.id
@@ -871,48 +877,49 @@ export default function CoachPage() {
               : null
 
             return (
-              <div key={client.id} style={glass}>
+              <div key={client.id} style={{ borderBottom: '1px solid rgba(45,31,14,0.06)', padding: '20px 0' }}>
                 {/* A — HEADER */}
                 <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0, background: 'rgba(122,74,32,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '17px', color: '#7a4a20' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0, background: 'rgba(122,74,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#7a4a20' }}>
                     {client.name[0]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '2px' }}>
-                      <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '17px', margin: 0 }}>{client.name}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
+                      <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '18px', margin: 0 }}>{client.name}</h3>
                       {assignedWorkout && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center',
-                          background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)',
+                          background: 'transparent', border: '1px solid rgba(122,74,32,0.25)',
                           borderRadius: '999px', padding: '2px 10px',
-                          fontSize: '10px', color: '#7a4a20',
+                          fontSize: '10px', color: 'rgba(122,74,32,0.7)',
                           fontFamily: 'Chillax, sans-serif', fontWeight: 300, flexShrink: 0,
+                          letterSpacing: '0.5px',
                         }}>
                           {assignedWorkout.title}
                         </span>
                       )}
                     </div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', margin: 0, color: inactive ? '#8a2520' : 'rgba(45,31,14,0.4)' }}>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', margin: 0, color: inactive ? 'rgba(138,37,32,0.6)' : 'rgba(45,31,14,0.35)', letterSpacing: '0.3px' }}>
                       {client.lastSeen ? (inactive ? `Не заходила ${daysOff} дн.` : `Активна ${fmtDate(client.lastSeen)}`) : 'Ещё нет записей'}
                     </p>
                   </div>
                   <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     {payment ? (
                       <>
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '10px', padding: '3px 9px', borderRadius: '999px', background: payment.paid ? 'rgba(39,174,96,0.1)' : 'rgba(192,57,43,0.12)', border: payment.paid ? '1px solid rgba(39,174,96,0.2)' : '1px solid rgba(192,57,43,0.3)', color: payment.paid ? '#1a7a3c' : '#8a2520', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '4px 12px', borderRadius: '999px', background: 'transparent', border: payment.paid ? '1px solid rgba(26,122,60,0.4)' : '1px solid rgba(138,37,32,0.4)', color: payment.paid ? '#1a7a3c' : '#8a2520', whiteSpace: 'nowrap', letterSpacing: '1px' }}>
                           {payment.paid ? '✓ Оплачено' : '⚠ Не оплачено'}
                         </span>
                         {(payment.monthly_rate || payment.amount) && (
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', whiteSpace: 'nowrap' }}>€{(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}/мес</span>
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', whiteSpace: 'nowrap' }}>€{(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}/мес</span>
                         )}
                         {payment.period_start && (
                           <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', whiteSpace: 'nowrap' }}>{fmtPeriod(payment.period_start, payment.period_end)}</span>
                         )}
                       </>
                     ) : (
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '3px 9px', borderRadius: '999px', background: 'rgba(0,0,0,0.05)', color: 'rgba(45,31,14,0.35)', whiteSpace: 'nowrap' }}>Нет оплаты</span>
+                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '4px 12px', borderRadius: '999px', background: 'transparent', border: '1px solid rgba(45,31,14,0.15)', color: 'rgba(45,31,14,0.35)', whiteSpace: 'nowrap' }}>Нет оплаты</span>
                     )}
-                    <span style={{ color: 'rgba(45,31,14,0.25)', fontSize: '12px' }}>{isOpen ? '▴' : '▾'}</span>
+                    <span style={{ color: 'rgba(45,31,14,0.2)', fontSize: '12px' }}>{isOpen ? '▴' : '▾'}</span>
                   </div>
                 </div>
 
