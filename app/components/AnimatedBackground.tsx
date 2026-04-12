@@ -6,56 +6,56 @@ export default function AnimatedBackground() {
       inset: 0,
       zIndex: 0,
       overflow: 'hidden',
-      background: '#f5f0e8',
+      background: '#EDE8DF',
       pointerEvents: 'none',
     }}>
       <style>{`
         @keyframes blob1 {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(40px, -30px) scale(1.08); }
-          66% { transform: translate(-20px, 20px) scale(0.95); }
+          33% { transform: translate(30px, -20px) scale(1.06); }
+          66% { transform: translate(-15px, 15px) scale(0.96); }
         }
         @keyframes blob2 {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(-50px, 30px) scale(1.05); }
-          66% { transform: translate(30px, -20px) scale(0.97); }
+          33% { transform: translate(-40px, 20px) scale(1.04); }
+          66% { transform: translate(25px, -15px) scale(0.98); }
         }
         @keyframes blob3 {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(20px, 40px) scale(1.1); }
+          50% { transform: translate(15px, 30px) scale(1.08); }
         }
         .blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(60px);
-          opacity: 0.75;
+          filter: blur(70px);
+          opacity: 0.65;
         }
       `}</style>
 
-      {/* blob 1 — warm terracotta top right */}
+      {/* blob 1 — warm sand top right */}
       <div className="blob" style={{
-        width: '600px', height: '600px',
-        top: '-200px', right: '-150px',
-        background: 'radial-gradient(circle, rgba(180,90,40,0.55) 0%, transparent 65%)',
-        animation: 'blob1 18s ease-in-out infinite',
+        width: '580px', height: '580px',
+        top: '-180px', right: '-130px',
+        background: 'radial-gradient(circle, rgba(210, 196, 184, 0.9) 0%, transparent 65%)',
+        animation: 'blob1 20s ease-in-out infinite',
       }} />
 
-      {/* blob 2 — beige left */}
+      {/* blob 2 — cream left */}
       <div className="blob" style={{
-        width: '500px', height: '500px',
-        top: '15%', left: '-150px',
-        background: 'radial-gradient(circle, rgba(190,140,90,0.45) 0%, transparent 65%)',
-        animation: 'blob2 22s ease-in-out infinite',
-        animationDelay: '-7s',
+        width: '480px', height: '480px',
+        top: '20%', left: '-140px',
+        background: 'radial-gradient(circle, rgba(232, 220, 204, 0.7) 0%, transparent 65%)',
+        animation: 'blob2 24s ease-in-out infinite',
+        animationDelay: '-8s',
       }} />
 
-      {/* blob 3 — ochre bottom center */}
+      {/* blob 3 — warm beige bottom */}
       <div className="blob" style={{
-        width: '700px', height: '500px',
-        bottom: '-150px', left: '10%',
-        background: 'radial-gradient(circle, rgba(160,90,40,0.4) 0%, transparent 65%)',
-        animation: 'blob3 25s ease-in-out infinite',
-        animationDelay: '-12s',
+        width: '640px', height: '480px',
+        bottom: '-120px', left: '5%',
+        background: 'radial-gradient(circle, rgba(200, 185, 165, 0.55) 0%, transparent 65%)',
+        animation: 'blob3 28s ease-in-out infinite',
+        animationDelay: '-14s',
       }} />
     </div>
   )

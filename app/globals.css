@@ -1,22 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  --ink: #0e0d0c;
-  --pearl: #f2f0ed;
-  --pearl-bg: #e8e4df;
-  --coffee: #6b3f23;
-  --coffee-muted: rgba(107,63,35,0.12);
-  --text-ink: rgba(14,13,12,0.72);
-  --text-muted: rgba(14,13,12,0.38);
-  --background: var(--pearl-bg);
-  --foreground: var(--ink);
+  /* Figma Glass Luxe — L'ATELIER palette */
+  --bg: #EDE8DF;
+  --bg-warm: #F8F5F0;
+  --text: #715739;
+  --text-secondary: #4E453C;
+  --text-dark: #1C1C18;
+  --text-muted: rgba(113, 87, 57, 0.6);
+  --text-faint: rgba(113, 87, 57, 0.4);
+  --accent: #8C6F4F;
+  --glass-bg: rgba(248, 244, 237, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-border-soft: rgba(210, 196, 184, 0.3);
+  --nav-bg: rgba(253, 249, 243, 0.88);
+  --tag-bg: #F1EDE7;
+  --divider: rgba(210, 196, 184, 0.4);
+  --shadow-warm: 0px 20px 50px 0px rgba(43, 33, 24, 0.06);
+  --shadow-card: 0px 4px 24px rgba(113, 87, 57, 0.10);
+
+  /* legacy compat */
+  --ink: #1C1C18;
+  --pearl: #F8F5F0;
+  --pearl-bg: #EDE8DF;
+  --coffee: #8C6F4F;
+  --coffee-muted: rgba(140, 111, 79, 0.12);
+  --text-ink: rgba(113, 87, 57, 0.72);
+  --background: var(--bg);
+  --foreground: var(--text);
 }
 
 body {
-  background: var(--pearl-bg);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--text);
   font-family: 'Inter', sans-serif;
+}
+
+/* Glass card utilities */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 32px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-warm);
+}
+
+.glass-card-sm {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-card);
+}
+
+/* Label uppercase style (Liberation Sans → Inter) */
+.label-xs {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 input[type=number]::-webkit-outer-spin-button,
@@ -29,7 +76,7 @@ input[type=number] {
 }
 
 .login-input::placeholder {
-  color: rgba(14,13,12,0.28);
+  color: rgba(113, 87, 57, 0.28);
 }
 
 .login-btn {
@@ -37,13 +84,13 @@ input[type=number] {
 }
 
 .login-btn:hover:not(:disabled) {
-  box-shadow: 0 8px 32px rgba(107,63,35,0.28), 0 2px 8px rgba(107,63,35,0.14);
+  box-shadow: 0 8px 32px rgba(140,111,79,0.28), 0 2px 8px rgba(140,111,79,0.14);
   transform: translateY(-1px);
 }
 
 .login-btn:active:not(:disabled) {
   transform: translateY(0px);
-  box-shadow: 0 4px 16px rgba(107,63,35,0.18);
+  box-shadow: 0 4px 16px rgba(140,111,79,0.18);
 }
 
 @keyframes pulse {
