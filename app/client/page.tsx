@@ -62,12 +62,14 @@ export default function ClientPage() {
   const [weekSchedule, setWeekSchedule] = useState<Record<string, Workout>>({})
   const [schedulingDay, setSchedulingDay] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  const [program, setProgram] = useState<{ title: string; workout_ids: string[]; start_date: string } | null>(null)
+  const [program, setProgram] = useState<{ title: string; workout_ids: string[]; start_date: string; end_date?: string | null } | null>(null)
   const [programWorkouts, setProgramWorkouts] = useState<Record<string, Workout>>({})
   const [swapReason, setSwapReason] = useState('')
   const [showSwapForm, setShowSwapForm] = useState(false)
   const [swapSent, setSwapSent] = useState(false)
   const [clientPayment, setClientPayment] = useState<any>(null)
+  const [weeklyReports, setWeeklyReports] = useState<any[]>([])
+  const [profileHeight, setProfileHeight] = useState<number | null>(null)
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
@@ -82,9 +84,10 @@ export default function ClientPage() {
       setUserId(data.user.id)
 
       const { data: prof } = await supabase
-        .from('profiles').select('name, role, onboarded').eq('id', data.user.id).single()
+        .from('profiles').select('name, role, onboarded, height_cm').eq('id', data.user.id).single()
       if (prof?.role === 'coach') { router.push('/coach'); return }
       if (!prof?.onboarded) { router.push('/welcome'); return }
+      if (prof?.height_cm) setProfileHeight(prof.height_cm)
 
       const weekStart = getMonday(new Date())
       const weekEnd = new Date(weekStart)
@@ -92,17 +95,19 @@ export default function ClientPage() {
       const weekStartStr = weekStart.toISOString().slice(0, 10)
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
         supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
         supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
         supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
-        supabase.from('programs').select('title, workout_ids, start_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
+        supabase.from('programs').select('title, workout_ids, start_date, end_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
         supabase.from('payments').select('*').eq('player_id', data.user.id).order('created_at', { ascending: false }).limit(1),
+        supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', data.user.id).order('week_start', { ascending: false }).limit(12),
       ])
       setClientPayment(paymentRes.data?.[0] || null)
+      setWeeklyReports(reportsRes.data || [])
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
       setWeekLogs(days)
@@ -135,7 +140,7 @@ export default function ClientPage() {
       // Program-based workout
       const prog = (programsRes.data || []).find((p: any) => Array.isArray(p.assigned_to) && p.assigned_to.includes(data.user.id)) || null
       if (prog && Array.isArray(prog.workout_ids) && prog.workout_ids.length > 0) {
-        setProgram(prog)
+        setProgram({ ...prog, end_date: prog.end_date || null })
         const startDate = new Date(prog.start_date)
         const todayDate = new Date()
         const weekOffset = Math.max(0, Math.floor((todayDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
@@ -209,6 +214,35 @@ export default function ClientPage() {
   const top3 = Object.entries(maxWeights).sort(([, a], [, b]) => b - a).slice(0, 3)
   const maxBar = top3[0]?.[1] || 1
 
+  // Weight loss calculations from weekly reports
+  const sortedReports = [...weeklyReports].sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime())
+  const latestWeight = sortedReports.find(r => r.weight != null)?.weight ?? null
+  const oldestWeight = [...sortedReports].reverse().find(r => r.weight != null)?.weight ?? null
+  const totalWeightLoss = (latestWeight !== null && oldestWeight !== null && sortedReports.length >= 2)
+    ? +(oldestWeight - latestWeight).toFixed(1)
+    : null
+  const reportsWithWeight = sortedReports.filter(r => r.weight != null)
+  let avgWeeklyLoss: number | null = null
+  if (reportsWithWeight.length >= 2) {
+    const first = reportsWithWeight[reportsWithWeight.length - 1]
+    const last = reportsWithWeight[0]
+    const weeks = Math.max(1, Math.round((new Date(last.week_start).getTime() - new Date(first.week_start).getTime()) / (7 * 86400000)))
+    avgWeeklyLoss = +((first.weight - last.weight) / weeks).toFixed(2)
+  }
+
+  // BMI calculation
+  const heightForBmi = profileHeight || sortedReports.find(r => r.height_cm != null)?.height_cm || null
+  const bmi = (latestWeight !== null && heightForBmi !== null && heightForBmi > 0)
+    ? +(latestWeight / Math.pow(heightForBmi / 100, 2)).toFixed(1)
+    : null
+  const getBmiCategory = (b: number) => {
+    if (b < 18.5) return { label: 'Дефицит', color: '#1a7a3c' }
+    if (b < 25) return { label: 'Норма', color: '#1a7a3c' }
+    if (b < 30) return { label: 'Избыток', color: '#b8860b' }
+    return { label: 'Ожирение', color: '#8a2520' }
+  }
+  const bmiInfo = bmi ? getBmiCategory(bmi) : null
+
   if (loading) return (
   <div style={{ position: 'relative', minHeight: '100vh' }}>
     <AnimatedBackground />
@@ -248,17 +282,35 @@ export default function ClientPage() {
                 <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', margin: 0 }}>
                   Your personal training story
                 </p>
-                {clientPayment && (
+                {clientPayment && clientPayment.paid && (
                   <span style={{
                     fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
                     padding: '3px 10px', borderRadius: '999px',
-                    background: clientPayment.paid ? 'rgba(26,122,60,0.1)' : 'rgba(138,37,32,0.08)',
-                    color: clientPayment.paid ? '#1a7a3c' : '#8a2520',
+                    background: 'rgba(26,122,60,0.1)', color: '#1a7a3c',
+                    border: '1px solid rgba(26,122,60,0.2)',
                   }}>
-                    {clientPayment.paid
-                      ? `✓ Оплачено до ${clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}`
-                      : `Оплата до ${clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}`
-                    }
+                    ✓ Оплачено до {clientPayment.period_end ? new Date(clientPayment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''}
+                  </span>
+                )}
+                {clientPayment && !clientPayment.paid && (
+                  <span style={{
+                    fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px',
+                    padding: '3px 12px', borderRadius: '999px',
+                    background: 'rgba(138,37,32,0.12)', color: '#8a2520',
+                    border: '1px solid rgba(138,37,32,0.3)',
+                    letterSpacing: '0.5px',
+                  }}>
+                    ⚠ Не оплачено
+                  </span>
+                )}
+                {!clientPayment && (
+                  <span style={{
+                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
+                    padding: '3px 10px', borderRadius: '999px',
+                    background: 'rgba(138,37,32,0.08)', color: '#8a2520',
+                    border: '1px solid rgba(138,37,32,0.15)',
+                  }}>
+                    Оплата не добавлена
                   </span>
                 )}
               </div>
@@ -447,9 +499,17 @@ export default function ClientPage() {
               <>
                 <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: '0 0 4px' }}>{todayWorkout.title}</h2>
                 {program && (
-                  <span style={{ display: 'inline-flex', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', borderRadius: '999px', padding: '2px 10px', fontSize: '10px', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, marginBottom: '16px', marginTop: '-4px' }}>
-                    Программа: {program.title}
-                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px', marginTop: '2px' }}>
+                    <span style={{ display: 'inline-flex', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', borderRadius: '999px', padding: '3px 12px', fontSize: '11px', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
+                      📋 {program.title}
+                    </span>
+                    {program.start_date && (
+                      <span style={{ display: 'inline-flex', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '3px 12px', fontSize: '11px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
+                        {new Date(program.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        {program.end_date ? ` — ${new Date(program.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}` : ''}
+                      </span>
+                    )}
+                  </div>
                 )}
                 {todayWorkout.subtitle && (
                   <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '14px', margin: '0 0 20px' }}>{todayWorkout.subtitle}</p>
@@ -548,6 +608,50 @@ export default function ClientPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* WEIGHT LOSS + BMI BLOCK */}
+          {(totalWeightLoss !== null || bmi !== null || latestWeight !== null) && (
+            <div style={{ ...glass, marginBottom: '12px' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>
+                Динамика тела
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: latestWeight && bmi ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px' }}>
+                {latestWeight !== null && (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
+                      {latestWeight}
+                    </p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>кг сейчас</p>
+                  </div>
+                )}
+                {totalWeightLoss !== null && (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: totalWeightLoss >= 0 ? '#1a7a3c' : '#8a2520', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
+                      {totalWeightLoss > 0 ? '-' : totalWeightLoss < 0 ? '+' : ''}{Math.abs(totalWeightLoss)}
+                    </p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      кг за всё время
+                    </p>
+                    {avgWeeklyLoss !== null && (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: avgWeeklyLoss >= 0 ? '#1a7a3c' : 'rgba(45,31,14,0.4)', fontSize: '9px', margin: '3px 0 0', letterSpacing: '0.5px' }}>
+                        ≈ {avgWeeklyLoss > 0 ? '-' : ''}{Math.abs(avgWeeklyLoss)} кг/нед
+                      </p>
+                    )}
+                  </div>
+                )}
+                {bmi !== null && bmiInfo && (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '32px', margin: '0 0 2px', lineHeight: 1 }}>
+                      {bmi}
+                    </p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: bmiInfo.color, fontSize: '10px', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      ИМТ · {bmiInfo.label}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

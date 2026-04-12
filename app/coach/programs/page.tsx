@@ -18,6 +18,7 @@ type Program = {
   id: string
   title: string
   start_date: string
+  end_date: string | null
   assigned_to: string[] | null
   workout_ids: string[] | null
   is_active: boolean
@@ -143,7 +144,7 @@ export default function ProgramsPage() {
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                       {prog.start_date && (
                         <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>
-                          Старт: {fmtDate(prog.start_date)}
+                          {fmtDate(prog.start_date)}{prog.end_date ? ` — ${fmtDate(prog.end_date)}` : ''}
                         </span>
                       )}
                       {prog.workout_ids && (
@@ -155,6 +156,12 @@ export default function ProgramsPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => router.push(`/coach/programs/edit/${prog.id}`)}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      ✏️ Изменить
+                    </button>
                     <button
                       onClick={() => toggleActive(prog)}
                       style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'rgba(0,0,0,0.05)' : 'rgba(26,122,60,0.1)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(26,122,60,0.2)', color: prog.is_active ? 'rgba(45,31,14,0.5)' : '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
