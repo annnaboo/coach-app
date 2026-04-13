@@ -94,6 +94,9 @@ export default function ClientPage() {
   const [clientPayment, setClientPayment] = useState<any>(null)
   const [weeklyReports, setWeeklyReports] = useState<any[]>([])
   const [profileHeight, setProfileHeight] = useState<number | null>(null)
+  const [weekNumber, setWeekNumber] = useState<number | null>(null)
+  const [totalWeeks, setTotalWeeks] = useState<number | null>(null)
+  const [restDays, setRestDays] = useState<string[]>([])
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
@@ -119,7 +122,7 @@ export default function ClientPage() {
       const weekStartStr = weekStart.toISOString().slice(0, 10)
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
@@ -129,9 +132,11 @@ export default function ClientPage() {
         supabase.from('programs').select('title, workout_ids, start_date, end_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
         supabase.from('payments').select('*').eq('player_id', data.user.id).order('created_at', { ascending: false }).limit(1),
         supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', data.user.id).order('week_start', { ascending: false }).limit(12),
+        supabase.from('rest_days').select('rest_date').eq('player_id', data.user.id).gte('rest_date', weekStartStr).lte('rest_date', weekEndStr),
       ])
       setClientPayment(paymentRes.data?.[0] || null)
       setWeeklyReports(reportsRes.data || [])
+      setRestDays((restDaysRes.data || []).map((r: any) => r.rest_date))
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
       setWeekLogs(days)
@@ -174,6 +179,8 @@ export default function ClientPage() {
         if (found) {
           setProgramWorkouts({ [thisWeekId]: found })
         }
+        setWeekNumber(weekOffset + 1)
+        setTotalWeeks(prog.workout_ids.length)
       }
 
       setProfile(prof)
@@ -211,6 +218,19 @@ export default function ClientPage() {
     const supabase = createClient()
     await supabase.from('workout_schedule').delete().eq('player_id', userId).eq('scheduled_date', dateStr)
     setWeekSchedule(prev => { const n = { ...prev }; delete n[dateStr]; return n })
+    setSchedulingDay(null)
+  }
+
+  async function toggleRestDay(dateStr: string) {
+    if (!userId) return
+    const supabase = createClient()
+    if (restDays.includes(dateStr)) {
+      await supabase.from('rest_days').delete().eq('player_id', userId).eq('rest_date', dateStr)
+      setRestDays(prev => prev.filter(d => d !== dateStr))
+    } else {
+      await supabase.from('rest_days').insert({ player_id: userId, rest_date: dateStr })
+      setRestDays(prev => [...prev, dateStr])
+    }
     setSchedulingDay(null)
   }
 
@@ -357,7 +377,7 @@ export default function ClientPage() {
           {/* WEEK CALENDAR */}
           <div style={{ ...card }} onClick={e => e.stopPropagation()}>
             <p style={{ ...LABEL }}>
-              Эта неделя
+              {weekNumber && totalWeeks ? `Неделя ${weekNumber} из ${totalWeeks}` : 'Эта неделя'}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
               {DAYS.map((day, i) => {
@@ -369,15 +389,19 @@ export default function ClientPage() {
                 const scheduled = weekSchedule[dateStr]
                 const isPickerOpen = schedulingDay === dateStr
 
+                const isRest = restDays.includes(dateStr)
+
                 const circleStyle: React.CSSProperties = isDone
                   ? { background: '#7a4a20', border: '1.5px solid transparent' }
-                  : scheduled
-                    ? { background: 'transparent', border: '1.5px solid rgba(122,74,32,0.4)' }
-                    : { background: 'rgba(0,0,0,0.06)', border: '1.5px solid transparent' }
+                  : isRest
+                    ? { background: 'transparent', border: '1.5px solid rgba(45,31,14,0.15)' }
+                    : scheduled
+                      ? { background: 'transparent', border: '1.5px solid rgba(122,74,32,0.4)' }
+                      : { background: 'rgba(0,0,0,0.06)', border: '1.5px solid transparent' }
 
-                const numColor = isDone ? '#fff' : scheduled ? '#7a4a20' : 'rgba(45,31,14,0.35)'
+                const numColor = isDone ? '#fff' : isRest ? 'rgba(45,31,14,0.2)' : scheduled ? '#7a4a20' : 'rgba(45,31,14,0.35)'
 
-                const emoji = isDone ? '✅' : scheduled ? '💪' : null
+                const emoji = isDone ? '✅' : isRest ? '😴' : scheduled ? '💪' : null
 
                 return (
                   <div key={day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1, position: 'relative' }}>
@@ -449,6 +473,12 @@ export default function ClientPage() {
                             )}
                           </>
                         )}
+                        <button
+                          onClick={() => toggleRestDay(dateStr)}
+                          style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: '10px', background: restDays.includes(dateStr) ? 'rgba(45,31,14,0.05)' : 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', marginTop: '4px', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '8px' }}
+                        >
+                          {restDays.includes(dateStr) ? '✓ Отдых (убрать)' : '😴 День отдыха'}
+                        </button>
                       </div>
                     )}
                   </div>
