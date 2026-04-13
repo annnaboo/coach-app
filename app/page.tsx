@@ -16,6 +16,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     const supabase = createClient()
+
+    // Check existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         router.replace('/client')
@@ -23,6 +25,14 @@ export default function LoginPage() {
         setChecking(false)
       }
     })
+
+    // Also listen for auth state changes — catches cases where the session
+    // is established asynchronously (e.g. after magic link redirect).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) router.replace('/client')
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   async function handleLogin(e: React.FormEvent) {
