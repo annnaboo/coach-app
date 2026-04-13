@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
   // --- token_hash flow (reset password + invite emails) ---
   if (token_hash && type) {
     const redirectUrl =
-      type === 'recovery' || type === 'invite'
+      type === 'recovery'
         ? `${origin}/auth/set-password`
+        : type === 'invite'
+        ? `${origin}/welcome`
         : `${origin}${next}`
 
     const response = NextResponse.redirect(redirectUrl)

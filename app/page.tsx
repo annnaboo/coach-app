@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [magicSent, setMagicSent] = useState(false)
+  const [magicLoading, setMagicLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -34,6 +36,24 @@ export default function LoginPage() {
       setLoading(false)
     } else {
       router.push('/client')
+    }
+  }
+
+  async function handleMagicLink() {
+    if (!email.trim()) { setError('Введи email'); return }
+    setMagicLoading(true)
+    setError('')
+    const supabase = createClient()
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${siteUrl}/auth/callback` },
+    })
+    setMagicLoading(false)
+    if (error) {
+      setError('Ошибка отправки. Проверь email.')
+    } else {
+      setMagicSent(true)
     }
   }
 
@@ -86,6 +106,11 @@ export default function LoginPage() {
             Your personal training story
           </p>
 
+          {magicSent ? (
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '15px', color: '#1a7a3c', textAlign: 'center', margin: '8px 0 0' }}>
+              Ссылка отправлена на {email} — проверь почту
+            </p>
+          ) : (
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="login-input" style={inputStyle} />
             <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="login-input" style={inputStyle} />
@@ -120,7 +145,29 @@ export default function LoginPage() {
                 {loading ? 'Logging in...' : 'Log In'}
               </span>
             </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '4px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(45,31,14,0.1)' }} />
+              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.3)' }}>или</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(45,31,14,0.1)' }} />
+            </div>
+
+            <button type="button" onClick={handleMagicLink} disabled={magicLoading} style={{
+              width: '100%',
+              borderRadius: '999px',
+              background: 'transparent',
+              border: '1px solid rgba(122,74,32,0.3)',
+              color: '#7a4a20',
+              fontFamily: 'Chillax, sans-serif',
+              fontWeight: 300,
+              fontSize: '15px',
+              padding: '13px 20px',
+              cursor: magicLoading ? 'not-allowed' : 'pointer',
+            }}>
+              {magicLoading ? 'Отправляем...' : 'Войти по ссылке на почту'}
+            </button>
           </form>
+          )}
         </div>
       </div>
     </div>
