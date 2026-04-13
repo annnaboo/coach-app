@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { EXERCISE_NAMES } from '@/lib/exercises'
 
 const section: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.07)',
@@ -16,15 +17,6 @@ const card: React.CSSProperties = {
 }
 
 const glass = card
-
-const EXERCISE_NAMES: Record<string, string> = {
-  'foam': 'Миофасциальный релиз', 'ankle': 'Вращения голеностопа',
-  'glute-bridge': 'Ягодичный мост', 'bird-dog': 'Bird Dog',
-  'wall-squat': 'Присед у стены', 'box-squat': 'Присед на тумбу',
-  'rdl': 'Румынская тяга', 'db-press': 'Жим гантелей',
-  'lat-pulldown': 'Тяга верхнего блока', 'cable-row': 'Тяга горизонт. блока',
-  'abductor': 'Разведение ног', 'dead-bug': 'Dead Bug',
-}
 
 type Log = { exercise_id: string; w1?: string; w2?: string; w3?: string; saved_at: string }
 type Nutrition = { calories?: number; protein?: number; fat?: number; carbs?: number; notes?: string }

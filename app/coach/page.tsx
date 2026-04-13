@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { getPaymentStatus, fmtDate, fmtPeriod, daysSince } from '@/lib/utils'
+import { EXERCISE_NAMES, MOOD_EMOJIS } from '@/lib/exercises'
 
 const glass: React.CSSProperties = {
   borderBottom: '1px solid rgba(210,196,184,0.35)',
@@ -35,16 +37,6 @@ const inputSm: React.CSSProperties = {
   boxSizing: 'border-box',
 }
 
-const EXERCISE_NAMES: Record<string, string> = {
-  'foam': 'Миофасциальный релиз', 'ankle': 'Вращения голеностопа',
-  'glute-bridge': 'Ягодичный мост', 'bird-dog': 'Bird Dog',
-  'wall-squat': 'Присед у стены', 'box-squat': 'Присед на тумбу',
-  'rdl': 'Румынская тяга', 'db-press': 'Жим гантелей лёжа',
-  'lat-pulldown': 'Тяга верхнего блока', 'cable-row': 'Тяга горизонтального блока',
-  'abductor': 'Разведение ног', 'dead-bug': 'Dead Bug',
-}
-
-const MOOD_EMOJIS = ['', '😔', '😕', '😐', '🙂', '😄']
 
 type ClientData = {
   id: string
@@ -74,36 +66,6 @@ function Divider() {
   return <div style={{ borderTop: '1px solid rgba(210,196,184,0.4)', margin: '16px 0' }} />
 }
 
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
-}
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
-
-function fmtPeriod(start: string, end: string) {
-  return `${new Date(start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })} — ${new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`
-}
-
-function getPaymentStatus(payment: any): { label: string; color: string; border: string } {
-  if (!payment || !payment.paid) {
-    return { label: '⚠ Не оплачено', color: '#8a2520', border: '1px solid rgba(138,37,32,0.4)' }
-  }
-  if (payment.period_end) {
-    const daysLeft = Math.ceil((new Date(payment.period_end).getTime() - Date.now()) / 86400000)
-    const dateStr = new Date(payment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-    if (daysLeft <= 0) {
-      return { label: `⚠ Истёк ${dateStr}`, color: '#8a2520', border: '1px solid rgba(138,37,32,0.4)' }
-    }
-    if (daysLeft <= 7) {
-      return { label: `⚡ Истекает ${dateStr}`, color: '#b8860b', border: '1px solid rgba(184,134,11,0.4)' }
-    }
-    return { label: `✓ До ${dateStr}`, color: '#1a7a3c', border: '1px solid rgba(26,122,60,0.4)' }
-  }
-  return { label: '✓ Активна', color: '#1a7a3c', border: '1px solid rgba(26,122,60,0.4)' }
-}
 
 type NutritionForm = { calories: string; protein: string; fat: string; carbs: string; notes: string }
 

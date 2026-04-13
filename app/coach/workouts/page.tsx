@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { fmtDate } from '@/lib/utils'
 
 const glass: React.CSSProperties = {
   background: 'rgba(255,255,255,0.55)',
@@ -24,10 +25,6 @@ type Workout = {
 }
 
 type ClientProfile = { id: string; name: string }
-
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
 
 export default function AllWorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
