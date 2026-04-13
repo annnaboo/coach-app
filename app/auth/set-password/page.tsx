@@ -15,13 +15,31 @@ export default function SetPasswordPage() {
   useEffect(() => {
     const supabase = createClient()
 
+    // PKCE flow: token_hash is in query params (new Supabase default)
+    const params = new URLSearchParams(window.location.search)
+    const token_hash = params.get('token_hash')
+    const type = params.get('type') as 'invite' | 'recovery' | null
+
+    if (token_hash && type === 'invite') {
+      supabase.auth.verifyOtp({ token_hash, type: 'invite' }).then(({ error }) => {
+        if (!error) router.replace('/client')
+      })
+      return
+    }
+
+    if (token_hash && type === 'recovery') {
+      supabase.auth.verifyOtp({ token_hash, type: 'recovery' }).then(({ error }) => {
+        if (!error) setSessionReady(true)
+      })
+      return
+    }
+
+    // Implicit flow: tokens in hash fragment (older Supabase config)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Инвайт: пароль не нужен — сразу в приложение
         router.replace('/client')
       }
       if (event === 'PASSWORD_RECOVERY' && session) {
-        // Сброс пароля — показать форму
         setSessionReady(true)
       }
     })
