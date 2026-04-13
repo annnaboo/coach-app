@@ -28,22 +28,28 @@ type PhotoPosition = 'front' | 'side' | 'back'
 
 const TOOLTIPS: Record<string, string> = {
   'Вес': '',
+  'Рост': 'Измеряется один раз и сохраняется в профиле. Измени при необходимости',
   'Грудь': 'Измеряй по самой выступающей части груди, лента параллельно полу',
   'Талия': 'Самое узкое место, обычно на 2–3 см выше пупка. Не задерживай дыхание',
   'Пупок': 'Строго по линии пупка, лента параллельно полу',
   'Бёдра': 'По самой широкой части ягодиц, стопы вместе',
-  'Одно бедро': 'Самая широкая часть правого бедра, стоя прямо',
-  'Рука': 'Бицепс правой руки в расслабленном состоянии, середина между плечом и локтем',
+  'Лев. бедро': 'Самая широкая часть левого бедра, стоя прямо',
+  'Прав. бедро': 'Самая широкая часть правого бедра, стоя прямо',
+  'Лев. рука': 'Бицепс левой руки в расслабленном состоянии, середина между плечом и локтем',
+  'Прав. рука': 'Бицепс правой руки в расслабленном состоянии, середина между плечом и локтем',
 }
 
 export default function ReportPage() {
   const [weight, setWeight] = useState('')
+  const [heightCm, setHeightCm] = useState('')
   const [chest, setChest] = useState('')
   const [waist, setWaist] = useState('')
   const [hips, setHips] = useState('')
   const [waistNavel, setWaistNavel] = useState('')
-  const [oneThigh, setOneThigh] = useState('')
-  const [arm, setArm] = useState('')
+  const [leftThigh, setLeftThigh] = useState('')
+  const [rightThigh, setRightThigh] = useState('')
+  const [leftArm, setLeftArm] = useState('')
+  const [rightArm, setRightArm] = useState('')
   const [notes, setNotes] = useState('')
   const [photos, setPhotos] = useState<{ front: File | null; side: File | null; back: File | null }>({
     front: null, side: null, back: null,
@@ -59,9 +65,12 @@ export default function ReportPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push('/')
-      else setUserId(data.user.id)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) { router.push('/'); return }
+      setUserId(session.user.id)
+      const { data: prof } = await supabase
+        .from('profiles').select('height_cm').eq('id', session.user.id).single()
+      if (prof?.height_cm) setHeightCm(String(prof.height_cm))
     })
   }, [])
 
@@ -102,21 +111,30 @@ export default function ReportPage() {
     const photo_side = await uploadPhoto(photos.side, 'side')
     const photo_back = await uploadPhoto(photos.back, 'back')
 
+    const parsedHeight = heightCm ? parseFloat(heightCm) : null
+
     const { error: insertError } = await supabase.from('weekly_reports').insert({
       player_id: userId,
       week_start: getWeekStart(),
       weight: weight ? parseFloat(weight) : null,
+      height_cm: parsedHeight,
       chest: chest ? parseFloat(chest) : null,
       waist: waist ? parseFloat(waist) : null,
       hips: hips ? parseFloat(hips) : null,
       waist_navel: waistNavel ? parseFloat(waistNavel) : null,
-      one_thigh: oneThigh ? parseFloat(oneThigh) : null,
-      arm: arm ? parseFloat(arm) : null,
+      left_thigh: leftThigh ? parseFloat(leftThigh) : null,
+      right_thigh: rightThigh ? parseFloat(rightThigh) : null,
+      left_arm: leftArm ? parseFloat(leftArm) : null,
+      right_arm: rightArm ? parseFloat(rightArm) : null,
       notes: notes || null,
       photo_front,
       photo_side,
       photo_back,
     })
+
+    if (!insertError && parsedHeight) {
+      await supabase.from('profiles').update({ height_cm: parsedHeight }).eq('id', userId)
+    }
 
     if (insertError) {
       console.error('Insert error:', insertError)
@@ -132,12 +150,15 @@ export default function ReportPage() {
 
   const FIELDS = [
     { label: 'Вес', unit: 'кг', value: weight, setter: setWeight },
+    { label: 'Рост', unit: 'см', value: heightCm, setter: setHeightCm },
     { label: 'Грудь', unit: 'см', value: chest, setter: setChest },
     { label: 'Талия', unit: 'см', value: waist, setter: setWaist },
     { label: 'Пупок', unit: 'см', value: waistNavel, setter: setWaistNavel },
     { label: 'Бёдра', unit: 'см', value: hips, setter: setHips },
-    { label: 'Одно бедро', unit: 'см', value: oneThigh, setter: setOneThigh },
-    { label: 'Рука', unit: 'см', value: arm, setter: setArm },
+    { label: 'Лев. бедро', unit: 'см', value: leftThigh, setter: setLeftThigh },
+    { label: 'Прав. бедро', unit: 'см', value: rightThigh, setter: setRightThigh },
+    { label: 'Лев. рука', unit: 'см', value: leftArm, setter: setLeftArm },
+    { label: 'Прав. рука', unit: 'см', value: rightArm, setter: setRightArm },
   ]
 
   return (

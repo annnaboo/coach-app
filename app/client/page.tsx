@@ -106,12 +106,13 @@ export default function ClientPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      setUserId(data.user.id)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const user = session?.user
+      if (!user) { router.push('/'); return }
+      setUserId(user.id)
 
       const { data: prof } = await supabase
-        .from('profiles').select('name, role, onboarded, height_cm').eq('id', data.user.id).single()
+        .from('profiles').select('name, role, onboarded, height_cm').eq('id', user.id).single()
       if (prof?.role === 'coach') { router.push('/coach'); return }
       if (!prof?.onboarded) { router.push('/welcome'); return }
       if (prof?.height_cm) setProfileHeight(prof.height_cm)
@@ -123,16 +124,16 @@ export default function ClientPage() {
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
       const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes] = await Promise.all([
-        supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
-        supabase.from('workout_logs').select('saved_at').eq('player', data.user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
-        supabase.from('mood_logs').select('*').eq('player_id', data.user.id).eq('logged_date', today).single(),
-        supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', data.user.id).single(),
+        supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', user.id).order('saved_at', { ascending: false }),
+        supabase.from('workout_logs').select('saved_at').eq('player', user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
+        supabase.from('mood_logs').select('*').eq('player_id', user.id).eq('logged_date', today).single(),
+        supabase.from('nutrition_plans').select('calories, protein, fat, carbs, notes').eq('player_id', user.id).single(),
         supabase.from('workouts').select('id, title, subtitle, exercises, assigned_to_multiple').eq('is_active', true).order('created_at', { ascending: false }),
-        supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', data.user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
+        supabase.from('workout_schedule').select('scheduled_date, workouts(id, title, subtitle, exercises)').eq('player_id', user.id).gte('scheduled_date', weekStartStr).lte('scheduled_date', weekEndStr),
         supabase.from('programs').select('title, workout_ids, start_date, end_date, assigned_to').eq('is_active', true).order('start_date', { ascending: false }),
-        supabase.from('payments').select('*').eq('player_id', data.user.id).order('created_at', { ascending: false }).limit(1),
-        supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', data.user.id).order('week_start', { ascending: false }).limit(12),
-        supabase.from('rest_days').select('rest_date').eq('player_id', data.user.id).gte('rest_date', weekStartStr).lte('rest_date', weekEndStr),
+        supabase.from('payments').select('*').eq('player_id', user.id).order('created_at', { ascending: false }).limit(1),
+        supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', user.id).order('week_start', { ascending: false }).limit(12),
+        supabase.from('rest_days').select('rest_date').eq('player_id', user.id).gte('rest_date', weekStartStr).lte('rest_date', weekEndStr),
       ])
       setClientPayment(paymentRes.data?.[0] || null)
       setWeeklyReports(reportsRes.data || [])
@@ -155,7 +156,7 @@ export default function ClientPage() {
       const myWorkouts = allWorkouts.filter((w: any) =>
         !w.assigned_to_multiple ||
         w.assigned_to_multiple.length === 0 ||
-        w.assigned_to_multiple.includes(data.user.id)
+        w.assigned_to_multiple.includes(user.id)
       )
       setWorkouts(myWorkouts)
 
@@ -167,19 +168,21 @@ export default function ClientPage() {
       setWeekSchedule(schedMap)
 
       // Program-based workout
-      const prog = (programsRes.data || []).find((p: any) => Array.isArray(p.assigned_to) && p.assigned_to.includes(data.user.id)) || null
+      const prog = (programsRes.data || []).find((p: any) => Array.isArray(p.assigned_to) && p.assigned_to.includes(user.id)) || null
       if (prog && Array.isArray(prog.workout_ids) && prog.workout_ids.length > 0) {
         setProgram({ ...prog, end_date: prog.end_date || null })
-        const startDate = new Date(prog.start_date)
-        const todayDate = new Date()
-        const weekOffset = Math.max(0, Math.floor((todayDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
-        const workoutIndex = weekOffset % prog.workout_ids.length
-        const thisWeekId = prog.workout_ids[workoutIndex]
+        // Sequence-based: find last scheduled workout, next in sequence follows it
+        const scheduledDates = Object.keys(schedMap).sort()
+        const lastScheduledDate = scheduledDates[scheduledDates.length - 1]
+        const lastWorkout = lastScheduledDate ? schedMap[lastScheduledDate] : null
+        const lastIndex = lastWorkout ? prog.workout_ids.indexOf(lastWorkout.id) : -1
+        const nextIndex = lastIndex === -1 ? 0 : (lastIndex + 1) % prog.workout_ids.length
+        const thisWeekId = prog.workout_ids[nextIndex]
         const found = (workoutsRes.data || []).find((w: any) => w.id === thisWeekId)
         if (found) {
           setProgramWorkouts({ [thisWeekId]: found })
         }
-        setWeekNumber(weekOffset + 1)
+        setWeekNumber(nextIndex + 1)
         setTotalWeeks(prog.workout_ids.length)
       }
 
@@ -647,18 +650,25 @@ export default function ClientPage() {
                         )}
                       </div>
                       {/* Quick assign to today */}
-                      {!weekSchedule[today] || weekSchedule[today]?.id !== w.id ? (
-                        <button
-                          onClick={() => assignWorkout(today, w)}
-                          style={{ flexShrink: 0, marginLeft: '12px', padding: '5px 12px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                        >
-                          На сегодня
-                        </button>
-                      ) : (
-                        <span style={{ flexShrink: 0, marginLeft: '12px', padding: '5px 12px', borderRadius: '999px', background: 'rgba(39,174,96,0.1)', border: '1px solid rgba(39,174,96,0.2)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', whiteSpace: 'nowrap' }}>
-                          Сегодня ✓
-                        </span>
-                      )}
+                      <div style={{ flexShrink: 0, marginLeft: '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        {w.id === programTodayId && (
+                          <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.15)', color: 'rgba(122,74,32,0.6)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                            Следующая →
+                          </span>
+                        )}
+                        {!weekSchedule[today] || weekSchedule[today]?.id !== w.id ? (
+                          <button
+                            onClick={() => assignWorkout(today, w)}
+                            style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            На сегодня
+                          </button>
+                        ) : (
+                          <span style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(39,174,96,0.1)', border: '1px solid rgba(39,174,96,0.2)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', whiteSpace: 'nowrap' }}>
+                            Сегодня ✓
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -747,14 +757,11 @@ export default function ClientPage() {
 
           {/* ACTION BUTTONS */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '32px', flexWrap: 'wrap' }}>
-            <button onClick={() => router.push('/progress')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
-              Мой прогресс →
-            </button>
             <button onClick={() => router.push('/report')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
               Отчёт недели →
             </button>
             <button onClick={() => router.push('/reports-history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
-              История отчётов →
+              Мои отчёты →
             </button>
             <button onClick={() => router.push('/history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
   История тренировок →

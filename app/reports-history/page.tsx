@@ -29,12 +29,15 @@ type Report = {
   id: string
   week_start: string
   weight: number | null
+  height_cm: number | null
   chest: number | null
   waist: number | null
   waist_navel: number | null
   hips: number | null
-  one_thigh: number | null
-  arm: number | null
+  left_thigh: number | null
+  right_thigh: number | null
+  left_arm: number | null
+  right_arm: number | null
   notes: string | null
   photo_front: string | null
   photo_side: string | null
@@ -77,10 +80,12 @@ function CustomTooltip({ active, payload }: any) {
 
 const PARAM_LABELS: Record<string, string> = {
   chest: 'Грудь', waist: 'Талия', hips: 'Бёдра',
-  waist_navel: 'Пупок', one_thigh: 'Бедро', arm: 'Рука',
+  waist_navel: 'Пупок',
+  left_thigh: 'Лев. бедро', right_thigh: 'Прав. бедро',
+  left_arm: 'Лев. рука', right_arm: 'Прав. рука',
 }
 
-const PARAMS = ['chest', 'waist', 'hips', 'waist_navel', 'one_thigh', 'arm'] as const
+const PARAMS = ['chest', 'waist', 'hips', 'waist_navel', 'left_thigh', 'right_thigh', 'left_arm', 'right_arm'] as const
 type ParamKey = typeof PARAMS[number]
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -201,6 +206,7 @@ export default function ReportsHistoryPage() {
                 <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {reports.length} {reports.length === 1 ? 'отчёт' : reports.length < 5 ? 'отчёта' : 'отчётов'}
                   {totalWeeks > 0 ? ` · ${totalWeeks} нед.` : ''}
+                  {reports.find(r => r.height_cm != null)?.height_cm ? ` · ${reports.find(r => r.height_cm != null)!.height_cm} см` : ''}
                 </p>
               </div>
               <button
@@ -417,7 +423,7 @@ export default function ReportsHistoryPage() {
                   const shortParams = [
                     report.waist != null && `Тал ${report.waist}`,
                     report.hips != null && `Бёд ${report.hips}`,
-                    report.arm != null && `Рука ${report.arm}`,
+                    report.right_arm != null && `Рука ${report.right_arm}`,
                   ].filter(Boolean).join(' · ')
 
                   return (
