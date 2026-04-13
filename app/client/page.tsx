@@ -97,6 +97,7 @@ export default function ClientPage() {
   const [weekNumber, setWeekNumber] = useState<number | null>(null)
   const [totalWeeks, setTotalWeeks] = useState<number | null>(null)
   const [restDays, setRestDays] = useState<string[]>([])
+  const [coachFeedback, setCoachFeedback] = useState<{ message: string; created_at: string } | null>(null)
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
@@ -123,7 +124,7 @@ export default function ClientPage() {
       const weekStartStr = weekStart.toISOString().slice(0, 10)
       const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes, feedbackRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', user.id).eq('logged_date', today).single(),
@@ -134,10 +135,12 @@ export default function ClientPage() {
         supabase.from('payments').select('*').eq('player_id', user.id).order('created_at', { ascending: false }).limit(1),
         supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', user.id).order('week_start', { ascending: false }).limit(12),
         supabase.from('rest_days').select('rest_date').eq('player_id', user.id).gte('rest_date', weekStartStr).lte('rest_date', weekEndStr),
+        supabase.from('coach_feedback').select('message, created_at').eq('client_id', user.id).order('created_at', { ascending: false }).limit(1).single(),
       ])
       setClientPayment(paymentRes.data?.[0] || null)
       setWeeklyReports(reportsRes.data || [])
       setRestDays((restDaysRes.data || []).map((r: any) => r.rest_date))
+      if (feedbackRes.data) setCoachFeedback(feedbackRes.data)
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
       setWeekLogs(days)
@@ -511,6 +514,21 @@ export default function ClientPage() {
               {nutrition.notes && (
                 <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', fontStyle: 'italic', margin: '16px 0 0' }}>{nutrition.notes}</p>
               )}
+            </div>
+          )}
+
+          {/* От тренера */}
+          {coachFeedback && (
+            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: '0 0 12px' }}>
+                От тренера
+              </p>
+              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '18px', color: '#2d1f0e', margin: '0 0 8px', lineHeight: 1.4, letterSpacing: '-0.3px' }}>
+                &ldquo;{coachFeedback.message}&rdquo;
+              </p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.25)', margin: 0, letterSpacing: '1px' }}>
+                {new Date(coachFeedback.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+              </p>
             </div>
           )}
 

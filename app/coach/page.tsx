@@ -87,6 +87,24 @@ function fmtPeriod(start: string, end: string) {
   return `${new Date(start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })} — ${new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`
 }
 
+function getPaymentStatus(payment: any): { label: string; color: string; border: string } {
+  if (!payment || !payment.paid) {
+    return { label: '⚠ Не оплачено', color: '#8a2520', border: '1px solid rgba(138,37,32,0.4)' }
+  }
+  if (payment.period_end) {
+    const daysLeft = Math.ceil((new Date(payment.period_end).getTime() - Date.now()) / 86400000)
+    const dateStr = new Date(payment.period_end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+    if (daysLeft <= 0) {
+      return { label: `⚠ Истёк ${dateStr}`, color: '#8a2520', border: '1px solid rgba(138,37,32,0.4)' }
+    }
+    if (daysLeft <= 7) {
+      return { label: `⚡ Истекает ${dateStr}`, color: '#b8860b', border: '1px solid rgba(184,134,11,0.4)' }
+    }
+    return { label: `✓ До ${dateStr}`, color: '#1a7a3c', border: '1px solid rgba(26,122,60,0.4)' }
+  }
+  return { label: '✓ Активна', color: '#1a7a3c', border: '1px solid rgba(26,122,60,0.4)' }
+}
+
 type NutritionForm = { calories: string; protein: string; fat: string; carbs: string; notes: string }
 
 export default function CoachPage() {
@@ -132,6 +150,8 @@ export default function CoachPage() {
   const [viewingReportHistory, setViewingReportHistory] = useState<{ client: string; reports: any[] } | null>(null)
   const [approvingSwap, setApprovingSwap] = useState<string | null>(null)
   const [swapWorkoutSelected, setSwapWorkoutSelected] = useState<Record<string, string>>({})
+  const [feedbackInputs, setFeedbackInputs] = useState<Record<string, string>>({})
+  const [savedFeedbacks, setSavedFeedbacks] = useState<Record<string, string>>({})
 
   async function loadData() {
     const supabase = createClient()
@@ -232,6 +252,18 @@ export default function CoachPage() {
     })
     setNutritionForms(forms)
 
+    const { data: feedbacks } = await supabase
+      .from('coach_feedback')
+      .select('client_id, message, created_at')
+      .eq('coach_id', authData.user.id)
+      .order('created_at', { ascending: false })
+
+    const fbMap: Record<string, string> = {}
+    ;(feedbacks || []).forEach((f: any) => {
+      if (!fbMap[f.client_id]) fbMap[f.client_id] = f.message
+    })
+    setSavedFeedbacks(fbMap)
+
     setClients(clientsData)
 
     const { data: swapReqData } = await supabase
@@ -262,6 +294,19 @@ export default function CoachPage() {
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, paid: newPaid } } : c))
     setPayments(prev => ({ ...prev, paid: newPaid ? prev.paid + 1 : Math.max(0, prev.paid - 1) }))
     setUpdatingPayment(null)
+  }
+
+  async function saveFeedback(clientId: string) {
+    const supabase = createClient()
+    const msg = feedbackInputs[clientId]?.trim()
+    if (!msg || !coachId) return
+    await supabase.from('coach_feedback').insert({
+      coach_id: coachId,
+      client_id: clientId,
+      message: msg,
+    })
+    setSavedFeedbacks(prev => ({ ...prev, [clientId]: msg }))
+    setFeedbackInputs(prev => ({ ...prev, [clientId]: '' }))
   }
 
   async function saveMonthlyRate(clientId: string, paymentId: string) {
@@ -896,9 +941,11 @@ export default function CoachPage() {
                   <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     {payment ? (
                       <>
-                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '10px', padding: '4px 10px', borderRadius: '999px', background: payment.paid ? 'rgba(26,122,60,0.08)' : 'rgba(138,37,32,0.07)', border: payment.paid ? '1px solid rgba(26,122,60,0.3)' : '1px solid rgba(138,37,32,0.3)', color: payment.paid ? '#1a7a3c' : '#8a2520', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
-                          {payment.paid ? '✓ Оплачено' : '⚠ Не оплачено'}
-                        </span>
+                        {(() => { const ps = getPaymentStatus(payment); return (
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '3px 10px', borderRadius: '999px', background: 'transparent', border: ps.border, color: ps.color, whiteSpace: 'nowrap', letterSpacing: '1px' }}>
+                            {ps.label}
+                          </span>
+                        )})()}
                         {(payment.monthly_rate || payment.amount) && (
                           <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', color: 'rgba(113,87,57,0.45)', whiteSpace: 'nowrap' }}>€{(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}/мес</span>
                         )}
@@ -910,6 +957,32 @@ export default function CoachPage() {
                       <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', padding: '4px 10px', borderRadius: '999px', background: 'rgba(241,237,231,0.8)', border: '1px solid rgba(210,196,184,0.5)', color: 'rgba(113,87,57,0.4)', whiteSpace: 'nowrap' }}>Нет оплаты</span>
                     )}
                     <span style={{ color: 'rgba(113,87,57,0.25)', fontSize: '11px' }}>{isOpen ? '▴' : '▾'}</span>
+                  </div>
+                </div>
+
+                {/* Coach feedback */}
+                <div style={{ marginTop: '12px' }}>
+                  {savedFeedbacks[client.id] && (
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontStyle: 'italic', fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: '0 0 8px', borderLeft: '2px solid rgba(122,74,32,0.2)', paddingLeft: '10px' }}>
+                      {savedFeedbacks[client.id]}
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Написать клиенту..."
+                      value={feedbackInputs[client.id] || ''}
+                      onChange={e => setFeedbackInputs(prev => ({ ...prev, [client.id]: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && saveFeedback(client.id)}
+                      onClick={e => e.stopPropagation()}
+                      style={{ flex: 1, background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none' }}
+                    />
+                    <button
+                      onClick={e => { e.stopPropagation(); saveFeedback(client.id) }}
+                      style={{ padding: '8px 16px', borderRadius: '999px', background: '#7a4a20', border: 'none', color: '#fff', fontFamily: 'Chillax, sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      →
+                    </button>
                   </div>
                 </div>
 
