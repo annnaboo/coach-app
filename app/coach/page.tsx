@@ -915,12 +915,12 @@ export default function CoachPage() {
               <div key={client.id} style={{ background: 'rgba(248,244,237,0.7)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '24px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0px 4px 24px rgba(113,87,57,0.07)', padding: '16px 18px', marginBottom: '10px' }}>
                 {/* A — HEADER */}
                 <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0, background: 'rgba(210,196,184,0.55)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '16px', color: '#8C6F4F' }}>
+                  <div onClick={e => { e.stopPropagation(); router.push(`/coach/clients/${client.id}`) }} style={{ width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0, background: 'rgba(210,196,184,0.55)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '16px', color: '#8C6F4F' }}>
                     {client.name[0]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                      <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#1C1C18', fontSize: '15px', margin: 0 }}>{client.name}</h3>
+                      <h3 onClick={e => { e.stopPropagation(); router.push(`/coach/clients/${client.id}`) }} style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#1C1C18', fontSize: '15px', margin: 0 }}>{client.name}</h3>
                       {assignedWorkout && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center',
