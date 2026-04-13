@@ -5,19 +5,19 @@ import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const glass: React.CSSProperties = {
-  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  borderBottom: '1px solid rgba(210,196,184,0.35)',
   padding: '28px 0',
   marginBottom: '0',
 }
 
 const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '3px',
+  fontFamily: 'Inter, sans-serif',
+  fontWeight: 700,
+  fontSize: '11px',
+  letterSpacing: '0.10em',
   textTransform: 'uppercase' as const,
-  color: 'rgba(45,31,14,0.3)',
-  marginBottom: '20px',
+  color: '#8C6F4F',
+  marginBottom: '16px',
   marginTop: 0,
 }
 
@@ -29,7 +29,7 @@ const inputSm: React.CSSProperties = {
   fontFamily: 'Chillax, sans-serif',
   fontWeight: 300,
   fontSize: '13px',
-  color: '#2d1f0e',
+  color: '#1C1C18',
   outline: 'none',
   width: '100%',
   boxSizing: 'border-box',
@@ -61,18 +61,17 @@ type ClientData = {
 
 function ArtName({ name }: { name: string }) {
   if (!name) return null
-  const split = Math.max(1, name.length - 2)
   return (
-    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '56px', lineHeight: 1.0, margin: '0 0 4px', letterSpacing: '-2px' }}>
-      <span style={{ color: '#2d1f0e' }}>{name.slice(0, split)}</span>
-      <span style={{ color: '#7a4a20' }}>{name.slice(split)}</span>
-      <span style={{ color: '#7a4a20' }}>.</span>
+    <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontStyle: 'italic', fontSize: '52px', lineHeight: 1.05, margin: '0 0 6px', letterSpacing: '-1px', color: '#1C1C18' }}>
+      Привет,{' '}
+      <span style={{ color: '#8C6F4F' }}>{name}</span>
+      <span style={{ color: '#8C6F4F' }}>.</span>
     </h1>
   )
 }
 
 function Divider() {
-  return <div style={{ borderTop: '1px solid rgba(45,31,14,0.07)', margin: '16px 0' }} />
+  return <div style={{ borderTop: '1px solid rgba(210,196,184,0.4)', margin: '16px 0' }} />
 }
 
 function daysSince(iso: string | null): number | null {
@@ -512,49 +511,53 @@ export default function CoachPage() {
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
           {/* HEADER */}
-          <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', paddingBottom: '28px', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <ArtName name={coachName} />
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', margin: '4px 0 0' }}>
-                Тренерский дашборд
-              </p>
+          <div style={{ paddingBottom: '32px', marginBottom: '0' }}>
+            {/* Top bar: branding + actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8C6F4F' }}>L'ATELIER</span>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button onClick={() => window.location.reload()} style={{
+                  background: 'rgba(140,111,79,0.08)', border: '1px solid rgba(140,111,79,0.15)',
+                  borderRadius: '999px', cursor: 'pointer',
+                  color: 'rgba(113,87,57,0.5)', fontSize: '15px', padding: '6px 10px', lineHeight: 1,
+                }}>↻</button>
+                <button onClick={handleLogout} style={{
+                  background: 'rgba(140,111,79,0.08)',
+                  border: '1px solid rgba(140,111,79,0.2)', borderRadius: '999px',
+                  color: '#8C6F4F', fontFamily: 'Inter, sans-serif',
+                  fontWeight: 500, fontSize: '11px', padding: '7px 16px', cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                }}>
+                  Выйти
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-              <button onClick={() => window.location.reload()} style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(45,31,14,0.3)', fontSize: '18px', padding: '6px 8px', lineHeight: 1,
-              }}>↻</button>
-              <button onClick={handleLogout} style={{
-                background: 'none',
-                border: '1px solid rgba(45,31,14,0.12)', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.4)', fontFamily: 'Chillax, sans-serif',
-                fontWeight: 300, fontSize: '12px', padding: '8px 18px', cursor: 'pointer',
-                letterSpacing: '0.5px',
-              }}>
-                Выйти
-              </button>
-            </div>
+            {/* Hero */}
+            <ArtName name={coachName} />
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, color: 'rgba(113,87,57,0.5)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '6px 0 0' }}>
+              Тренерский дашборд · {new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+            </p>
           </div>
 
-          {/* STATS — inline editorial row */}
-          <div style={{ ...glass }}>
+          {/* STATS — glass card row */}
+          <div style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
             <p style={{ ...LABEL }}>Обзор</p>
             <div style={{ display: 'flex', gap: '0' }}>
               {[
                 { value: clients.length, label: 'Клиентов' },
                 { value: totalLogs, label: 'Тренировок' },
                 { value: totalReports, label: 'Отчётов' },
-              ].map(({ value, label }, idx) => (
-                <div key={label} style={{ flex: 1, textAlign: 'center', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '40px', color: '#2d1f0e', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-1px' }}>{value}</p>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>{label}</p>
+              ].map(({ value, label }) => (
+                <div key={label} style={{ flex: 1, textAlign: 'center', borderRight: '1px solid rgba(210,196,184,0.35)' }}>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: '36px', color: '#1C1C18', margin: '0 0 4px', lineHeight: 1 }}>{value}</p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(113,87,57,0.5)', margin: 0 }}>{label}</p>
                 </div>
               ))}
               <div style={{ flex: 1, textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '40px', color: allPaid ? '#1a7a3c' : '#8a2520', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-1px' }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: '36px', color: allPaid ? '#1a7a3c' : '#8a2520', margin: '0 0 4px', lineHeight: 1 }}>
                   {payments.paid}/{payments.total}
                 </p>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Оплат</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(113,87,57,0.5)', margin: 0 }}>Оплат</p>
               </div>
             </div>
           </div>
@@ -577,22 +580,22 @@ export default function CoachPage() {
               return daysSince > 7
             })
             return (
-              <div style={{ ...glass }}>
+              <div style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
                 <p style={{ ...LABEL }}>Финансы</p>
                 {/* Big earnings number */}
                 <div style={{ marginBottom: '24px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '48px', color: '#2d1f0e', margin: '0', lineHeight: 1, letterSpacing: '-1px' }}>
+                    <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: '48px', color: '#1C1C18', margin: '0', lineHeight: 1 }}>
                       €{totalReceived.toLocaleString('ru-RU')}
                     </p>
                     {totalExpected > 0 && (
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>из €{totalExpected.toLocaleString('ru-RU')}</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '13px', color: 'rgba(113,87,57,0.4)' }}>из €{totalExpected.toLocaleString('ru-RU')}</span>
                     )}
                   </div>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '8px 0 0' }}>Получено в этом месяце</p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(113,87,57,0.5)', margin: '8px 0 0' }}>Получено в этом месяце</p>
                   {totalExpected > 0 && (
-                    <div style={{ marginTop: '12px', height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>
-                      <div style={{ height: '2px', width: `${receivedPct}%`, background: '#7a4a20', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                    <div style={{ marginTop: '12px', height: '3px', borderRadius: '999px', background: 'rgba(210,196,184,0.4)' }}>
+                      <div style={{ height: '3px', width: `${receivedPct}%`, background: '#8C6F4F', borderRadius: '999px', transition: 'width 0.6s ease' }} />
                     </div>
                   )}
                 </div>
@@ -619,7 +622,7 @@ export default function CoachPage() {
                 {clients.length > 0 && (
                   <div>
                     <p style={{ ...LABEL, marginBottom: '12px' }}>Активность · 4 недели</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {clients.map(c => {
                         const daysOff = c.lastSeen ? Math.floor((now.getTime() - new Date(c.lastSeen).getTime()) / 86400000) : null
                         const isActive = daysOff !== null && daysOff <= 3
@@ -630,22 +633,22 @@ export default function CoachPage() {
                         const clientProgram = programsList.find(p => Array.isArray(p.assigned_to) && p.assigned_to.includes(c.id))
                         return (
                           <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(122,74,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#7a4a20' }}>{c.name[0]}</span>
+                            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(210,196,184,0.5)', border: '1px solid rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#8C6F4F' }}>{c.name[0]}</span>
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
-                                <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
+                                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '14px', color: '#1C1C18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
-                                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: isActive ? '#1a7a3c' : 'rgba(45,31,14,0.3)', letterSpacing: '0.5px' }}>{isActive ? '● активна' : '● неактивна'}</span>
-                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: 'rgba(45,31,14,0.5)' }}>{completionPct}%</span>
+                                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', color: isActive ? '#1a7a3c' : 'rgba(113,87,57,0.35)', letterSpacing: '0.05em' }}>{isActive ? '● активна' : '● неактивна'}</span>
+                                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px', color: 'rgba(113,87,57,0.6)' }}>{completionPct}%</span>
                                 </div>
                               </div>
-                              <div style={{ height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>
-                                <div style={{ height: '2px', width: `${completionPct}%`, background: completionPct >= 75 ? '#7a4a20' : completionPct >= 40 ? '#b8860b' : '#8a2520', borderRadius: '999px' }} />
+                              <div style={{ height: '3px', borderRadius: '999px', background: 'rgba(210,196,184,0.4)' }}>
+                                <div style={{ height: '3px', width: `${completionPct}%`, background: completionPct >= 75 ? '#8C6F4F' : completionPct >= 40 ? '#b8860b' : '#8a2520', borderRadius: '999px' }} />
                               </div>
                               {clientProgram && (
-                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '3px 0 0', letterSpacing: '0.3px' }}>
+                                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '10px', color: 'rgba(113,87,57,0.4)', margin: '3px 0 0' }}>
                                   {clientProgram.title}{clientProgram.end_date ? ` · до ${new Date(clientProgram.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}` : ''}
                                 </p>
                               )}
@@ -661,56 +664,43 @@ export default function CoachPage() {
           })()}
 
           {/* ACTION BUTTONS */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '0', padding: '28px 0', borderBottom: '1px solid rgba(45,31,14,0.08)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '0', padding: '20px 0 28px', borderBottom: '1px solid rgba(210,196,184,0.35)', flexWrap: 'wrap' }}>
             <button
               onClick={() => router.push('/coach/workout/new')}
-              style={{
-                position: 'relative', overflow: 'hidden', borderRadius: '999px',
-                padding: '10px 18px', border: 'none', cursor: 'pointer',
-                fontFamily: 'Chillax, sans-serif', fontSize: '13px', fontWeight: 500, color: '#fff',
-                background: 'transparent',
-              }}
+              style={{ padding: '9px 18px', borderRadius: '999px', background: '#8C6F4F', border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.02em' }}
             >
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(122,74,32,0.85)', borderRadius: '999px' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%)', borderRadius: '999px' }} />
-              <span style={{ position: 'relative' }}>+ Создать тренировку</span>
+              + Создать тренировку
             </button>
             <button
               onClick={() => router.push('/coach/workouts')}
-              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+              style={{ padding: '9px 16px', borderRadius: '999px', background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(210,196,184,0.5)', color: '#8C6F4F', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }}
             >
-              Все тренировки ({workoutsList.length})
+              Тренировки ({workoutsList.length})
             </button>
             <button
               onClick={() => router.push('/coach/programs')}
-              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+              style={{ padding: '9px 16px', borderRadius: '999px', background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(210,196,184,0.5)', color: '#8C6F4F', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }}
             >
               Программы ({programsList.length})
             </button>
             <button
               onClick={() => router.push('/coach/programs/new')}
-              style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+              style={{ padding: '9px 16px', borderRadius: '999px', background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(210,196,184,0.5)', color: '#8C6F4F', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }}
             >
               + Программа
             </button>
             <button
               onClick={() => { setShowInviteForm(v => !v); setInviteSuccess(false); setInviteError('') }}
-              style={{
-                position: 'relative', overflow: 'hidden', borderRadius: '999px',
-                padding: '10px 20px', border: '1px solid rgba(122,74,32,0.3)', cursor: 'pointer',
-                fontFamily: 'Chillax, sans-serif', fontSize: '13px', fontWeight: 500, color: '#7a4a20',
-                background: 'rgba(122,74,32,0.4)',
-              }}
+              style={{ padding: '9px 18px', borderRadius: '999px', background: 'rgba(140,111,79,0.12)', border: '1px solid rgba(140,111,79,0.25)', color: '#8C6F4F', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}
             >
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%)', borderRadius: '999px' }} />
-              <span style={{ position: 'relative' }}>+ Добавить клиента</span>
+              + Добавить клиента
             </button>
           </div>
 
           {/* INVITE FORM */}
           {showInviteForm && (
-            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
-              <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 16px' }}>
+            <div style={{ borderBottom: '1px solid rgba(113,87,57,0.08)', padding: '28px 0' }}>
+              <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#1C1C18', margin: '0 0 16px' }}>
                 Новый клиент
               </h3>
               {inviteSuccess ? (
@@ -729,7 +719,7 @@ export default function CoachPage() {
                       border: '1px solid rgba(0,0,0,0.08)',
                       borderRadius: '999px', padding: '12px 18px',
                       fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                      color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
+                      color: '#1C1C18', outline: 'none', boxSizing: 'border-box',
                     }}
                   />
                   <input
@@ -742,7 +732,7 @@ export default function CoachPage() {
                       border: '1px solid rgba(0,0,0,0.08)',
                       borderRadius: '999px', padding: '12px 18px',
                       fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                      color: '#2d1f0e', outline: 'none', boxSizing: 'border-box',
+                      color: '#1C1C18', outline: 'none', boxSizing: 'border-box',
                     }}
                   />
                   {inviteError && (
@@ -754,7 +744,7 @@ export default function CoachPage() {
                       disabled={inviteSending || !inviteName.trim() || !inviteEmail.trim()}
                       style={{
                         flex: 1, padding: '12px', borderRadius: '999px',
-                        background: '#7a4a20', color: '#fff', border: 'none',
+                        background: '#8C6F4F', color: '#fff', border: 'none',
                         fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px',
                         cursor: inviteSending || !inviteName.trim() || !inviteEmail.trim() ? 'not-allowed' : 'pointer',
                         opacity: inviteSending || !inviteName.trim() || !inviteEmail.trim() ? 0.5 : 1,
@@ -766,7 +756,7 @@ export default function CoachPage() {
                       onClick={() => { setShowInviteForm(false); setInviteError('') }}
                       style={{
                         padding: '12px 18px', borderRadius: '999px',
-                        background: 'rgba(0,0,0,0.05)', color: 'rgba(45,31,14,0.5)', border: 'none',
+                        background: 'rgba(0,0,0,0.05)', color: 'rgba(113,87,57,0.5)', border: 'none',
                         fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
                         cursor: 'pointer',
                       }}
@@ -781,18 +771,18 @@ export default function CoachPage() {
 
           {/* SWAP REQUESTS */}
           {swapRequests.length > 0 && (
-            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
+            <div style={{ borderBottom: '1px solid rgba(113,87,57,0.08)', padding: '28px 0' }}>
               <p style={{ ...LABEL }}>
                 Замена тренировки · {swapRequests.length}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {swapRequests.map(req => (
-                  <div key={req.id} style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '12px 14px' }}>
+                  <div key={req.id} style={{ background: 'rgba(140,111,79,0.05)', borderRadius: '12px', padding: '12px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#2d1f0e', margin: '0 0 2px' }}>{req.player_name}</p>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
-                        {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
+                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#1C1C18', margin: '0 0 2px' }}>{req.player_name}</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.5)', margin: '0 0 4px' }}>Тренировка: {req.current_workout_title}</p>
+                        {req.reason && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.65)', margin: '0', fontStyle: 'italic' }}>«{req.reason}»</p>}
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button
@@ -814,7 +804,7 @@ export default function CoachPage() {
                         <select
                           value={swapWorkoutSelected[req.id] || ''}
                           onChange={e => setSwapWorkoutSelected(prev => ({ ...prev, [req.id]: e.target.value }))}
-                          style={{ flex: 1, background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none' }}
+                          style={{ flex: 1, background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#1C1C18', outline: 'none' }}
                         >
                           <option value="">— выбери тренировку —</option>
                           {workoutsList.map(w => (
@@ -837,7 +827,7 @@ export default function CoachPage() {
           )}
 
           {/* CLIENTS */}
-          <p style={{ ...LABEL, marginTop: '32px' }}>Клиенты</p>
+          <p style={{ ...LABEL, marginTop: '32px', marginBottom: '14px' }}>Клиенты · {clients.length}</p>
 
           {clients.map(client => {
             const isOpen = openClient === client.id
@@ -877,49 +867,49 @@ export default function CoachPage() {
               : null
 
             return (
-              <div key={client.id} style={{ borderBottom: '1px solid rgba(45,31,14,0.06)', padding: '20px 0' }}>
+              <div key={client.id} style={{ background: 'rgba(248,244,237,0.7)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '24px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0px 4px 24px rgba(113,87,57,0.07)', padding: '16px 18px', marginBottom: '10px' }}>
                 {/* A — HEADER */}
-                <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0, background: 'rgba(122,74,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#7a4a20' }}>
+                <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0, background: 'rgba(210,196,184,0.55)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '16px', color: '#8C6F4F' }}>
                     {client.name[0]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                      <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '18px', margin: 0 }}>{client.name}</h3>
+                      <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#1C1C18', fontSize: '15px', margin: 0 }}>{client.name}</h3>
                       {assignedWorkout && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center',
-                          background: 'transparent', border: '1px solid rgba(122,74,32,0.25)',
+                          background: 'rgba(241,237,231,0.8)', border: '1px solid rgba(210,196,184,0.5)',
                           borderRadius: '999px', padding: '2px 10px',
-                          fontSize: '10px', color: 'rgba(122,74,32,0.7)',
-                          fontFamily: 'Chillax, sans-serif', fontWeight: 300, flexShrink: 0,
-                          letterSpacing: '0.5px',
+                          fontSize: '10px', color: '#8C6F4F',
+                          fontFamily: 'Inter, sans-serif', fontWeight: 500, flexShrink: 0,
+                          letterSpacing: '0.03em',
                         }}>
                           {assignedWorkout.title}
                         </span>
                       )}
                     </div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', margin: 0, color: inactive ? 'rgba(138,37,32,0.6)' : 'rgba(45,31,14,0.35)', letterSpacing: '0.3px' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '11px', margin: 0, color: inactive ? 'rgba(138,37,32,0.65)' : 'rgba(113,87,57,0.45)' }}>
                       {client.lastSeen ? (inactive ? `Не заходила ${daysOff} дн.` : `Активна ${fmtDate(client.lastSeen)}`) : 'Ещё нет записей'}
                     </p>
                   </div>
                   <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     {payment ? (
                       <>
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '4px 12px', borderRadius: '999px', background: 'transparent', border: payment.paid ? '1px solid rgba(26,122,60,0.4)' : '1px solid rgba(138,37,32,0.4)', color: payment.paid ? '#1a7a3c' : '#8a2520', whiteSpace: 'nowrap', letterSpacing: '1px' }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '10px', padding: '4px 10px', borderRadius: '999px', background: payment.paid ? 'rgba(26,122,60,0.08)' : 'rgba(138,37,32,0.07)', border: payment.paid ? '1px solid rgba(26,122,60,0.3)' : '1px solid rgba(138,37,32,0.3)', color: payment.paid ? '#1a7a3c' : '#8a2520', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
                           {payment.paid ? '✓ Оплачено' : '⚠ Не оплачено'}
                         </span>
                         {(payment.monthly_rate || payment.amount) && (
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', whiteSpace: 'nowrap' }}>€{(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}/мес</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', color: 'rgba(113,87,57,0.45)', whiteSpace: 'nowrap' }}>€{(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}/мес</span>
                         )}
                         {payment.period_start && (
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', whiteSpace: 'nowrap' }}>{fmtPeriod(payment.period_start, payment.period_end)}</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '9px', color: 'rgba(113,87,57,0.35)', whiteSpace: 'nowrap' }}>{fmtPeriod(payment.period_start, payment.period_end)}</span>
                         )}
                       </>
                     ) : (
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', padding: '4px 12px', borderRadius: '999px', background: 'transparent', border: '1px solid rgba(45,31,14,0.15)', color: 'rgba(45,31,14,0.35)', whiteSpace: 'nowrap' }}>Нет оплаты</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '10px', padding: '4px 10px', borderRadius: '999px', background: 'rgba(241,237,231,0.8)', border: '1px solid rgba(210,196,184,0.5)', color: 'rgba(113,87,57,0.4)', whiteSpace: 'nowrap' }}>Нет оплаты</span>
                     )}
-                    <span style={{ color: 'rgba(45,31,14,0.2)', fontSize: '12px' }}>{isOpen ? '▴' : '▾'}</span>
+                    <span style={{ color: 'rgba(113,87,57,0.25)', fontSize: '11px' }}>{isOpen ? '▴' : '▾'}</span>
                   </div>
                 </div>
 
@@ -931,7 +921,7 @@ export default function CoachPage() {
                     </button>
                   )}
                   {!payment && (
-                    <button onClick={e => { e.stopPropagation(); setAddingPayment(addingPayment === client.id ? null : client.id); if (!paymentForms[client.id]) setPaymentForms(prev => ({ ...prev, [client.id]: { period_start: '', period_end: '', amount: '', paid: false } })) }} style={{ padding: '5px 14px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}>
+                    <button onClick={e => { e.stopPropagation(); setAddingPayment(addingPayment === client.id ? null : client.id); if (!paymentForms[client.id]) setPaymentForms(prev => ({ ...prev, [client.id]: { period_start: '', period_end: '', amount: '', paid: false } })) }} style={{ padding: '5px 14px', borderRadius: '999px', background: 'rgba(140,111,79,0.08)', border: '1px solid rgba(140,111,79,0.2)', color: '#8C6F4F', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}>
                       + Добавить оплату
                     </button>
                   )}
@@ -942,25 +932,25 @@ export default function CoachPage() {
                   <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Начало периода</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Начало периода</p>
                         <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Конец периода</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Конец периода</p>
                         <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма €</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма €</p>
                         <input type="number" placeholder="5000" value={paymentForms[client.id]?.amount || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], amount: e.target.value } }))} className="no-spin" style={{ ...inputSm, borderRadius: '10px' }} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '18px' }}>
-                        <input type="checkbox" id={`paid-${client.id}`} checked={paymentForms[client.id]?.paid || false} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], paid: e.target.checked } }))} style={{ accentColor: '#7a4a20', width: '16px', height: '16px' }} />
-                        <label htmlFor={`paid-${client.id}`} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', cursor: 'pointer' }}>Оплачено</label>
+                        <input type="checkbox" id={`paid-${client.id}`} checked={paymentForms[client.id]?.paid || false} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], paid: e.target.checked } }))} style={{ accentColor: '#8C6F4F', width: '16px', height: '16px' }} />
+                        <label htmlFor={`paid-${client.id}`} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.6)', cursor: 'pointer' }}>Оплачено</label>
                       </div>
                     </div>
-                    <button onClick={() => addPayment(client.id)} disabled={savingPayment === client.id} style={{ padding: '7px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
+                    <button onClick={() => addPayment(client.id)} disabled={savingPayment === client.id} style={{ padding: '7px 18px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
                       {savingPayment === client.id ? 'Сохраняем...' : 'Сохранить'}
                     </button>
                   </div>
@@ -974,8 +964,8 @@ export default function CoachPage() {
                       <>
                         <Divider />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Стоимость / месяц</p>
-                          <button onClick={() => { setEditingRate(editingRate === client.id ? null : client.id); if (!monthlyRates[client.id]) setMonthlyRates(prev => ({ ...prev, [client.id]: String(payment.monthly_rate || payment.amount || '') })) }} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>Стоимость / месяц</p>
+                          <button onClick={() => { setEditingRate(editingRate === client.id ? null : client.id); if (!monthlyRates[client.id]) setMonthlyRates(prev => ({ ...prev, [client.id]: String(payment.monthly_rate || payment.amount || '') })) }} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>
                             {editingRate === client.id ? 'Отмена' : 'Изменить'}
                           </button>
                         </div>
@@ -989,12 +979,12 @@ export default function CoachPage() {
                               placeholder="Сумма в €"
                               style={{ ...inputSm, flex: 1, borderRadius: '10px' }}
                             />
-                            <button onClick={() => saveMonthlyRate(client.id, payment.id)} disabled={savingRate === client.id} style={{ padding: '7px 14px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <button onClick={() => saveMonthlyRate(client.id, payment.id)} disabled={savingRate === client.id} style={{ padding: '7px 14px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                               {savingRate === client.id ? '...' : 'Сохранить'}
                             </button>
                           </div>
                         ) : (
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e', margin: 0 }}>
+                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#1C1C18', margin: 0 }}>
                             {payment.monthly_rate || payment.amount ? `€${(payment.monthly_rate || payment.amount).toLocaleString('ru-RU')}` : '—'}
                           </p>
                         )}
@@ -1004,8 +994,8 @@ export default function CoachPage() {
                     {/* Б — КБЖУ */}
                     <Divider />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>КБЖУ</p>
-                      <button onClick={() => setEditingNutrition(isEditingNutrition ? null : client.id)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>КБЖУ</p>
+                      <button onClick={() => setEditingNutrition(isEditingNutrition ? null : client.id)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>
                         {isEditingNutrition ? 'Отмена' : 'Изменить КБЖУ'}
                       </button>
                     </div>
@@ -1020,7 +1010,7 @@ export default function CoachPage() {
                             { key: 'carbs', label: 'Углеводы (г)' },
                           ].map(({ key, label }) => (
                             <div key={key}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{label}</p>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{label}</p>
                               <input
                                 type="number"
                                 value={(nForm as any)[key]}
@@ -1032,7 +1022,7 @@ export default function CoachPage() {
                           ))}
                         </div>
                         <div style={{ marginBottom: '10px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>Заметка тренера</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>Заметка тренера</p>
                           <input
                             type="text"
                             value={nForm.notes}
@@ -1041,7 +1031,7 @@ export default function CoachPage() {
                             style={inputSm}
                           />
                         </div>
-                        <button onClick={() => saveNutrition(client.id)} disabled={savingNutrition === client.id} style={{ padding: '7px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
+                        <button onClick={() => saveNutrition(client.id)} disabled={savingNutrition === client.id} style={{ padding: '7px 18px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
                           {savingNutrition === client.id ? 'Сохраняем...' : 'Сохранить'}
                         </button>
                       </div>
@@ -1054,24 +1044,24 @@ export default function CoachPage() {
                           { v: nutrition.carbs, u: 'у' },
                         ].filter(x => x.v).map(({ v, u }, i) => (
                           <div key={i} style={{ textAlign: 'center' }}>
-                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '16px', color: '#2d1f0e' }}>{v}</span>
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', marginLeft: '2px' }}>{u}</span>
+                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '16px', color: '#1C1C18' }}>{v}</span>
+                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)', marginLeft: '2px' }}>{u}</span>
                           </div>
                         ))}
-                        {nutrition.notes && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.45)', fontStyle: 'italic', marginLeft: '4px' }}>{nutrition.notes}</span>}
+                        {nutrition.notes && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.45)', fontStyle: 'italic', marginLeft: '4px' }}>{nutrition.notes}</span>}
                       </div>
                     ) : (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Не задано</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.3)', fontSize: '12px', margin: 0 }}>Не задано</p>
                     )}
 
                     {/* В — ПОСЛЕДНЯЯ ТРЕНИРОВКА */}
                     <Divider />
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Последняя тренировка</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: '0 0 10px' }}>Последняя тренировка</p>
                     {lastSessionLogs.length === 0 ? (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Тренировок ещё не было</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.3)', fontSize: '12px', margin: 0 }}>Тренировок ещё не было</p>
                     ) : (
                       <>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '0 0 8px' }}>{fmtDate(lastDate!)}</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.3)', margin: '0 0 8px' }}>{fmtDate(lastDate!)}</p>
                         {lastSessionLogs.map((l: any, i: number) => {
                           const parts: string[] = []
                           if (l.w1) parts.push(`П1: ${l.w1}кг`)
@@ -1080,12 +1070,12 @@ export default function CoachPage() {
                           if (l.reps) parts.push(`${l.reps} повт`)
                           return (
                             <div key={i} style={{ marginBottom: l.notes ? '6px' : '4px' }}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.65)', margin: 0 }}>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.65)', margin: 0 }}>
                                 {EXERCISE_NAMES[l.exercise_id] || l.exercise_id}
-                                {parts.length > 0 && <span style={{ color: 'rgba(45,31,14,0.4)' }}> — {parts.join(' · ')}</span>}
+                                {parts.length > 0 && <span style={{ color: 'rgba(113,87,57,0.4)' }}> — {parts.join(' · ')}</span>}
                               </p>
                               {l.notes && (
-                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', fontStyle: 'italic', margin: '1px 0 0' }}>{l.notes}</p>
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)', fontStyle: 'italic', margin: '1px 0 0' }}>{l.notes}</p>
                               )}
                             </div>
                           )
@@ -1096,7 +1086,7 @@ export default function CoachPage() {
                     {/* Г — ОТЧЁТ */}
                     <Divider />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Отчёт недели</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>Отчёт недели</p>
                       {!latestReport && (
                         <button
                           onClick={() => {
@@ -1104,7 +1094,7 @@ export default function CoachPage() {
                             if (!starterForms[client.id]) setStarterForms(prev => ({ ...prev, [client.id]: { date: today, weight: '', chest: '', waist: '', waist_navel: '', hips: '', one_thigh: '', arm: '', notes: '' } }))
                             setAddingStarterReport(addingStarterReport === client.id ? null : client.id)
                           }}
-                          style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}
+                          style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}
                         >
                           {addingStarterReport === client.id ? 'Отмена' : '+ Стартовый отчёт'}
                         </button>
@@ -1113,7 +1103,7 @@ export default function CoachPage() {
                     {!latestReport && addingStarterReport === client.id && (
                       <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginBottom: '10px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ marginBottom: '8px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Дата</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Дата</p>
                           <input type="date" value={starterForms[client.id]?.date || ''} onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], date: e.target.value } }))} style={{ ...inputSm }} />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -1127,7 +1117,7 @@ export default function CoachPage() {
                             { key: 'arm', label: 'Рука (см)' },
                           ].map(({ key, label }) => (
                             <div key={key}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
                               <input
                                 type="number"
                                 className="no-spin"
@@ -1140,7 +1130,7 @@ export default function CoachPage() {
                           ))}
                         </div>
                         <div style={{ marginBottom: '10px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Заметки</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Заметки</p>
                           <textarea
                             value={starterForms[client.id]?.notes || ''}
                             onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], notes: e.target.value } }))}
@@ -1152,14 +1142,14 @@ export default function CoachPage() {
                         <button
                           onClick={() => saveStarterReport(client.id)}
                           disabled={savingStarterReport === client.id}
-                          style={{ padding: '7px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                          style={{ padding: '7px 18px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
                         >
                           {savingStarterReport === client.id ? 'Сохраняем...' : 'Сохранить отчёт'}
                         </button>
                       </div>
                     )}
                     {!latestReport && addingStarterReport !== client.id ? (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Отчёт ещё не отправлен</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.3)', fontSize: '12px', margin: 0 }}>Отчёт ещё не отправлен</p>
                     ) : latestReport ? (() => {
                       // Spark line from reports
                       const sparkWeights = client.reports.filter((r: any) => r.weight != null).map((r: any) => r.weight as number).reverse()
@@ -1180,10 +1170,10 @@ export default function CoachPage() {
                           {/* Date + weight + sparkline row */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                             <div style={{ flex: 1 }}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '0 0 2px' }}>{fmtDate(latestReport.week_start)}</p>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.35)', margin: '0 0 2px' }}>{fmtDate(latestReport.week_start)}</p>
                               <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                                 {latestReport.weight != null && (
-                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#2d1f0e', lineHeight: 1 }}>{latestReport.weight} кг</span>
+                                  <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#1C1C18', lineHeight: 1 }}>{latestReport.weight} кг</span>
                                 )}
                                 {weightDiff !== null && (
                                   <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px', color: weightDiff <= 0 ? '#1a7a3c' : '#8a2520' }}>
@@ -1194,12 +1184,12 @@ export default function CoachPage() {
                             </div>
                             {sparkSvg && (
                               <svg width="80" height="30" viewBox="0 0 80 30" style={{ flexShrink: 0 }}>
-                                <polyline points={sparkSvg} fill="none" stroke="#7a4a20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+                                <polyline points={sparkSvg} fill="none" stroke="#8C6F4F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
                               </svg>
                             )}
                           </div>
                           {/* Params inline */}
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.45)', margin: '0 0 8px', lineHeight: 1.8 }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.45)', margin: '0 0 8px', lineHeight: 1.8 }}>
                             {[
                               latestReport.chest != null && `Гр: ${latestReport.chest}`,
                               latestReport.waist != null && `Тал: ${latestReport.waist}`,
@@ -1218,21 +1208,21 @@ export default function CoachPage() {
                             ))}
                           </div>
                           {latestReport.notes && (
-                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.45)', fontSize: '11px', fontStyle: 'italic', margin: 0 }}>
+                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.45)', fontSize: '11px', fontStyle: 'italic', margin: 0 }}>
                               "{latestReport.notes}"
                             </p>
                           )}
                           <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
                             <button
                               onClick={e => { e.stopPropagation(); setViewingReport({ client: client.name, report: latestReport }) }}
-                              style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                              style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(140,111,79,0.08)', border: '1px solid rgba(140,111,79,0.2)', color: '#8C6F4F', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
                             >
                               Открыть полный отчёт
                             </button>
                             {client.reports && client.reports.length > 1 && (
                               <button
                                 onClick={e => { e.stopPropagation(); setViewingReportHistory({ client: client.name, reports: client.reports }) }}
-                                style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                                style={{ padding: '7px 16px', borderRadius: '999px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)', color: 'rgba(113,87,57,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
                               >
                                 Все отчёты ({client.reports.length})
                               </button>
@@ -1246,10 +1236,10 @@ export default function CoachPage() {
                     {mood && (
                       <>
                         <Divider />
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 8px' }}>Самочувствие</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: '0 0 8px' }}>Самочувствие</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <span style={{ fontSize: '24px' }}>{MOOD_EMOJIS[mood.mood] || '😐'}</span>
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)' }}>Энергия: {mood.energy}/10 · Мышцы: {mood.muscle_pain}/10</span>
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.55)' }}>Энергия: {mood.energy}/10 · Мышцы: {mood.muscle_pain}/10</span>
                         </div>
                       </>
                     )}
@@ -1257,8 +1247,8 @@ export default function CoachPage() {
                     {/* Е — НАЗНАЧЕННАЯ ТРЕНИРОВКА */}
                     <Divider />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Тренировка</p>
-                      <button onClick={() => setAssigningWorkout(isAssigningWorkout ? null : client.id)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>Тренировка</p>
+                      <button onClick={() => setAssigningWorkout(isAssigningWorkout ? null : client.id)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>
                         {isAssigningWorkout ? 'Отмена' : 'Сменить'}
                       </button>
                     </div>
@@ -1266,7 +1256,7 @@ export default function CoachPage() {
                     {isAssigningWorkout ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {workoutsList.length === 0 ? (
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>Нет созданных тренировок</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.4)', margin: 0 }}>Нет созданных тренировок</p>
                         ) : (
                           workoutsList.map(w => (
                             <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1275,13 +1265,13 @@ export default function CoachPage() {
                                 disabled={savingWorkout === client.id}
                                 style={{
                                   flex: 1, padding: '9px 14px', borderRadius: '12px', textAlign: 'left',
-                                  background: assignedWorkout?.id === w.id ? 'rgba(122,74,32,0.12)' : 'rgba(0,0,0,0.04)',
-                                  border: assignedWorkout?.id === w.id ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent',
+                                  background: assignedWorkout?.id === w.id ? 'rgba(140,111,79,0.12)' : 'rgba(0,0,0,0.04)',
+                                  border: assignedWorkout?.id === w.id ? '1px solid rgba(140,111,79,0.2)' : '1px solid transparent',
                                   cursor: 'pointer',
                                 }}
                               >
-                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>{w.title}</p>
-                                {w.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '2px 0 0' }}>{w.subtitle}</p>}
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#1C1C18', margin: 0 }}>{w.title}</p>
+                                {w.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.4)', margin: '2px 0 0' }}>{w.subtitle}</p>}
                               </button>
                               <button
                                 onClick={() => deleteWorkout(w.id)}
@@ -1294,12 +1284,12 @@ export default function CoachPage() {
                         )}
                       </div>
                     ) : assignedWorkout ? (
-                      <div style={{ background: 'rgba(122,74,32,0.07)', borderRadius: '12px', padding: '10px 14px' }}>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>{assignedWorkout.title}</p>
-                        {assignedWorkout.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '2px 0 0' }}>{assignedWorkout.subtitle}</p>}
+                      <div style={{ background: 'rgba(140,111,79,0.07)', borderRadius: '12px', padding: '10px 14px' }}>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#1C1C18', margin: 0 }}>{assignedWorkout.title}</p>
+                        {assignedWorkout.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.4)', margin: '2px 0 0' }}>{assignedWorkout.subtitle}</p>}
                       </div>
                     ) : (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Не назначено</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.3)', fontSize: '12px', margin: 0 }}>Не назначено</p>
                     )}
 
                     {/* Ж — ПРОГРАММА */}
@@ -1309,21 +1299,21 @@ export default function CoachPage() {
                       return (
                         <>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Программа</p>
-                            {prog && <button onClick={() => router.push(`/coach/programs/edit/${prog.id}`)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>Изменить</button>}
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>Программа</p>
+                            {prog && <button onClick={() => router.push(`/coach/programs/edit/${prog.id}`)} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>Изменить</button>}
                           </div>
                           {prog ? (
-                            <div style={{ background: 'rgba(122,74,32,0.07)', borderRadius: '12px', padding: '10px 14px' }}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: '0 0 4px' }}>{prog.title}</p>
+                            <div style={{ background: 'rgba(140,111,79,0.07)', borderRadius: '12px', padding: '10px 14px' }}>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#1C1C18', margin: '0 0 4px' }}>{prog.title}</p>
                               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                {prog.start_date && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)' }}>Старт: {new Date(prog.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>}
-                                {prog.end_date && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)' }}>До: {new Date(prog.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>}
+                                {prog.start_date && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)' }}>Старт: {new Date(prog.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>}
+                                {prog.end_date && <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)' }}>До: {new Date(prog.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>}
                               </div>
                             </div>
                           ) : (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>Программа не назначена</p>
-                              <button onClick={() => router.push('/coach/programs/new')} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', cursor: 'pointer', padding: 0 }}>+ Создать</button>
+                              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(113,87,57,0.3)', fontSize: '12px', margin: 0 }}>Программа не назначена</p>
+                              <button onClick={() => router.push('/coach/programs/new')} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>+ Создать</button>
                             </div>
                           )}
                         </>
@@ -1363,14 +1353,14 @@ export default function CoachPage() {
             {/* Close */}
             <button
               onClick={() => setViewingReport(null)}
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.07)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(45,31,14,0.5)' }}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.07)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(113,87,57,0.5)' }}
             >
               ✕
             </button>
 
             {/* Header */}
-            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e', margin: '0 0 4px' }}>{viewingReport.client}</h2>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: '0 0 20px' }}>
+            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#1C1C18', margin: '0 0 4px' }}>{viewingReport.client}</h2>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.4)', margin: '0 0 20px' }}>
               {viewingReport.report.week_start ? new Date(viewingReport.report.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
             </p>
 
@@ -1388,7 +1378,7 @@ export default function CoachPage() {
                       alt={label}
                       style={{ width: '100%', height: '130px', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
                     />
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', textAlign: 'center', margin: '4px 0 0' }}>{label}</p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.35)', textAlign: 'center', margin: '4px 0 0' }}>{label}</p>
                   </div>
                 ) : null)}
               </div>
@@ -1397,8 +1387,8 @@ export default function CoachPage() {
             {/* Weight */}
             {viewingReport.report.weight && (
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '40px', color: '#2d1f0e', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report.weight}</p>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1.5px' }}>кг</p>
+                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '40px', color: '#1C1C18', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report.weight}</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1.5px' }}>кг</p>
               </div>
             )}
 
@@ -1413,15 +1403,15 @@ export default function CoachPage() {
                 { key: 'arm', label: 'Рука' },
               ].filter(({ key }) => viewingReport.report[key] != null).map(({ key, label }) => (
                 <div key={key} style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#2d1f0e', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key]}</p>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>{label} см</p>
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#1C1C18', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key]}</p>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)', margin: 0 }}>{label} см</p>
                 </div>
               ))}
             </div>
 
             {/* Notes */}
             {viewingReport.report.notes && (
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>«{viewingReport.report.notes}»</p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(113,87,57,0.6)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>«{viewingReport.report.notes}»</p>
             )}
           </div>
         </div>
@@ -1437,9 +1427,9 @@ export default function CoachPage() {
             onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: '24px', padding: '28px 24px', width: '100%', maxWidth: '480px', marginTop: '40px', position: 'relative' }}
           >
-            <button onClick={() => setViewingReportHistory(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'rgba(45,31,14,0.3)', lineHeight: 1 }}>✕</button>
-            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e', margin: '0 0 4px' }}>{viewingReportHistory.client}</h2>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: '0 0 20px', letterSpacing: '1px', textTransform: 'uppercase' }}>Все отчёты · {viewingReportHistory.reports.length}</p>
+            <button onClick={() => setViewingReportHistory(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'rgba(113,87,57,0.3)', lineHeight: 1 }}>✕</button>
+            <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#1C1C18', margin: '0 0 4px' }}>{viewingReportHistory.client}</h2>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.4)', margin: '0 0 20px', letterSpacing: '1px', textTransform: 'uppercase' }}>Все отчёты · {viewingReportHistory.reports.length}</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[...viewingReportHistory.reports].sort((a, b) => new Date(b.week_start || b.created_at || 0).getTime() - new Date(a.week_start || a.created_at || 0).getTime()).map((r, i, arr) => {
@@ -1448,12 +1438,12 @@ export default function CoachPage() {
                 return (
                   <div key={r.id || i} style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '16px', padding: '14px 16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(113,87,57,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
                         {r.week_start ? new Date(r.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                       </p>
                       {r.weight != null && (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '20px', color: '#2d1f0e' }}>{r.weight} кг</span>
+                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '20px', color: '#1C1C18' }}>{r.weight} кг</span>
                           {diff !== null && (
                             <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '11px', color: diff <= 0 ? '#1a7a3c' : '#8a2520' }}>
                               {diff <= 0 ? `↓${Math.abs(diff)}` : `↑${diff}`}
@@ -1470,11 +1460,11 @@ export default function CoachPage() {
                       </div>
                     )}
                     {r.notes && (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)', fontStyle: 'italic', margin: 0 }}>«{r.notes}»</p>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(113,87,57,0.55)', fontStyle: 'italic', margin: 0 }}>«{r.notes}»</p>
                     )}
                     <button
                       onClick={() => { setViewingReportHistory(null); setViewingReport({ client: viewingReportHistory.client, report: r }) }}
-                      style={{ marginTop: '8px', padding: '5px 14px', borderRadius: '999px', background: 'rgba(122,74,32,0.07)', border: '1px solid rgba(122,74,32,0.18)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                      style={{ marginTop: '8px', padding: '5px 14px', borderRadius: '999px', background: 'rgba(140,111,79,0.07)', border: '1px solid rgba(140,111,79,0.18)', color: '#8C6F4F', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
                     >
                       Открыть
                     </button>
