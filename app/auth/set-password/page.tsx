@@ -15,19 +15,15 @@ export default function SetPasswordPage() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Supabase автоматически обрабатывает #access_token из URL
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        // Инвайт: пароль не нужен — сразу в приложение
+        router.replace('/client')
+      }
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        // Сброс пароля — показать форму
         setSessionReady(true)
       }
-      if (event === 'PASSWORD_RECOVERY') {
-        setSessionReady(true)
-      }
-    })
-
-    // Также проверить текущую сессию
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
     })
 
     return () => subscription.unsubscribe()
@@ -123,6 +119,7 @@ export default function SetPasswordPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Новый пароль"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -130,6 +127,7 @@ export default function SetPasswordPage() {
             />
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Повтори пароль"
               value={confirm}
               onChange={e => setConfirm(e.target.value)}

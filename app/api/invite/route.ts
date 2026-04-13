@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://coach-app-gray.vercel.app'
 
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${siteUrl}/auth/callback?type=invite`,
+    redirectTo: `${siteUrl}/auth/callback`,
   })
 
   if (error) {
