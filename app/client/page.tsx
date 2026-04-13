@@ -756,6 +756,9 @@ export default function ClientPage() {
             <button onClick={() => router.push('/reports-history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
               История отчётов →
             </button>
+            <button onClick={() => router.push('/history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
+  История тренировок →
+</button>
           </div>
 
         </div>

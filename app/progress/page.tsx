@@ -1,458 +1,385 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
-import {
-  XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Area, AreaChart,
-} from 'recharts'
 
-const EXERCISE_NAMES: Record<string, string> = {
-  'box-squat': 'Присед на тумбу',
-  'rdl': 'Румынская тяга',
-  'db-press': 'Жим гантелей лёжа',
-  'lat-pulldown': 'Тяга верхнего блока',
-  'cable-row': 'Тяга горизонтального блока',
-  'abductor': 'Разведение ног',
+const card: React.CSSProperties = {
+  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  padding: '28px 0',
 }
 
-const MUSCLE_TAGS: Record<string, string> = {
-  'box-squat': 'Квадрицепс',
-  'rdl': 'Бицепс бедра',
-  'db-press': 'Грудь',
-  'lat-pulldown': 'Широчайшие',
-  'cable-row': 'Средняя спина',
-  'abductor': 'Ягодицы',
+const LABEL: React.CSSProperties = {
+  fontFamily: 'Chillax, sans-serif',
+  fontWeight: 300,
+  fontSize: '10px',
+  letterSpacing: '3px',
+  textTransform: 'uppercase',
+  color: 'rgba(45,31,14,0.3)',
+  margin: '0 0 16px',
 }
 
-const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
-  borderRadius: '20px',
-  padding: '24px',
+type Photo = {
+  id: string
+  photo_url: string
+  taken_at: string
+  weight_kg: number | null
+  notes: string | null
+  signedUrl: string
 }
 
-type Log = {
-  exercise_id: string
-  w1?: string | null
-  w2?: string | null
-  w3?: string | null
-  saved_at: string
-}
-
-type ChartPoint = { date: string; weight: number; isLast?: boolean }
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  return `${dd}.${mm}`
-}
-
-function maxW(log: Log): number {
-  return Math.max(
-    parseFloat(log.w1 || '0') || 0,
-    parseFloat(log.w2 || '0') || 0,
-    parseFloat(log.w3 || '0') || 0,
-  )
-}
-
-const CustomDot = (props: any) => {
-  const { cx, cy, payload } = props
-  if (!cx || !cy) return null
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={payload.isLast ? 6 : 4}
-      fill={payload.isLast ? '#7a4a20' : '#f5f0e8'}
-      stroke="#7a4a20"
-      strokeWidth={payload.isLast ? 0 : 2}
-    />
-  )
-}
-
-const CustomTooltip = ({ active, payload }: any) => {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{
-      background: 'rgba(255,255,255,0.95)',
-      border: '1px solid rgba(122,74,32,0.15)',
-      borderRadius: '12px',
-      padding: '8px 14px',
-      fontFamily: 'Epilogue, sans-serif',
-      fontSize: '14px',
-      color: '#7a4a20',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    }}>
-      {payload[0].value} кг
-    </div>
-  )
+function pluralPhotos(n: number) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'фото'
+  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'фото'
+  return 'фото'
 }
 
 export default function ProgressPage() {
-  const router = useRouter()
-  const [logs, setLogs] = useState<Log[]>([])
+  const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [selected, setSelected] = useState<string[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [showUploadForm, setShowUploadForm] = useState(false)
+  const [weightInput, setWeightInput] = useState('')
+  const [notesInput, setNotesInput] = useState('')
+  const [dateInput, setDateInput] = useState(new Date().toISOString().slice(0, 10))
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/'); return }
       setUserId(data.user.id)
-
-      const { data: workoutLogs } = await supabase
-        .from('workout_logs')
-        .select('exercise_id, w1, w2, w3, saved_at')
-        .eq('player', data.user.id)
-        .not('w1', 'is', null)
-        .order('saved_at', { ascending: true })
-
-      setLogs(workoutLogs || [])
+      await loadPhotos(data.user.id)
       setLoading(false)
     })
   }, [])
 
-  // ── derived data ──────────────────────────────────────────────
-  const logsWithWeight = logs.filter(l => maxW(l) > 0)
+  async function loadPhotos(uid: string) {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('progress_photos')
+      .select('id, photo_url, taken_at, weight_kg, notes')
+      .eq('user_id', uid)
+      .order('taken_at', { ascending: false })
 
-  // max weight per exercise
-  const maxByExercise: Record<string, number> = {}
-  logsWithWeight.forEach(l => {
-    const w = maxW(l)
-    if (w > (maxByExercise[l.exercise_id] || 0)) maxByExercise[l.exercise_id] = w
-  })
+    if (!data || data.length === 0) { setPhotos([]); return }
 
-  // count of records per exercise (for choosing primary chart)
-  const countByExercise: Record<string, number> = {}
-  logsWithWeight.forEach(l => {
-    countByExercise[l.exercise_id] = (countByExercise[l.exercise_id] || 0) + 1
-  })
+    const paths = data.map(p => p.photo_url)
+    const { data: signedData } = await supabase.storage
+      .from('progress-photos')
+      .createSignedUrls(paths, 3600)
 
-  const primaryExercise = Object.entries(countByExercise).sort(([, a], [, b]) => b - a)[0]?.[0]
+    const photosWithUrls: Photo[] = data.map((p, i) => ({
+      ...p,
+      signedUrl: signedData?.[i]?.signedUrl || '',
+    }))
+    setPhotos(photosWithUrls)
+  }
 
-  // chart data for primary exercise — group by date, take max
-  const chartData: ChartPoint[] = []
-  if (primaryExercise) {
-    const byDate: Record<string, number> = {}
-    logsWithWeight
-      .filter(l => l.exercise_id === primaryExercise)
-      .forEach(l => {
-        const date = formatDate(l.saved_at)
-        const w = maxW(l)
-        if (w > (byDate[date] || 0)) byDate[date] = w
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPendingFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setShowUploadForm(true)
+  }
+
+  async function handleUpload() {
+    if (!pendingFile || !userId) return
+    setUploading(true)
+
+    const supabase = createClient()
+    const ext = pendingFile.name.split('.').pop() || 'jpg'
+    const path = `${userId}/${Date.now()}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('progress-photos')
+      .upload(path, pendingFile, { contentType: pendingFile.type })
+
+    if (!uploadError) {
+      await supabase.from('progress_photos').insert({
+        user_id: userId,
+        photo_url: path,
+        taken_at: dateInput,
+        weight_kg: weightInput ? parseFloat(weightInput) : null,
+        notes: notesInput || null,
       })
-    const dates = Object.keys(byDate)
-    dates.forEach((date, i) => {
-      chartData.push({ date, weight: byDate[date], isLast: i === dates.length - 1 })
+      await loadPhotos(userId)
+    }
+
+    setUploading(false)
+    setShowUploadForm(false)
+    setPendingFile(null)
+    setPreviewUrl(null)
+    setWeightInput('')
+    setNotesInput('')
+    setDateInput(new Date().toISOString().slice(0, 10))
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id)
+      if (prev.length >= 2) return [prev[1], id]
+      return [...prev, id]
     })
   }
 
-  // summary stats
-  const totalSessions = [...new Set(logs.map(l => l.saved_at.slice(0, 10)))].length
-  const globalMax = Math.max(...Object.values(maxByExercise), 0)
+  const comparePhotos = selected.length === 2
+    ? [photos.find(p => p.id === selected[0]), photos.find(p => p.id === selected[1])].filter(Boolean) as Photo[]
+    : []
 
-  // rdl progress (first vs last)
-  const rdlLogs = logsWithWeight.filter(l => l.exercise_id === 'rdl')
-  let rdlProgress: number | null = null
-  if (rdlLogs.length >= 2) {
-    rdlProgress = Math.round((maxW(rdlLogs[rdlLogs.length - 1]) - maxW(rdlLogs[0])) * 10) / 10
-  }
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 
-  // all exercises sorted by max weight desc
-  const allExercises = Object.entries(maxByExercise).sort(([, a], [, b]) => b - a)
-
-  // ── render ────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+        <div style={{ maxWidth: '460px', margin: '0 auto' }}>
+          <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
+            <div style={{ height: '52px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px', width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '28px' }}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} style={{ aspectRatio: '3/4', background: 'rgba(255,255,255,0.4)', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
 
-  const isEmpty = logsWithWeight.length === 0
-
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px 60px' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+        <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
           {/* HEADER */}
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontFamily: 'Chillax, sans-serif',
-                fontWeight: 300,
-                fontSize: '13px',
-                color: 'rgba(45,31,14,0.45)',
-                cursor: 'pointer',
-                padding: '0 0 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
+              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '0 0 20px', cursor: 'pointer', letterSpacing: '1px', display: 'block' }}
             >
-              ← назад
+              ← Назад
             </button>
-            <h1 style={{
-              fontFamily: 'Epilogue, sans-serif',
-              fontWeight: 400,
-              fontSize: '36px',
-              color: '#2d1f0e',
-              margin: '0 0 6px',
-              lineHeight: 1.1,
-            }}>
-              Мой прогресс
-            </h1>
-            <p style={{
-              fontFamily: 'Chillax, sans-serif',
-              fontWeight: 300,
-              fontSize: '11px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: '#7a4a20',
-              margin: 0,
-            }}>
-              Динамика весов
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <div>
+                <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
+                  Прогресс
+                </h1>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                  {photos.length} {pluralPhotos(photos.length)}
+                </p>
+              </div>
+              <div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  style={{ padding: '10px 22px', borderRadius: '999px', background: '#7a4a20', border: 'none', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer', letterSpacing: '0.5px' }}
+                >
+                  + Фото
+                </button>
+              </div>
+            </div>
           </div>
 
-          {isEmpty ? (
-            <div style={{ ...glassCard, textAlign: 'center', padding: '48px 24px' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '15px', margin: 0 }}>
-                Заполни первую тренировку —<br />здесь появятся твои графики
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* SUMMARY — 3 cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                {/* Занятий */}
-                <div style={{ ...glassCard, borderRadius: '16px', padding: '18px 14px', textAlign: 'center' }}>
-                  <p style={{
-                    fontFamily: 'Epilogue, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '28px',
-                    color: '#2d1f0e',
-                    margin: '0 0 6px',
-                    lineHeight: 1,
-                  }}>
-                    {totalSessions}
-                  </p>
-                  <p style={{
-                    fontFamily: 'Chillax, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '9px',
-                    letterSpacing: '1.2px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(45,31,14,0.35)',
-                    margin: 0,
-                  }}>
-                    Занятий
-                  </p>
-                </div>
-
-                {/* Макс вес */}
-                <div style={{ ...glassCard, borderRadius: '16px', padding: '18px 14px', textAlign: 'center' }}>
-                  <p style={{
-                    fontFamily: 'Epilogue, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '28px',
-                    color: '#2d1f0e',
-                    margin: '0 0 6px',
-                    lineHeight: 1,
-                  }}>
-                    {globalMax}<span style={{ fontSize: '14px', opacity: 0.5 }}> кг</span>
-                  </p>
-                  <p style={{
-                    fontFamily: 'Chillax, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '9px',
-                    letterSpacing: '1.2px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(45,31,14,0.35)',
-                    margin: 0,
-                  }}>
-                    Макс вес
-                  </p>
-                </div>
-
-                {/* Прогресс RDL */}
-                <div style={{ ...glassCard, borderRadius: '16px', padding: '18px 14px', textAlign: 'center' }}>
-                  <p style={{
-                    fontFamily: 'Epilogue, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '28px',
-                    color: rdlProgress !== null && rdlProgress > 0 ? '#7a4a20' : '#2d1f0e',
-                    margin: '0 0 6px',
-                    lineHeight: 1,
-                  }}>
-                    {rdlProgress !== null ? `+${rdlProgress}` : '—'}<span style={{ fontSize: '14px', opacity: 0.5 }}>{rdlProgress !== null ? ' кг' : ''}</span>
-                  </p>
-                  <p style={{
-                    fontFamily: 'Chillax, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '9px',
-                    letterSpacing: '1.2px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(45,31,14,0.35)',
-                    margin: 0,
-                  }}>
-                    РДЛ рост
-                  </p>
-                </div>
-              </div>
-
-              {/* DETAIL CHART */}
-              {primaryExercise && chartData.length > 0 && (
-                <div style={{ ...glassCard, marginBottom: '16px', padding: '24px 16px 16px' }}>
-                  <p style={{
-                    fontFamily: 'Chillax, sans-serif',
-                    fontWeight: 300,
-                    fontSize: '11px',
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(45,31,14,0.35)',
-                    margin: '0 0 20px 8px',
-                  }}>
-                    Динамика
-                  </p>
-
-                  <ResponsiveContainer width="100%" height={180}>
-                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="rgba(122,74,32,0.3)" />
-                          <stop offset="100%" stopColor="rgba(122,74,32,0)" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(45,31,14,0.07)" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontFamily: 'Chillax, sans-serif', fontSize: 10, fill: 'rgba(45,31,14,0.4)' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontFamily: 'Chillax, sans-serif', fontSize: 10, fill: 'rgba(45,31,14,0.4)' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area
-                        type="monotone"
-                        dataKey="weight"
-                        stroke="#7a4a20"
-                        strokeWidth={2}
-                        fill="url(#chartGrad)"
-                        dot={<CustomDot />}
-                        activeDot={{ r: 6, fill: '#7a4a20', stroke: '#f5f0e8', strokeWidth: 2 }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-
-                  {/* Exercise meta below chart */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '16px',
-                    paddingTop: '14px',
-                    borderTop: '1px solid rgba(45,31,14,0.07)',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{
-                        fontFamily: 'Chillax, sans-serif',
-                        fontWeight: 300,
-                        fontSize: '13px',
-                        color: '#2d1f0e',
-                      }}>
-                        {EXERCISE_NAMES[primaryExercise] || primaryExercise}
-                      </span>
-                      {MUSCLE_TAGS[primaryExercise] && (
-                        <span style={{
-                          fontFamily: 'Chillax, sans-serif',
-                          fontWeight: 300,
-                          fontSize: '10px',
-                          color: '#7a4a20',
-                          background: 'rgba(122,74,32,0.1)',
-                          border: '1px solid rgba(122,74,32,0.18)',
-                          borderRadius: '999px',
-                          padding: '2px 8px',
-                        }}>
-                          {MUSCLE_TAGS[primaryExercise]}
-                        </span>
-                      )}
-                    </div>
-                    <span style={{
-                      fontFamily: 'Epilogue, sans-serif',
-                      fontWeight: 300,
-                      fontSize: '15px',
-                      color: '#7a4a20',
-                    }}>
-                      {maxByExercise[primaryExercise]} кг
-                    </span>
-                  </div>
+          {/* UPLOAD FORM */}
+          {showUploadForm && (
+            <div style={{ ...card }}>
+              <p style={{ ...LABEL }}>Новое фото</p>
+              {previewUrl && (
+                <div style={{ marginBottom: '16px' }}>
+                  <img
+                    src={previewUrl}
+                    alt="preview"
+                    style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '8px' }}
+                  />
                 </div>
               )}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>Дата</p>
+                  <input
+                    type="date"
+                    value={dateInput}
+                    onChange={e => setDateInput(e.target.value)}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>Вес (кг)</p>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="65.2"
+                    value={weightInput}
+                    onChange={e => setWeightInput(e.target.value)}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="Заметка (необязательно)"
+                value={notesInput}
+                onChange={e => setNotesInput(e.target.value)}
+                style={{ width: '100%', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
+              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  style={{ flex: 1, padding: '11px', borderRadius: '999px', background: uploading ? 'rgba(122,74,32,0.4)' : '#7a4a20', border: 'none', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: uploading ? 'default' : 'pointer' }}
+                >
+                  {uploading ? 'Загружаю...' : 'Сохранить'}
+                </button>
+                <button
+                  onClick={() => { setShowUploadForm(false); setPendingFile(null); setPreviewUrl(null) }}
+                  style={{ padding: '11px 20px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', border: 'none', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontSize: '13px', cursor: 'pointer' }}
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          )}
 
-              {/* ALL EXERCISES */}
-              <div style={{ ...glassCard }}>
-                <p style={{
-                  fontFamily: 'Chillax, sans-serif',
-                  fontWeight: 300,
-                  fontSize: '11px',
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: 'rgba(45,31,14,0.35)',
-                  margin: '0 0 20px',
-                }}>
-                  Все упражнения
-                </p>
+          {/* COMPARE MODE */}
+          {selected.length > 0 && !showUploadForm && (
+            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: selected.length === 2 ? '#7a4a20' : 'rgba(45,31,14,0.4)', margin: 0, letterSpacing: '1px' }}>
+                {selected.length === 1 ? 'Выбери ещё одно фото для сравнения' : '2 фото выбрано'}
+              </p>
+              <button
+                onClick={() => setSelected([])}
+                style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.3)', fontFamily: 'Chillax, sans-serif', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+              >
+                Отмена
+              </button>
+            </div>
+          )}
 
-                {allExercises.map(([exId, weight]) => (
-                  <div key={exId} style={{ marginBottom: '18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '7px' }}>
-                      <span style={{
-                        fontFamily: 'Chillax, sans-serif',
-                        fontWeight: 300,
-                        fontSize: '13px',
-                        color: 'rgba(45,31,14,0.7)',
-                      }}>
-                        {EXERCISE_NAMES[exId] || exId}
-                      </span>
-                      <span style={{
-                        fontFamily: 'Epilogue, sans-serif',
-                        fontWeight: 300,
-                        fontSize: '13px',
-                        color: '#7a4a20',
-                      }}>
-                        {weight} кг
-                      </span>
-                    </div>
-                    <div style={{ height: '5px', borderRadius: '999px', background: 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-                      <div style={{
-                        height: '100%',
-                        borderRadius: '999px',
-                        width: `${(weight / globalMax) * 100}%`,
-                        background: 'linear-gradient(90deg, rgba(122,74,32,0.4), #7a4a20)',
-                        transition: 'width 0.6s ease',
-                      }} />
-                    </div>
+          {/* SIDE-BY-SIDE COMPARE */}
+          {comparePhotos.length === 2 && (
+            <div style={{ ...card }}>
+              <p style={{ ...LABEL }}>Сравнение</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {comparePhotos.map(photo => (
+                  <div key={photo.id}>
+                    <img
+                      src={photo.signedUrl}
+                      alt={photo.taken_at}
+                      style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
+                    />
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#2d1f0e', margin: '8px 0 2px', letterSpacing: '-0.2px' }}>
+                      {formatDate(photo.taken_at)}
+                    </p>
+                    {photo.weight_kg && (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', margin: 0 }}>
+                        {photo.weight_kg} кг
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
-            </>
+              {comparePhotos[0]?.weight_kg && comparePhotos[1]?.weight_kg && (
+                <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(122,74,32,0.06)', borderRadius: '8px' }}>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>
+                    Разница в весе:{' '}
+                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#7a4a20' }}>
+                      {Math.abs(comparePhotos[0].weight_kg! - comparePhotos[1].weight_kg!).toFixed(1)} кг
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PHOTO GRID */}
+          {photos.length === 0 && !showUploadForm ? (
+            <div style={{ ...card, textAlign: 'center', padding: '48px 0' }}>
+              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'rgba(45,31,14,0.18)', margin: '0 0 10px' }}>
+                Фото пока нет
+              </p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.28)', margin: '0 0 20px' }}>
+                Добавь первое фото — и отслеживай визуальный прогресс
+              </p>
+              <button
+                onClick={() => fileRef.current?.click()}
+                style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+              >
+                Загрузить фото
+              </button>
+            </div>
+          ) : photos.length > 0 && (
+            <div style={{ paddingTop: '28px' }}>
+              <p style={{ ...LABEL }}>
+                {selected.length === 0 ? 'Нажми на два фото чтобы сравнить' : `Выбрано ${selected.length} из 2`}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {photos.map(photo => {
+                  const isSelected = selected.includes(photo.id)
+                  return (
+                    <div
+                      key={photo.id}
+                      onClick={() => toggleSelect(photo.id)}
+                      style={{ cursor: 'pointer', position: 'relative' }}
+                    >
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div style={{
+                          position: 'absolute', top: '8px', right: '8px', zIndex: 2,
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: '#7a4a20', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <span style={{ color: '#fff', fontSize: '11px', lineHeight: 1 }}>✓</span>
+                        </div>
+                      )}
+                      <img
+                        src={photo.signedUrl}
+                        alt={photo.taken_at}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '3/4',
+                          objectFit: 'cover',
+                          borderRadius: '6px',
+                          display: 'block',
+                          outline: isSelected ? '2px solid #7a4a20' : '2px solid transparent',
+                          outlineOffset: '2px',
+                          transition: 'outline 0.15s',
+                          opacity: selected.length === 2 && !isSelected ? 0.5 : 1,
+                        }}
+                      />
+                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#2d1f0e', margin: '8px 0 1px', letterSpacing: '-0.2px' }}>
+                        {formatDate(photo.taken_at)}
+                      </p>
+                      {photo.weight_kg && (
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', margin: 0 }}>
+                          {photo.weight_kg} кг
+                        </p>
+                      )}
+                      {photo.notes && (
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {photo.notes}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           )}
 
         </div>
