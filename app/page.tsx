@@ -14,22 +14,33 @@ export default function LoginPage() {
   const [magicLoading, setMagicLoading] = useState(false)
   const router = useRouter()
 
+  async function routeByRole(userId: string) {
+    const supabase = createClient()
+    const { data: prof } = await supabase
+      .from('profiles').select('role, onboarded').eq('id', userId).single()
+    if (prof?.role === 'coach') {
+      router.replace('/coach')
+    } else if (!prof?.onboarded) {
+      router.replace('/welcome')
+    } else {
+      router.replace('/client')
+    }
+  }
+
   useEffect(() => {
     const supabase = createClient()
 
-    // Check existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        router.replace('/client')
+        routeByRole(session.user.id)
       } else {
         setChecking(false)
       }
     })
 
-    // Listen only for explicit sign-in events (not INITIAL_SESSION / TOKEN_REFRESHED)
-    // to avoid competing navigations when a coach already has a session.
+    // Only fire on explicit SIGNED_IN (magic link / OAuth) — not on INITIAL_SESSION or TOKEN_REFRESHED
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) router.replace('/client')
+      if (event === 'SIGNED_IN' && session?.user) routeByRole(session.user.id)
     })
 
     return () => subscription.unsubscribe()
@@ -40,12 +51,12 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('Неверный email или пароль')
       setLoading(false)
     } else {
-      router.push('/client')
+      await routeByRole(data.user.id)
     }
   }
 
