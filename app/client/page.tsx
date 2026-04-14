@@ -317,6 +317,20 @@ export default function ClientPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
+          {/* LOGO BAR */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '32px' }}>
+            <span style={{
+              fontFamily: 'Epilogue, sans-serif',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              fontSize: '22px',
+              letterSpacing: '-0.5px',
+              color: '#2d1f0e',
+            }}>
+              Anna<span style={{ color: '#7a4a20' }}>Boo</span>
+            </span>
+          </div>
+
           {/* HEADER */}
           <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', paddingBottom: '28px', marginBottom: '0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -488,20 +502,32 @@ export default function ClientPage() {
           {/* КБЖУ */}
           {nutrition && (nutrition.calories || nutrition.protein || nutrition.fat || nutrition.carbs) && (
             <div style={{ ...card }}>
-              <p style={{ ...LABEL }}>Твоё питание</p>
-              <div style={{ display: 'flex', gap: '0' }}>
-                {[
-                  { value: nutrition.calories, unit: 'ккал', label: 'Калории' },
-                  { value: nutrition.protein, unit: 'г', label: 'Белки' },
-                  { value: nutrition.fat, unit: 'г', label: 'Жиры' },
-                  { value: nutrition.carbs, unit: 'г', label: 'Углеводы' },
-                ].map(({ value, unit, label }, idx, arr) => value ? (
-                  <div key={label} style={{ flex: 1, textAlign: 'center', borderRight: idx < arr.length - 1 ? '1px solid rgba(45,31,14,0.07)' : 'none' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '32px', color: '#2d1f0e', margin: '0 0 4px', lineHeight: 1, letterSpacing: '-0.5px' }}>{value}</p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: 0, letterSpacing: '2px', textTransform: 'uppercase' }}>{unit}</p>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.25)', margin: '2px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{label}</p>
+              <p style={{ ...LABEL }}>Рацион дня</p>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                {/* Left: big calories number */}
+                {nutrition.calories ? (
+                  <div style={{ flex: '0 0 auto', paddingRight: '24px', borderRight: '1px solid rgba(45,31,14,0.08)', marginRight: '24px' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '56px', lineHeight: 1, color: '#2d1f0e', margin: 0, letterSpacing: '-2px' }}>
+                      {nutrition.calories.toLocaleString('ru-RU')}
+                    </p>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', margin: '8px 0 0', letterSpacing: '2.5px', textTransform: 'uppercase' }}>Калории</p>
                   </div>
-                ) : null)}
+                ) : null}
+                {/* Right: macros vertical list */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '11px' }}>
+                  {[
+                    { value: nutrition.protein, label: 'Белки' },
+                    { value: nutrition.fat, label: 'Жиры' },
+                    { value: nutrition.carbs, label: 'Углеводы' },
+                  ].filter(({ value }) => value != null).map(({ value, label }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>{label}</p>
+                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '20px', color: '#2d1f0e', margin: 0, letterSpacing: '-0.3px' }}>
+                        {value}<span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', marginLeft: '2px' }}>г</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
               {nutrition.notes && (
                 <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', fontStyle: 'italic', margin: '16px 0 0' }}>{nutrition.notes}</p>
@@ -689,44 +715,35 @@ export default function ClientPage() {
           {/* WEIGHT LOSS + BMI BLOCK */}
           {(totalWeightLoss !== null || bmi !== null || latestWeight !== null) && (
             <div style={{ ...card }}>
-              <p style={{ ...LABEL }}>Динамика тела</p>
-              <div style={{ display: 'flex', gap: '0' }}>
-                {latestWeight !== null && (
-                  <div style={{ flex: 1, borderRight: '1px solid rgba(45,31,14,0.07)', paddingRight: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                      <p style={{ ...BIG_NUM, fontSize: '48px' }}>{latestWeight}</p>
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', marginLeft: '4px' }}>кг</span>
-                    </div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '6px 0 0' }}>Сейчас</p>
-                  </div>
-                )}
-                {totalWeightLoss !== null && (
-                  <div style={{ flex: 1, paddingLeft: latestWeight !== null ? '20px' : '0', paddingRight: bmi !== null ? '20px' : '0', borderRight: bmi !== null ? '1px solid rgba(45,31,14,0.07)' : 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '44px', lineHeight: 1, color: totalWeightLoss >= 0 ? '#1a7a3c' : '#8a2520', letterSpacing: '-1px', margin: 0 }}>
-                        {totalWeightLoss > 0 ? '−' : totalWeightLoss < 0 ? '+' : ''}{Math.abs(totalWeightLoss)}
-                      </p>
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
-                    </div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '6px 0 0' }}>За всё время</p>
-                    {avgWeeklyLoss !== null && (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: avgWeeklyLoss >= 0 ? '#1a7a3c' : 'rgba(45,31,14,0.4)', margin: '3px 0 0' }}>
-                        ≈ {avgWeeklyLoss > 0 ? '−' : ''}{Math.abs(avgWeeklyLoss)} кг/нед
-                      </p>
-                    )}
-                  </div>
-                )}
-                {bmi !== null && bmiInfo && (
-                  <div style={{ flex: 1, paddingLeft: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                      <p style={{ ...BIG_NUM }}>{bmi}</p>
-                    </div>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: bmiInfo.color, margin: '6px 0 0' }}>
-                      ИМТ · {bmiInfo.label}
+              <p style={{ ...LABEL }}>Вес &amp; Витальность</p>
+              {/* Current weight — large hero number */}
+              {latestWeight !== null && (
+                <div style={{ marginBottom: totalWeightLoss !== null || bmi !== null ? '20px' : '0' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '72px', lineHeight: 1, color: '#2d1f0e', letterSpacing: '-3px', margin: 0 }}>
+                      {latestWeight}
                     </p>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '18px', color: 'rgba(45,31,14,0.35)', letterSpacing: '1px' }}>кг</span>
                   </div>
-                )}
-              </div>
+                  {totalWeightLoss !== null && (
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: totalWeightLoss >= 0 ? '#1a7a3c' : '#8a2520', margin: '8px 0 0', letterSpacing: '0.3px' }}>
+                      {totalWeightLoss > 0 ? '−' : totalWeightLoss < 0 ? '+' : ''}{Math.abs(totalWeightLoss)} кг за всё время
+                      {avgWeeklyLoss !== null && (
+                        <span style={{ color: 'rgba(45,31,14,0.35)', marginLeft: '10px' }}>
+                          ≈ {avgWeeklyLoss > 0 ? '−' : ''}{Math.abs(avgWeeklyLoss)} кг/нед
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+              {/* BMI row */}
+              {bmi !== null && bmiInfo && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '10px 16px', background: 'rgba(45,31,14,0.04)', borderRadius: '10px' }}>
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '24px', lineHeight: 1, color: '#2d1f0e', margin: 0 }}>{bmi}</p>
+                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: bmiInfo.color, margin: 0 }}>ИМТ · {bmiInfo.label}</p>
+                </div>
+              )}
             </div>
           )}
 
