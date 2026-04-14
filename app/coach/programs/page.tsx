@@ -3,13 +3,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { glassCard } from '@/lib/design/tokens'
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
-  borderRadius: '20px',
+  ...glassCard,
   padding: '18px 20px',
   marginBottom: '10px',
 }
@@ -99,7 +96,7 @@ export default function ProgramsPage() {
             </button>
             <div>
               <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>Программы</h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: 0 }}>{programs.length} создано</p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: 0 }}>{programs.length} создано</p>
             </div>
             <button
               onClick={() => router.push('/coach/programs/new')}

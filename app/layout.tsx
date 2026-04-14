@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { globalAnimationCSS } from '@/lib/design/animations'
 
 export const metadata: Metadata = {
   title: "Coach App",
@@ -24,6 +25,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Coach App" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <style dangerouslySetInnerHTML={{ __html: globalAnimationCSS }} />
       </head>
       <body className="min-h-full flex flex-col">
         {children}

@@ -3,29 +3,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import BrandLogo from '@/app/components/BrandLogo'
+import { LABEL } from '@/lib/design/tokens'
+import { EXERCISE_NAMES } from '@/lib/exercises'
 
 const card: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.08)',
   padding: '28px 0',
-}
-
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '3px',
-  textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.3)',
-  margin: '0 0 16px',
-}
-
-const EXERCISE_NAMES: Record<string, string> = {
-  'foam': 'МФР', 'ankle': 'Голеностоп',
-  'glute-bridge': 'Ягодичный мост', 'bird-dog': 'Bird Dog',
-  'wall-squat': 'Присед у стены', 'box-squat': 'Присед на тумбу',
-  'rdl': 'Румынская тяга', 'db-press': 'Жим гантелей',
-  'lat-pulldown': 'Тяга верх. блока', 'cable-row': 'Тяга гориз. блока',
-  'abductor': 'Разведение ног', 'dead-bug': 'Dead Bug',
 }
 
 type Log = {
@@ -170,11 +154,13 @@ export default function HistoryPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
+          <BrandLogo />
+
           {/* HEADER */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '0 0 20px', cursor: 'pointer', letterSpacing: '1px', display: 'block' }}
+              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
             >
               ← Назад
             </button>
@@ -183,7 +169,7 @@ export default function HistoryPage() {
                 <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
                   {activeTab === 'history' ? 'История' : 'Прогресс'}
                 </h1>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {activeTab === 'history'
                     ? `${sortedDates.length} ${pluralSessions(sortedDates.length)}`
                     : `${series.length} упражнений`}
@@ -241,7 +227,7 @@ export default function HistoryPage() {
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                       <div style={{ flexShrink: 0, width: '52px', textAlign: 'center', paddingRight: '20px', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
                         <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '38px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1px' }}>{dayNum}</p>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '3px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{monthStr}</p>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.5)', margin: '3px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{monthStr}</p>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         {workoutTitle
@@ -290,7 +276,7 @@ export default function HistoryPage() {
                   <div key={ex.id} style={{ ...card }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.5)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>
                           {ex.name}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>

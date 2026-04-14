@@ -4,45 +4,18 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 import { EXERCISE_NAMES } from '@/lib/exercises'
-
-const section: React.CSSProperties = {
-  borderBottom: '1px solid rgba(45,31,14,0.07)',
-  paddingBottom: '32px',
-  marginBottom: '32px',
-}
+import ArtName from '@/app/components/ArtName'
+import BrandLogo from '@/app/components/BrandLogo'
+import { LABEL } from '@/lib/design/tokens'
 
 const card: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.08)',
   padding: '28px 0',
 }
 
-const glass = card
-
 type Log = { exercise_id: string; w1?: string; w2?: string; w3?: string; saved_at: string }
 type Nutrition = { calories?: number; protein?: number; fat?: number; carbs?: number; notes?: string }
 type Workout = { id: string; title: string; subtitle?: string; exercises?: any[] }
-
-function ArtName({ name }: { name: string }) {
-  if (!name) return null
-  const split = Math.max(1, name.length - 2)
-  return (
-    <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '62px', lineHeight: 0.95, margin: '0 0 6px', letterSpacing: '-2px' }}>
-      <span style={{ color: '#2d1f0e' }}>{name.slice(0, split)}</span>
-      <span style={{ color: '#7a4a20' }}>{name.slice(split)}</span>
-      <span style={{ color: '#7a4a20' }}>.</span>
-    </h1>
-  )
-}
-
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '3px',
-  textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.3)',
-  margin: '0 0 20px',
-}
 
 const BIG_NUM: React.CSSProperties = {
   fontFamily: 'Epilogue, sans-serif',
@@ -317,26 +290,14 @@ export default function ClientPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
-          {/* LOGO BAR */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '32px' }}>
-            <span style={{
-              fontFamily: 'Epilogue, sans-serif',
-              fontWeight: 400,
-              fontStyle: 'italic',
-              fontSize: '22px',
-              letterSpacing: '-0.5px',
-              color: '#2d1f0e',
-            }}>
-              Anna<span style={{ color: '#7a4a20' }}>Boo</span>
-            </span>
-          </div>
+          <BrandLogo />
 
           {/* HEADER */}
           <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', paddingBottom: '28px', marginBottom: '0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <ArtName name={profile?.name || ''} />
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: '4px 0 12px' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '4px 0 12px' }}>
                   Личный дашборд
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -387,7 +348,7 @@ export default function ClientPage() {
           </div>
 
           {/* WEEK CALENDAR */}
-          <div style={{ ...card }} onClick={e => e.stopPropagation()}>
+          <div className="card-enter" style={{ ...card }} onClick={e => e.stopPropagation()}>
             <p style={{ ...LABEL }}>
               {weekNumber && totalWeeks ? `Неделя ${weekNumber} из ${totalWeeks}` : 'Эта неделя'}
             </p>
@@ -501,7 +462,7 @@ export default function ClientPage() {
 
           {/* КБЖУ */}
           {nutrition && (nutrition.calories || nutrition.protein || nutrition.fat || nutrition.carbs) && (
-            <div style={{ ...card }}>
+            <div className="card-enter" style={{ ...card }}>
               <p style={{ ...LABEL }}>Рацион дня</p>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {/* Left: big calories number */}
@@ -537,8 +498,8 @@ export default function ClientPage() {
 
           {/* От тренера */}
           {coachFeedback && (
-            <div style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: '0 0 12px' }}>
+            <div className="card-enter" style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 12px' }}>
                 От тренера
               </p>
               <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '18px', color: '#2d1f0e', margin: '0 0 8px', lineHeight: 1.4, letterSpacing: '-0.3px' }}>
@@ -551,7 +512,7 @@ export default function ClientPage() {
           )}
 
           {/* MOOD TRACKER */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <p style={{ ...LABEL, margin: 0 }}>Самочувствие</p>
               <button onClick={saveMood} disabled={moodLoading} style={{ padding: '5px 14px', borderRadius: '999px', background: moodSaved ? 'rgba(122,74,32,0.1)' : '#7a4a20', color: moodSaved ? '#7a4a20' : '#fff', border: moodSaved ? '1px solid rgba(122,74,32,0.2)' : 'none', fontFamily: 'Chillax, sans-serif', fontSize: '11px', cursor: 'pointer' }}>
@@ -585,7 +546,7 @@ export default function ClientPage() {
           </div>
 
           {/* TODAY'S WORKOUT */}
-          <div style={{ ...card, position: 'relative', overflow: 'hidden' }}>
+          <div className="card-enter" style={{ ...card, position: 'relative', overflow: 'hidden' }}>
             <span style={{ position: 'absolute', right: '0', bottom: '-16px', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '120px', color: '#2d1f0e', opacity: 0.03, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
               {todayWorkout ? todayWorkout.title.match(/\d+/)?.[0] || '✦' : '✦'}
             </span>
@@ -659,14 +620,14 @@ export default function ClientPage() {
             ) : (
               <>
                 <h2 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', color: 'rgba(45,31,14,0.2)', fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Тренировка не назначена</h2>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: '0 0 16px' }}>Нажми + на нужный день выше</p>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '12px', margin: '0 0 16px' }}>Нажми + на нужный день выше</p>
               </>
             )}
           </div>
 
           {/* AVAILABLE WORKOUTS */}
           {workouts.length > 0 && (
-            <div style={{ ...card }}>
+            <div className="card-enter" style={{ ...card }}>
               <p style={{ ...LABEL }}>Все тренировки</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                 {workouts.map(w => (
@@ -714,7 +675,7 @@ export default function ClientPage() {
 
           {/* WEIGHT LOSS + BMI BLOCK */}
           {(totalWeightLoss !== null || bmi !== null || latestWeight !== null) && (
-            <div style={{ ...card }}>
+            <div className="card-enter" style={{ ...card }}>
               <p style={{ ...LABEL }}>Вес &amp; Витальность</p>
               {/* Current weight — large hero number */}
               {latestWeight !== null && (
@@ -748,7 +709,7 @@ export default function ClientPage() {
           )}
 
           {/* STATS */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <p style={{ ...LABEL }}>Статистика</p>
             <div style={{ display: 'flex', gap: '0' }}>
               <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
@@ -763,7 +724,7 @@ export default function ClientPage() {
           </div>
 
           {/* PROGRESS BARS */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <p style={{ ...LABEL }}>Топ упражнений</p>
             {top3.length === 0 ? (
               <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '13px', textAlign: 'center', padding: '16px 0', margin: 0 }}>Заполни первую тренировку —<br />здесь появятся твои результаты</p>

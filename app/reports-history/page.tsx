@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 import { fmtDate } from '@/lib/utils'
+import BrandLogo from '@/app/components/BrandLogo'
+import { LABEL } from '@/lib/design/tokens'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Area, AreaChart,
@@ -13,16 +15,6 @@ import {
 const card: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.08)',
   padding: '28px 0',
-}
-
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '3px',
-  textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.3)',
-  margin: '0 0 16px',
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -187,11 +179,13 @@ export default function ReportsHistoryPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
+          <BrandLogo />
+
           {/* HEADER */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '0 0 20px', cursor: 'pointer', letterSpacing: '1px', display: 'block' }}
+              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
             >
               ← Назад
             </button>
@@ -200,7 +194,7 @@ export default function ReportsHistoryPage() {
                 <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
                   Отчёты
                 </h1>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {reports.length} {reports.length === 1 ? 'отчёт' : reports.length < 5 ? 'отчёта' : 'отчётов'}
                   {totalWeeks > 0 ? ` · ${totalWeeks} нед.` : ''}
                   {reports.find(r => r.height_cm != null)?.height_cm ? ` · ${reports.find(r => r.height_cm != null)!.height_cm} см` : ''}
@@ -269,7 +263,7 @@ export default function ReportsHistoryPage() {
                 )}
               </div>
               <div style={{ ...card, textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '1px' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '1px' }}>
                   После следующего отчёта появится динамика и сравнение фото
                 </p>
               </div>
@@ -336,14 +330,14 @@ export default function ReportsHistoryPage() {
                           <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '38px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
                             {last.weight}
                           </p>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Сейчас</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.5)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Сейчас</p>
                         </div>
                         {weightDiffTotal !== null && (
                           <div style={{ borderLeft: '1px solid rgba(45,31,14,0.08)', paddingLeft: '16px' }}>
                             <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '24px', color: weightDiffTotal <= 0 ? '#1a7a3c' : '#8a2520', margin: 0, lineHeight: 1, letterSpacing: '-0.5px' }}>
                               {weightDiffTotal <= 0 ? '−' : '+'}{Math.abs(weightDiffTotal)}
                             </p>
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>С начала</p>
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.5)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>С начала</p>
                           </div>
                         )}
                       </div>

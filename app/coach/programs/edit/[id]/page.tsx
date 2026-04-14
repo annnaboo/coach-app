@@ -3,13 +3,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { glassCard } from '@/lib/design/tokens'
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
-  borderRadius: '20px',
+  ...glassCard,
   padding: '22px',
   marginBottom: '12px',
 }
@@ -18,7 +15,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'rgba(0,0,0,0.05)',
   border: 'none',
-  borderRadius: '12px',
+  borderRadius: '999px',
   padding: '11px 14px',
   fontFamily: 'Chillax, sans-serif',
   fontWeight: 300,
@@ -178,13 +175,13 @@ export default function EditProgramPage() {
             </button>
             <div>
               <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: 0 }}>Редактировать программу</h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>Цикл тренировок</p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>Цикл тренировок</p>
             </div>
           </div>
 
           {/* BASIC */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>Основное</p>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 16px' }}>Основное</p>
             <div style={{ marginBottom: '14px' }}>
               <span style={fieldLabel}>Название программы</span>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Базовый цикл" style={inputStyle} />
@@ -203,11 +200,11 @@ export default function EditProgramPage() {
 
           {/* CLIENTS */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 14px' }}>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>
               Клиенты · {selectedClients.length} выбрано
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {clients.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Нет клиентов</p>}
+              {clients.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Нет клиентов</p>}
               {clients.map(c => (
                 <div key={c.id} onClick={() => toggleClient(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '12px', background: selectedClients.includes(c.id) ? 'rgba(122,74,32,0.08)' : 'rgba(0,0,0,0.03)', border: selectedClients.includes(c.id) ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent', transition: 'all 0.15s' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedClients.includes(c.id) ? '#7a4a20' : 'rgba(0,0,0,0.06)', border: selectedClients.includes(c.id) ? 'none' : '1px solid rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -221,9 +218,9 @@ export default function EditProgramPage() {
 
           {/* SELECT WORKOUTS */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 14px' }}>Тренировки в программе</p>
+            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>Тренировки в программе</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {allWorkouts.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.35)', margin: 0 }}>Нет тренировок</p>}
+              {allWorkouts.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Нет тренировок</p>}
               {allWorkouts.map(w => (
                 <div key={w.id} onClick={() => toggleWorkout(w)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '12px', background: selectedWorkoutIds.includes(w.id) ? 'rgba(122,74,32,0.08)' : 'rgba(0,0,0,0.03)', border: selectedWorkoutIds.includes(w.id) ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent', transition: 'all 0.15s' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedWorkoutIds.includes(w.id) ? '#7a4a20' : 'rgba(0,0,0,0.06)', border: selectedWorkoutIds.includes(w.id) ? 'none' : '1px solid rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -241,7 +238,7 @@ export default function EditProgramPage() {
           {/* ORDER */}
           {orderedWorkouts.length > 0 && (
             <div style={glass}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 14px' }}>Порядок тренировок</p>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>Порядок тренировок</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {orderedWorkouts.map((w, idx) => (
                   <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '12px', background: 'rgba(122,74,32,0.06)', border: '1px solid rgba(122,74,32,0.12)' }}>

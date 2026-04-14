@@ -3,20 +3,12 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import BrandLogo from '@/app/components/BrandLogo'
+import { LABEL } from '@/lib/design/tokens'
 
 const card: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.08)',
   padding: '28px 0',
-}
-
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '3px',
-  textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.3)',
-  margin: '0 0 16px',
 }
 
 type Photo = {
@@ -161,11 +153,13 @@ export default function ProgressPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
+          <BrandLogo />
+
           {/* HEADER */}
-          <div style={{ ...card }}>
+          <div className="card-enter" style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', padding: '0 0 20px', cursor: 'pointer', letterSpacing: '1px', display: 'block' }}
+              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
             >
               ← Назад
             </button>
@@ -174,7 +168,7 @@ export default function ProgressPage() {
                 <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
                   Прогресс
                 </h1>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {photos.length} {pluralPhotos(photos.length)}
                 </p>
               </div>
@@ -198,7 +192,7 @@ export default function ProgressPage() {
 
           {/* UPLOAD FORM */}
           {showUploadForm && (
-            <div style={{ ...card }}>
+            <div className="fade-in" style={{ ...card }}>
               <p style={{ ...LABEL }}>Новое фото</p>
               {previewUrl && (
                 <div style={{ marginBottom: '16px' }}>
@@ -264,7 +258,7 @@ export default function ProgressPage() {
               </p>
               <button
                 onClick={() => setSelected([])}
-                style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.3)', fontFamily: 'Chillax, sans-serif', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+                style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontSize: '11px', cursor: 'pointer', padding: 0 }}
               >
                 Отмена
               </button>
@@ -334,6 +328,7 @@ export default function ProgressPage() {
                   return (
                     <div
                       key={photo.id}
+                      className="photo-enter"
                       onClick={() => toggleSelect(photo.id)}
                       style={{ cursor: 'pointer', position: 'relative' }}
                     >
@@ -349,12 +344,12 @@ export default function ProgressPage() {
                       )}
                       <img
                         src={photo.signedUrl}
-                        alt={photo.taken_at}
+                        alt={`Фото прогресса от ${formatDate(photo.taken_at)}`}
                         style={{
                           width: '100%',
                           aspectRatio: '3/4',
                           objectFit: 'cover',
-                          borderRadius: '6px',
+                          borderRadius: '12px',
                           display: 'block',
                           outline: isSelected ? '2px solid #7a4a20' : '2px solid transparent',
                           outlineOffset: '2px',

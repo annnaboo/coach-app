@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 import { getPaymentStatus, fmtDate, fmtPeriod, daysSince } from '@/lib/utils'
 import { EXERCISE_NAMES, MOOD_EMOJIS } from '@/lib/exercises'
+import ArtName from '@/app/components/ArtName'
+import BrandLogo from '@/app/components/BrandLogo'
+import { LABEL } from '@/lib/design/tokens'
 
 const glass: React.CSSProperties = {
   borderBottom: '1px solid rgba(210,196,184,0.35)',
@@ -12,21 +15,10 @@ const glass: React.CSSProperties = {
   marginBottom: '0',
 }
 
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Inter, sans-serif',
-  fontWeight: 700,
-  fontSize: '11px',
-  letterSpacing: '0.10em',
-  textTransform: 'uppercase' as const,
-  color: '#8C6F4F',
-  marginBottom: '16px',
-  marginTop: 0,
-}
-
 const inputSm: React.CSSProperties = {
   background: 'rgba(0,0,0,0.05)',
   border: 'none',
-  borderRadius: '10px',
+  borderRadius: '999px',
   padding: '7px 10px',
   fontFamily: 'Chillax, sans-serif',
   fontWeight: 300,
@@ -36,7 +28,6 @@ const inputSm: React.CSSProperties = {
   width: '100%',
   boxSizing: 'border-box',
 }
-
 
 type ClientData = {
   id: string
@@ -49,17 +40,6 @@ type ClientData = {
   moodLog: any | null
   nutrition: any | null
   assignedWorkout: any | null
-}
-
-function ArtName({ name }: { name: string }) {
-  if (!name) return null
-  return (
-    <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontStyle: 'italic', fontSize: '52px', lineHeight: 1.05, margin: '0 0 6px', letterSpacing: '-1px', color: '#1C1C18' }}>
-      Привет,{' '}
-      <span style={{ color: '#8C6F4F' }}>{name}</span>
-      <span style={{ color: '#8C6F4F' }}>.</span>
-    </h1>
-  )
 }
 
 function Divider() {
@@ -527,8 +507,10 @@ export default function CoachPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '48px 24px 80px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
+          <BrandLogo />
+
           {/* HEADER */}
-          <div style={{ paddingBottom: '32px', marginBottom: '0' }}>
+          <div className="card-enter" style={{ paddingBottom: '32px', marginBottom: '0' }}>
             {/* Top bar: branding + actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
               <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8C6F4F' }}>L'ATELIER</span>
@@ -557,7 +539,7 @@ export default function CoachPage() {
           </div>
 
           {/* STATS — glass card row */}
-          <div style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
+          <div className="card-enter" style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
             <p style={{ ...LABEL }}>Обзор</p>
             <div style={{ display: 'flex', gap: '0' }}>
               {[
@@ -597,7 +579,7 @@ export default function CoachPage() {
               return daysSince > 7
             })
             return (
-              <div style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
+              <div className="card-enter" style={{ background: 'rgba(248,244,237,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '28px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0px 20px 50px 0px rgba(43,33,24,0.06)', padding: '20px 24px', marginBottom: '12px' }}>
                 <p style={{ ...LABEL }}>Финансы</p>
                 {/* Big earnings number */}
                 <div style={{ marginBottom: '24px' }}>
@@ -905,7 +887,7 @@ export default function CoachPage() {
               : null
 
             return (
-              <div key={client.id} style={{ background: 'rgba(248,244,237,0.7)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '24px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0px 4px 24px rgba(113,87,57,0.07)', padding: '16px 18px', marginBottom: '10px' }}>
+              <div key={client.id} className="card-enter" style={{ background: 'rgba(248,244,237,0.7)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '24px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0px 4px 24px rgba(113,87,57,0.07)', padding: '16px 18px', marginBottom: '10px' }}>
                 {/* A — HEADER */}
                 <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                   <div onClick={e => { e.stopPropagation(); router.push(`/coach/clients/${client.id}`) }} style={{ width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0, background: 'rgba(210,196,184,0.55)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '16px', color: '#8C6F4F' }}>
