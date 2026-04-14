@@ -513,7 +513,6 @@ export default function CoachPage() {
           <div className="card-enter" style={{ paddingBottom: '32px', marginBottom: '0' }}>
             {/* Top bar: branding + actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8C6F4F' }}>L'ATELIER</span>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button onClick={() => window.location.reload()} style={{
                   background: 'rgba(140,111,79,0.08)', border: '1px solid rgba(140,111,79,0.15)',
