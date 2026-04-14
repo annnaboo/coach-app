@@ -16,7 +16,10 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { error } = await supabase.auth.admin.updateUserById(userId, { password })
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    password,
+    email_confirm: true,  // подтверждаем email если ещё не подтверждён
+  })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
