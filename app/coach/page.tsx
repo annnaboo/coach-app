@@ -76,7 +76,7 @@ export default function CoachPage() {
   const [savingPayment, setSavingPayment] = useState<string | null>(null)
   // Starter report
   const [addingStarterReport, setAddingStarterReport] = useState<string | null>(null)
-  const [starterForms, setStarterForms] = useState<Record<string, { date: string; weight: string; chest: string; waist: string; waist_navel: string; hips: string; one_thigh: string; arm: string; notes: string }>>({})
+  const [starterForms, setStarterForms] = useState<Record<string, { date: string; weight: string; chest: string; waist: string; waist_navel: string; hips: string; left_thigh: string; right_thigh: string; left_arm: string; right_arm: string; notes: string }>>({})
   const [savingStarterReport, setSavingStarterReport] = useState<string | null>(null)
   // Invite client
   const [showInviteForm, setShowInviteForm] = useState(false)
@@ -388,8 +388,10 @@ export default function CoachPage() {
       waist: form.waist ? parseFloat(form.waist) : null,
       waist_navel: form.waist_navel ? parseFloat(form.waist_navel) : null,
       hips: form.hips ? parseFloat(form.hips) : null,
-      one_thigh: form.one_thigh ? parseFloat(form.one_thigh) : null,
-      arm: form.arm ? parseFloat(form.arm) : null,
+      left_thigh: form.left_thigh ? parseFloat(form.left_thigh) : null,
+      right_thigh: form.right_thigh ? parseFloat(form.right_thigh) : null,
+      left_arm: form.left_arm ? parseFloat(form.left_arm) : null,
+      right_arm: form.right_arm ? parseFloat(form.right_arm) : null,
       notes: form.notes || null,
     }).select().single()
     if (error) { alert('Ошибка: ' + error.message); setSavingStarterReport(null); return }
@@ -1187,7 +1189,7 @@ export default function CoachPage() {
                         <button
                           onClick={() => {
                             const today = new Date().toISOString().slice(0, 10)
-                            if (!starterForms[client.id]) setStarterForms(prev => ({ ...prev, [client.id]: { date: today, weight: '', chest: '', waist: '', waist_navel: '', hips: '', one_thigh: '', arm: '', notes: '' } }))
+                            if (!starterForms[client.id]) setStarterForms(prev => ({ ...prev, [client.id]: { date: today, weight: '', chest: '', waist: '', waist_navel: '', hips: '', left_thigh: '', right_thigh: '', left_arm: '', right_arm: '', notes: '' } }))
                             setAddingStarterReport(addingStarterReport === client.id ? null : client.id)
                           }}
                           style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}
@@ -1209,8 +1211,10 @@ export default function CoachPage() {
                             { key: 'waist', label: 'Талия (см)' },
                             { key: 'waist_navel', label: 'Пупок (см)' },
                             { key: 'hips', label: 'Бёдра (см)' },
-                            { key: 'one_thigh', label: 'Бедро (см)' },
-                            { key: 'arm', label: 'Рука (см)' },
+                            { key: 'left_thigh', label: 'Бедро Л (см)' },
+                            { key: 'right_thigh', label: 'Бедро П (см)' },
+                            { key: 'left_arm', label: 'Рука Л (см)' },
+                            { key: 'right_arm', label: 'Рука П (см)' },
                           ].map(({ key, label }) => (
                             <div key={key}>
                               <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
@@ -1291,8 +1295,10 @@ export default function CoachPage() {
                               latestReport.waist != null && `Тал: ${latestReport.waist}`,
                               latestReport.hips != null && `Бёд: ${latestReport.hips}`,
                               latestReport.waist_navel != null && `Пуп: ${latestReport.waist_navel}`,
-                              latestReport.one_thigh != null && `Бедро: ${latestReport.one_thigh}`,
-                              latestReport.arm != null && `Рука: ${latestReport.arm}`,
+                              (latestReport.left_thigh ?? latestReport.one_thigh) != null && `Бедро Л: ${latestReport.left_thigh ?? latestReport.one_thigh}`,
+                              (latestReport.right_thigh) != null && `Бедро П: ${latestReport.right_thigh}`,
+                              (latestReport.left_arm ?? latestReport.arm) != null && `Рука Л: ${latestReport.left_arm ?? latestReport.arm}`,
+                              (latestReport.right_arm) != null && `Рука П: ${latestReport.right_arm}`,
                             ].filter(Boolean).join(' · ')}
                           </p>
                           {/* Photos */}
@@ -1495,11 +1501,13 @@ export default function CoachPage() {
                 { key: 'waist', label: 'Талия' },
                 { key: 'waist_navel', label: 'Пупок' },
                 { key: 'hips', label: 'Бёдра' },
-                { key: 'one_thigh', label: 'Бедро' },
-                { key: 'arm', label: 'Рука' },
-              ].filter(({ key }) => viewingReport.report[key] != null).map(({ key, label }) => (
+                { key: 'left_thigh', label: 'Бедро Л' },
+                { key: 'right_thigh', label: 'Бедро П' },
+                { key: 'left_arm', label: 'Рука Л' },
+                { key: 'right_arm', label: 'Рука П' },
+              ].filter(({ key }) => (viewingReport.report[key] ?? viewingReport.report[key === 'left_thigh' || key === 'right_thigh' ? 'one_thigh' : key === 'left_arm' || key === 'right_arm' ? 'arm' : key]) != null).map(({ key, label }) => (
                 <div key={key} style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#1C1C18', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key]}</p>
+                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '22px', color: '#1C1C18', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key] ?? viewingReport.report[key === 'left_thigh' || key === 'right_thigh' ? 'one_thigh' : 'arm']}</p>
                   <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(113,87,57,0.4)', margin: 0 }}>{label} см</p>
                 </div>
               ))}

@@ -31,6 +31,9 @@ type Report = {
   right_thigh: number | null
   left_arm: number | null
   right_arm: number | null
+  // старые — оставляем для backward compat со старыми отчётами
+  one_thigh?: number | null
+  arm?: number | null
   notes: string | null
   photo_front: string | null
   photo_side: string | null
@@ -70,12 +73,20 @@ function CustomTooltip({ active, payload }: any) {
 const PARAM_LABELS: Record<string, string> = {
   chest: 'Грудь', waist: 'Талия', hips: 'Бёдра',
   waist_navel: 'Пупок',
-  left_thigh: 'Лев. бедро', right_thigh: 'Прав. бедро',
-  left_arm: 'Лев. рука', right_arm: 'Прав. рука',
+  left_thigh: 'Бедро Л', right_thigh: 'Бедро П',
+  left_arm: 'Рука Л', right_arm: 'Рука П',
 }
 
 const PARAMS = ['chest', 'waist', 'hips', 'waist_navel', 'left_thigh', 'right_thigh', 'left_arm', 'right_arm'] as const
 type ParamKey = typeof PARAMS[number]
+
+function getParam(report: Report, key: string): number | null {
+  const val = (report as any)[key]
+  if (val != null) return val
+  if (key === 'left_thigh' || key === 'right_thigh') return report.one_thigh ?? null
+  if (key === 'left_arm' || key === 'right_arm') return report.arm ?? null
+  return null
+}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ReportsHistoryPage() {
@@ -240,10 +251,10 @@ export default function ReportsHistoryPage() {
                     <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
                   </div>
                 )}
-                {PARAMS.some(k => reports[0][k] != null) && (
+                {PARAMS.some(k => getParam(reports[0], k) != null) && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(45,31,14,0.06)', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
                     {PARAMS.map(key => {
-                      const val = reports[0][key]
+                      const val = getParam(reports[0], key)
                       if (val == null) return null
                       return (
                         <div key={key} style={{ background: '#f5f0e8', padding: '12px', textAlign: 'center' }}>
@@ -370,13 +381,13 @@ export default function ReportsHistoryPage() {
               )}
 
               {/* MEASUREMENTS SUMMARY: first → last */}
-              {PARAMS.some(k => first[k] != null || last[k] != null) && (
+              {PARAMS.some(k => getParam(first, k) != null || getParam(last, k) != null) && (
                 <div style={{ ...card }}>
                   <p style={{ ...LABEL }}>Замеры</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(45,31,14,0.06)', borderRadius: '8px', overflow: 'hidden' }}>
                     {PARAMS.map(key => {
-                      const val = last[key]
-                      const firstVal = first[key]
+                      const val = getParam(last, key)
+                      const firstVal = getParam(first, key)
                       if (val == null && firstVal == null) return null
                       const diff = val != null && firstVal != null ? +(val - firstVal).toFixed(1) : null
                       return (
@@ -414,7 +425,7 @@ export default function ReportsHistoryPage() {
                   const shortParams = [
                     report.waist != null && `Тал ${report.waist}`,
                     report.hips != null && `Бёд ${report.hips}`,
-                    report.right_arm != null && `Рука ${report.right_arm}`,
+                    (report.left_arm ?? report.arm) != null && `Рука ${report.left_arm ?? report.arm}`,
                   ].filter(Boolean).join(' · ')
 
                   return (
@@ -468,10 +479,10 @@ export default function ReportsHistoryPage() {
                               ))}
                             </div>
                           )}
-                          {PARAMS.some(k => report[k] != null) && (
+                          {PARAMS.some(k => getParam(report, k) != null) && (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', marginBottom: '10px' }}>
                               {PARAMS.map(key => {
-                                const val = report[key]
+                                const val = getParam(report, key)
                                 if (val == null) return null
                                 return (
                                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid rgba(45,31,14,0.04)', paddingBottom: '6px' }}>
