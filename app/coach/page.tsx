@@ -106,6 +106,11 @@ export default function CoachPage() {
   const [inviteSending, setInviteSending] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [inviteError, setInviteError] = useState('')
+  // Password reset
+  const [resetPasswordFor, setResetPasswordFor] = useState<string | null>(null)
+  const [resetPasswords, setResetPasswords] = useState<Record<string, string>>({})
+  const [savingReset, setSavingReset] = useState<string | null>(null)
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null)
   const router = useRouter()
   const [swapRequests, setSwapRequests] = useState<any[]>([])
   const [swapRequestCount, setSwapRequestCount] = useState(0)
@@ -986,7 +991,56 @@ export default function CoachPage() {
                       + Добавить оплату
                     </button>
                   )}
+                  <button
+                    onClick={e => { e.stopPropagation(); setResetPasswordFor(resetPasswordFor === client.id ? null : client.id); setResetSuccess(null) }}
+                    style={{ padding: '5px 14px', borderRadius: '999px', background: 'rgba(45,31,14,0.05)', border: '1px solid rgba(45,31,14,0.12)', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                  >
+                    🔑 Пароль
+                  </button>
                 </div>
+
+                {/* Reset password form */}
+                {resetPasswordFor === client.id && (
+                  <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '14px', padding: '14px', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.4)', margin: '0 0 8px' }}>Новый пароль</p>
+                    {resetSuccess === client.id ? (
+                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#1a7a3c', margin: 0 }}>✓ Пароль обновлён</p>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="Введи новый пароль"
+                          value={resetPasswords[client.id] || ''}
+                          onChange={e => setResetPasswords(prev => ({ ...prev, [client.id]: e.target.value }))}
+                          style={{ ...inputSm, flex: 1 }}
+                        />
+                        <button
+                          disabled={savingReset === client.id || (resetPasswords[client.id] || '').length < 6}
+                          onClick={async () => {
+                            setSavingReset(client.id)
+                            const res = await fetch('/api/reset-password', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userId: client.id, password: resetPasswords[client.id] }),
+                            })
+                            const data = await res.json()
+                            setSavingReset(null)
+                            if (data.success) {
+                              setResetSuccess(client.id)
+                              setResetPasswords(prev => ({ ...prev, [client.id]: '' }))
+                              setTimeout(() => { setResetPasswordFor(null); setResetSuccess(null) }, 2000)
+                            } else {
+                              alert(data.error || 'Ошибка')
+                            }
+                          }}
+                          style={{ padding: '7px 14px', borderRadius: '10px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer', opacity: (resetPasswords[client.id] || '').length < 6 ? 0.4 : 1, flexShrink: 0 }}
+                        >
+                          {savingReset === client.id ? '...' : 'Сохранить'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Payment form */}
                 {addingPayment === client.id && (
