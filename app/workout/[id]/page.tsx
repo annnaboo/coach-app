@@ -195,50 +195,119 @@ export default function DynamicWorkoutPage() {
                   </div>
                 </div>
 
-                {isExpanded && (
-                  <>
-                    {/* Why / description */}
-                    {ex.description && (
-                      <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)', margin: 0, lineHeight: 1.6 }}>{ex.description}</p>
+                {isExpanded && (() => {
+                  const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
+                  const doneSets = setWeightFields.filter(fld => !!f[fld]).length
+                  const nextEx = exercises[idx + 1] || null
+                  return (
+                    <>
+                      {/* Why / description */}
+                      {ex.description && (
+                        <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)', margin: 0, lineHeight: 1.6 }}>{ex.description}</p>
+                        </div>
+                      )}
+
+                      {/* YouTube link */}
+                      {ex.youtube && (
+                        <a href={ex.youtube} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#7a4a20', textDecoration: 'none', marginBottom: '14px' }}>
+                          ▶ Смотреть видео
+                        </a>
+                      )}
+
+                      {/* Progress label */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: 0 }}>
+                          Прогресс занятия
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e' }}>{doneSets}</span>
+                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.3)' }}>/{setWeightFields.length}</span>
+                        </div>
                       </div>
-                    )}
 
-                    {/* YouTube link */}
-                    {ex.youtube && (
-                      <a href={ex.youtube} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#7a4a20', textDecoration: 'none', marginBottom: '14px' }}>
-                        ▶ Смотреть видео
-                      </a>
-                    )}
+                      {/* Table */}
+                      <div style={{ marginBottom: '4px' }}>
+                        {/* Column headers */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid rgba(45,31,14,0.06)' }}>
+                          {['СЕТ', 'ВЕС (кг)', 'ПОВТОРЫ', ''].map((h, i) => (
+                            <p key={i} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.25)', margin: 0, textAlign: 'center' }}>{h}</p>
+                          ))}
+                        </div>
 
-                    {/* Input fields */}
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${fieldsArr.length}, 1fr)`, gap: '8px', marginBottom: '12px' }}>
-                      {fieldsArr.map(field => (
-                        <LiquidField
-                          key={field}
-                          label={FIELD_LABELS[field] || field}
-                          value={f[field] || ''}
-                          onChange={v => setField(key, field, v)}
-                        />
-                      ))}
-                    </div>
+                        {/* Set rows */}
+                        {setWeightFields.map((wField, setIdx) => {
+                          const isDone = !!f[wField]
+                          return (
+                            <div key={wField} style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: 0, textAlign: 'center' }}>{setIdx + 1}</p>
+                              <input
+                                type="number"
+                                value={f[wField] || ''}
+                                onChange={e => setField(key, wField, e.target.value)}
+                                placeholder="—"
+                                className="no-spin"
+                                style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
+                              />
+                              {setIdx === 0 ? (
+                                <input
+                                  type="number"
+                                  value={f.reps || ''}
+                                  onChange={e => setField(key, 'reps', e.target.value)}
+                                  placeholder="—"
+                                  className="no-spin"
+                                  style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
+                                />
+                              ) : (
+                                <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: 'rgba(45,31,14,0.4)' }}>
+                                  {f.reps || '—'}
+                                </div>
+                              )}
+                              <p style={{ margin: 0, textAlign: 'center', fontSize: '14px', lineHeight: 1 }}>{isDone ? '✅' : '⭕'}</p>
+                            </div>
+                          )
+                        })}
+                      </div>
 
-                    {/* Save button */}
-                    <button
-                      onClick={() => saveExercise(ex, idx)}
-                      disabled={isSaving}
-                      style={{
-                        width: '100%', padding: '10px', borderRadius: '999px', border: isSaved ? '1px solid rgba(122,74,32,0.3)' : 'none',
-                        background: isSaved ? 'rgba(122,74,32,0.15)' : '#7a4a20',
-                        color: isSaved ? '#7a4a20' : '#fff',
-                        fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
-                        cursor: isSaving ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-                      }}
-                    >
-                      {isSaving ? 'Сохраняем...' : isSaved ? '✓ Сохранено' : 'Сохранить'}
-                    </button>
-                  </>
-                )}
+                      {/* Add set button */}
+                      <button style={{
+                        width: '100%', padding: '11px', borderRadius: '999px',
+                        background: 'transparent', border: '1px solid rgba(45,31,14,0.15)',
+                        fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px',
+                        color: 'rgba(45,31,14,0.4)', cursor: 'pointer', letterSpacing: '1px', marginTop: '12px',
+                      }}>
+                        + ДОБАВИТЬ ПОДХОД
+                      </button>
+
+                      {/* Save button */}
+                      <button
+                        onClick={() => saveExercise(ex, idx)}
+                        disabled={isSaving}
+                        style={{
+                          width: '100%', padding: '10px', borderRadius: '999px', border: isSaved ? '1px solid rgba(122,74,32,0.3)' : 'none',
+                          background: isSaved ? 'rgba(122,74,32,0.15)' : '#7a4a20',
+                          color: isSaved ? '#7a4a20' : '#fff',
+                          fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
+                          cursor: isSaving ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                          marginTop: '10px',
+                        }}
+                      >
+                        {isSaving ? 'Сохраняем...' : isSaved ? '✓ Сохранено' : 'Сохранить'}
+                      </button>
+
+                      {/* Next exercise */}
+                      {nextEx && (
+                        <div style={{ borderTop: '1px solid rgba(45,31,14,0.06)', paddingTop: '20px', marginTop: '20px' }}>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.25)', margin: '0 0 8px' }}>СЛЕДУЮЩЕЕ</p>
+                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 4px' }}>{nextEx.name}</p>
+                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>
+                            {nextEx.sets} подхода × {nextEx.reps} повторений
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             )
           })}
