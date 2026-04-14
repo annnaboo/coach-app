@@ -28,9 +28,10 @@ export default function WelcomePage() {
       setUserId(data.user.id)
       const { data: prof } = await supabase
         .from('profiles')
-        .select('name, onboarded')
+        .select('name, role, onboarded')
         .eq('id', data.user.id)
         .single()
+      if (prof?.role === 'coach') { router.push('/coach'); return }
       if (prof?.onboarded) { router.push('/client'); return }
       setName(prof?.name || '')
     })

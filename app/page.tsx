@@ -26,10 +26,10 @@ export default function LoginPage() {
       }
     })
 
-    // Also listen for auth state changes — catches cases where the session
-    // is established asynchronously (e.g. after magic link redirect).
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) router.replace('/client')
+    // Listen only for explicit sign-in events (not INITIAL_SESSION / TOKEN_REFRESHED)
+    // to avoid competing navigations when a coach already has a session.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) router.replace('/client')
     })
 
     return () => subscription.unsubscribe()
