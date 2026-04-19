@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import { LineChart, Line } from 'recharts'
 import {
   getPaymentStatus,
   fmtDate,
@@ -94,6 +95,8 @@ export default function ClientProfilePage() {
   const [sendingFeedback, setSendingFeedback] = useState(false)
   const [feedbackSent, setFeedbackSent] = useState(false)
   const [coachId, setCoachId] = useState<string | null>(null)
+  const [view, setView] = useState<'list' | 'trajectory'>('list')
+  const [trajPeriod, setTrajPeriod] = useState<4 | 8 | 12>(4)
 
   // Pre-compute date windows once per mount so loadAll and render share the same values.
   const { mondayStr, sundayStr } = getMondaySunday()
@@ -255,6 +258,42 @@ export default function ClientProfilePage() {
 
   const payStatus = getPaymentStatus(payment)
 
+  // ── Trajectory data ─────────────────────────────────────────────────────────
+
+  const trajData: Record<string, { weekKey: string; maxWeight: number }[]> = {}
+  if (view === 'trajectory') {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - trajPeriod * 7)
+    const byExerciseWeek: Record<string, Record<string, number>> = {}
+    workoutLogs.forEach((log) => {
+      if (new Date(log.saved_at) < cutoff) return
+      const exId = log.exercise_id
+      if (!exId) return
+      const maxW = Math.max(
+        parseFloat(log.w1 || '0') || 0,
+        parseFloat(log.w2 || '0') || 0,
+        parseFloat(log.w3 || '0') || 0,
+      )
+      if (maxW === 0) return
+      const d = new Date(log.saved_at)
+      const day = d.getDay()
+      const mon = new Date(d)
+      mon.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
+      mon.setHours(0, 0, 0, 0)
+      const weekKey = mon.toISOString().slice(0, 10)
+      if (!byExerciseWeek[exId]) byExerciseWeek[exId] = {}
+      if (!byExerciseWeek[exId][weekKey] || maxW > byExerciseWeek[exId][weekKey]) {
+        byExerciseWeek[exId][weekKey] = maxW
+      }
+    })
+    Object.entries(byExerciseWeek).forEach(([exId, weekMap]) => {
+      trajData[exId] = Object.entries(weekMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([weekKey, maxWeight]) => ({ weekKey, maxWeight }))
+    })
+  }
+  const trajExercises = Object.entries(trajData).sort(([a], [b]) => a.localeCompare(b))
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -293,6 +332,100 @@ export default function ClientProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* ── TOGGLE ── */}
+        <div style={{ display: 'flex', gap: '6px', padding: '16px 0', borderBottom: '1px solid rgba(45,31,14,0.08)' }}>
+          {(['list', 'trajectory'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                padding: '6px 16px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+                fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', letterSpacing: '0.5px',
+                background: view === v ? '#7a4a20' : 'rgba(45,31,14,0.06)',
+                color: view === v ? '#fff' : 'rgba(45,31,14,0.5)',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              {v === 'list' ? 'Список' : 'Траектория'}
+            </button>
+          ))}
+        </div>
+
+        {/* ── TRAJECTORY VIEW ── */}
+        {view === 'trajectory' && (
+          <div style={{ paddingTop: '20px' }}>
+            {/* Period selector */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '24px' }}>
+              {([4, 8, 12] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setTrajPeriod(p)}
+                  style={{
+                    padding: '4px 14px', borderRadius: '999px', cursor: 'pointer',
+                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
+                    border: trajPeriod === p ? '1px solid rgba(122,74,32,0.4)' : '1px solid rgba(45,31,14,0.1)',
+                    background: trajPeriod === p ? 'rgba(122,74,32,0.1)' : 'transparent',
+                    color: trajPeriod === p ? '#7a4a20' : 'rgba(45,31,14,0.4)',
+                  }}
+                >
+                  {p} нед
+                </button>
+              ))}
+            </div>
+
+            {trajExercises.length === 0 ? (
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.35)', textAlign: 'center', padding: '32px 0' }}>
+                Нет данных за выбранный период
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {trajExercises.map(([exId, weeks]) => {
+                  const sparkPoints = weeks.map((w) => ({ w: w.maxWeight }))
+                  const first = weeks[0]?.maxWeight ?? 0
+                  const last = weeks[weeks.length - 1]?.maxWeight ?? 0
+                  const diff = +(last - first).toFixed(1)
+                  return (
+                    <div key={exId} style={{ borderBottom: '1px solid rgba(45,31,14,0.06)', padding: '16px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e' }}>
+                          {EXERCISE_NAMES[exId] ?? exId}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {weeks.length > 1 && (
+                            <LineChart width={56} height={20} data={sparkPoints}>
+                              <Line type="monotone" dataKey="w" stroke="#7a4a20" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                            </LineChart>
+                          )}
+                          {diff !== 0 && (
+                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: diff > 0 ? '#1a7a3c' : '#8a2520' }}>
+                              {diff > 0 ? '↗' : '↘'} {diff > 0 ? '+' : ''}{diff} кг
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {weeks.map(({ weekKey, maxWeight }) => (
+                          <div key={weekKey} style={{ textAlign: 'center', minWidth: '40px' }}>
+                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', margin: '0 0 2px', letterSpacing: '0.5px' }}>
+                              {new Date(weekKey).toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric' })}
+                            </p>
+                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>
+                              {maxWeight}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── LIST VIEW ── */}
+        {view === 'list' && <>
 
         {/* ── WEIGHT DYNAMICS ── */}
         {reports.length > 0 && (
@@ -467,6 +600,8 @@ export default function ClientProfilePage() {
             </div>
           </div>
         )}
+
+        </>}
 
         {/* ── SEND FEEDBACK ── */}
         <div style={{ ...SECTION, borderBottom: 'none' }}>
