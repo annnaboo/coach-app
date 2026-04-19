@@ -29,6 +29,27 @@
   --text-ink: rgba(113, 87, 57, 0.72);
   --background: var(--bg);
   --foreground: var(--text);
+
+  /* Pausa-tilt additive tokens */
+  --bg-cream-soft: #faf2ea;
+  --accent-mocha: #c9a896;
+  --accent-mocha-strong: #7a4a20;
+  --accent-warm-sand: #e8d4c0;
+  --blob1-color: rgba(210, 196, 184, 0.9);
+  --blob2-color: rgba(232, 220, 204, 0.7);
+  --blob3-color: rgba(200, 185, 165, 0.55);
+}
+
+/* Pausa-tilt override — активируется через NEXT_PUBLIC_ENABLE_PAUSA_TILT=true */
+body.pausa-tilt {
+  --bg: #faf2ea;
+  --bg-warm: #fdf7f2;
+  --accent: #c9a896;
+  --glass-bg: rgba(253, 249, 243, 0.88);
+  --blob1-color: rgba(201, 168, 150, 0.7);
+  --blob2-color: rgba(232, 212, 192, 0.65);
+  --blob3-color: rgba(250, 242, 234, 0.85);
+  background: var(--bg);
 }
 
 body {
