@@ -63,6 +63,7 @@ export default function ClientPage() {
   const [totalWeeks, setTotalWeeks] = useState<number | null>(null)
   const [restDays, setRestDays] = useState<string[]>([])
   const [coachFeedback, setCoachFeedback] = useState<{ message: string; created_at: string } | null>(null)
+  const [nextProgramWorkout, setNextProgramWorkout] = useState<Workout | null>(null)
   const router = useRouter()
 
   const today = new Date().toISOString().slice(0, 10)
@@ -73,12 +74,15 @@ export default function ClientPage() {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[PREVIEW] session:', session?.user?.id)
       const user = session?.user
       if (!user) { router.push('/'); return }
       setUserId(user.id)
 
-      const { data: prof } = await supabase
+      const profResult = await supabase
         .from('profiles').select('name, role, onboarded, height_cm').eq('id', user.id).single()
+      console.log('[PREVIEW] prof:', profResult)
+      const { data: prof } = profResult
       if (prof?.role === 'coach') { router.push('/coach'); return }
       if (!prof?.onboarded) { router.push('/welcome'); return }
       if (prof?.height_cm) setProfileHeight(prof.height_cm)
@@ -152,6 +156,11 @@ export default function ClientPage() {
         }
         setWeekNumber(nextIndex + 1)
         setTotalWeeks(prog.workout_ids.length)
+
+        const nextNextIndex = (nextIndex + 1) % prog.workout_ids.length
+        const nextWorkoutId = prog.workout_ids[nextNextIndex]
+        const nextFound = (workoutsRes.data || []).find((w: any) => w.id === nextWorkoutId)
+        if (nextFound) setNextProgramWorkout(nextFound)
       }
 
       setProfile(prof)
@@ -624,6 +633,34 @@ export default function ClientPage() {
               </>
             )}
           </div>
+
+          {/* NEXT WORKOUT */}
+          {nextProgramWorkout && program && (!program.end_date || new Date(program.end_date) >= new Date()) && (
+            <div className="card-enter" style={{ ...card }}>
+              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase' as const, color: 'rgba(45,31,14,0.35)', margin: '0 0 10px' }}>Следующая</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: 'rgba(45,31,14,0.45)', fontSize: '20px', margin: '0 0 2px', letterSpacing: '-0.3px' }}>
+                    {nextProgramWorkout.title}
+                  </h3>
+                  {nextProgramWorkout.subtitle && (
+                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.3)', fontSize: '12px', margin: 0 }}>
+                      {nextProgramWorkout.subtitle}
+                    </p>
+                  )}
+                </div>
+                {nextProgramWorkout.exercises && nextProgramWorkout.exercises.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'flex-end', maxWidth: '55%' }}>
+                    {nextProgramWorkout.exercises.slice(0, 3).map((ex: any, i: number) => (
+                      <span key={i} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(45,31,14,0.08)', borderRadius: '999px', padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                        {ex.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* AVAILABLE WORKOUTS */}
           {workouts.length > 0 && (
