@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Твой тренировочный дневник",
 };
 
+const enablePausaTilt = process.env.NEXT_PUBLIC_ENABLE_PAUSA_TILT === 'true'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <style dangerouslySetInnerHTML={{ __html: globalAnimationCSS }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className={`min-h-full flex flex-col${enablePausaTilt ? ' pausa-tilt' : ''}`}>
         {children}
         <script dangerouslySetInnerHTML={{__html: `
           if ('serviceWorker' in navigator) {

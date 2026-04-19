@@ -6,7 +6,7 @@ export default function AnimatedBackground() {
       inset: 0,
       zIndex: 0,
       overflow: 'hidden',
-      background: '#EDE8DF',
+      background: 'var(--bg)',
       pointerEvents: 'none',
     }}>
       <style>{`
@@ -36,7 +36,7 @@ export default function AnimatedBackground() {
       <div className="blob" style={{
         width: '580px', height: '580px',
         top: '-180px', right: '-130px',
-        background: 'radial-gradient(circle, rgba(210, 196, 184, 0.9) 0%, transparent 65%)',
+        background: 'radial-gradient(circle, var(--blob1-color) 0%, transparent 65%)',
         animation: 'blob1 20s ease-in-out infinite',
       }} />
 
@@ -44,7 +44,7 @@ export default function AnimatedBackground() {
       <div className="blob" style={{
         width: '480px', height: '480px',
         top: '20%', left: '-140px',
-        background: 'radial-gradient(circle, rgba(232, 220, 204, 0.7) 0%, transparent 65%)',
+        background: 'radial-gradient(circle, var(--blob2-color) 0%, transparent 65%)',
         animation: 'blob2 24s ease-in-out infinite',
         animationDelay: '-8s',
       }} />
@@ -53,7 +53,7 @@ export default function AnimatedBackground() {
       <div className="blob" style={{
         width: '640px', height: '480px',
         bottom: '-120px', left: '5%',
-        background: 'radial-gradient(circle, rgba(200, 185, 165, 0.55) 0%, transparent 65%)',
+        background: 'radial-gradient(circle, var(--blob3-color) 0%, transparent 65%)',
         animation: 'blob3 28s ease-in-out infinite',
         animationDelay: '-14s',
       }} />
