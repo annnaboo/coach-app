@@ -2,16 +2,18 @@
 @import "tailwindcss";
 
 :root {
-  /* Figma Glass Luxe — L'ATELIER palette */
-  --bg: #EDE8DF;
-  --bg-warm: #F8F5F0;
+  /* Pausa-tilt — warm mocha palette */
+  --bg: #faf2ea;
+  --bg-warm: #fdf7f2;
   --text: #715739;
   --text-secondary: #4E453C;
   --text-dark: #1C1C18;
   --text-muted: rgba(113, 87, 57, 0.6);
   --text-faint: rgba(113, 87, 57, 0.4);
-  --accent: #8C6F4F;
-  --glass-bg: rgba(248, 244, 237, 0.85);
+  --accent: #c9a896;
+  --accent-strong: #7a4a20;
+  --accent-warm-sand: #e8d4c0;
+  --glass-bg: rgba(253, 249, 243, 0.88);
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-border-soft: rgba(210, 196, 184, 0.3);
   --nav-bg: rgba(253, 249, 243, 0.88);
@@ -19,37 +21,19 @@
   --divider: rgba(210, 196, 184, 0.4);
   --shadow-warm: 0px 20px 50px 0px rgba(43, 33, 24, 0.06);
   --shadow-card: 0px 4px 24px rgba(113, 87, 57, 0.10);
-
-  /* legacy compat */
-  --ink: #1C1C18;
-  --pearl: #F8F5F0;
-  --pearl-bg: #EDE8DF;
-  --coffee: #8C6F4F;
-  --coffee-muted: rgba(140, 111, 79, 0.12);
-  --text-ink: rgba(113, 87, 57, 0.72);
-  --background: var(--bg);
-  --foreground: var(--text);
-
-  /* Pausa-tilt additive tokens */
-  --bg-cream-soft: #faf2ea;
-  --accent-mocha: #c9a896;
-  --accent-mocha-strong: #7a4a20;
-  --accent-warm-sand: #e8d4c0;
-  --blob1-color: rgba(210, 196, 184, 0.9);
-  --blob2-color: rgba(232, 220, 204, 0.7);
-  --blob3-color: rgba(200, 185, 165, 0.55);
-}
-
-/* Pausa-tilt override — активируется через NEXT_PUBLIC_ENABLE_PAUSA_TILT=true */
-body.pausa-tilt {
-  --bg: #faf2ea;
-  --bg-warm: #fdf7f2;
-  --accent: #c9a896;
-  --glass-bg: rgba(253, 249, 243, 0.88);
   --blob1-color: rgba(201, 168, 150, 0.7);
   --blob2-color: rgba(232, 212, 192, 0.65);
   --blob3-color: rgba(250, 242, 234, 0.85);
-  background: var(--bg);
+
+  /* legacy compat */
+  --ink: #1C1C18;
+  --pearl: #fdf7f2;
+  --pearl-bg: #faf2ea;
+  --coffee: #c9a896;
+  --coffee-muted: rgba(201, 168, 150, 0.12);
+  --text-ink: rgba(113, 87, 57, 0.72);
+  --background: var(--bg);
+  --foreground: var(--text);
 }
 
 body {
