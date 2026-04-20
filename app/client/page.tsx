@@ -123,10 +123,11 @@ export default function ClientPage() {
 
       if (nutritionRes.data) setNutrition(nutritionRes.data)
 
-      // null = global (no restriction), [] = assigned to nobody, [id,...] = explicit list
+      // null/[] = visible to all clients, [id,...] = explicit assignment
       const allWorkouts = workoutsRes.data || []
       const myWorkouts = allWorkouts.filter((w: any) =>
         !w.assigned_to_multiple ||
+        w.assigned_to_multiple.length === 0 ||
         w.assigned_to_multiple.includes(user.id)
       )
       setWorkouts(myWorkouts)
