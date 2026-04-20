@@ -4,20 +4,21 @@ import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
-function LiquidField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function PrevGoalHeader({ prev }: { prev: Record<string, string> }) {
+  const weights = ['w1', 'w2', 'w3'].map(k => prev[k]).filter(v => v && v !== '')
+  if (weights.length === 0) return null
+  const maxW = Math.max(...weights.map(Number))
+  const goal = (maxW + 2.5).toFixed(1).replace(/\.0$/, '')
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-      <span style={{ fontSize: '10px', color: 'rgba(45,31,14,0.3)', letterSpacing: '1px', textTransform: 'uppercase' as const, paddingLeft: '12px', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
-        {label}
-      </span>
-      <input
-        type="number"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder="—"
-        className="no-spin"
-        style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '999px', padding: '10px 16px', textAlign: 'center' as const, width: '100%', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', boxSizing: 'border-box' as const }}
-      />
+    <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px', display: 'flex', gap: '24px' }}>
+      <div>
+        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'rgba(45,31,14,0.3)', margin: '0 0 3px' }}>Было</p>
+        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: 'rgba(45,31,14,0.55)', margin: 0 }}>{weights.join(' / ')} кг</p>
+      </div>
+      <div>
+        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'rgba(45,31,14,0.3)', margin: '0 0 3px' }}>Цель</p>
+        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 500, fontSize: '14px', color: '#7a4a20', margin: 0 }}>{goal} кг</p>
+      </div>
     </div>
   )
 }
@@ -32,11 +33,13 @@ export default function DynamicWorkoutPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [workout, setWorkout] = useState<any>(null)
   const [exercises, setExercises] = useState<any[]>([])
+  const [prevLogs, setPrevLogs] = useState<Record<string, Record<string, string>>>({})
   const [fields, setFields] = useState<Record<string, Record<string, string>>>({})
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -61,21 +64,25 @@ export default function DynamicWorkoutPage() {
       } catch {}
       setExercises(exs)
 
-      // Pre-fill from latest saved logs
-      const latest: Record<string, Record<string, string>> = {}
-      const savedSet: Record<string, boolean> = {}
+      // Build prev logs for placeholders/PrevGoalHeader — fields start empty (no accidental re-save)
+      const prev: Record<string, Record<string, string>> = {}
       ;(logsRes.data || []).forEach((row: any) => {
         const key = row.exercise_id
-        if (!latest[key]) {
-          latest[key] = { w1: row.w1 || '', w2: row.w2 || '', w3: row.w3 || '', reps: row.reps || '' }
-          savedSet[key] = true
+        if (!prev[key]) {
+          prev[key] = { w1: row.w1 || '', w2: row.w2 || '', w3: row.w3 || '', reps: row.reps || '' }
         }
       })
-      setFields(latest)
-      setSaved(savedSet)
+      setPrevLogs(prev)
+      setFields({})
+      setSaved({})
       setLoading(false)
     })
   }, [workoutId])
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   function getKey(ex: any, idx: number): string {
     return ex.id || ex.name || `ex-${idx}`
@@ -94,10 +101,18 @@ export default function DynamicWorkoutPage() {
   async function saveExercise(ex: any, idx: number) {
     if (!userId) return
     const key = getKey(ex, idx)
+    const f = fields[key] || {}
+    const fieldsArr = getFieldsForSets(ex.sets || '3')
+    const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
+
+    const hasAnyWeight = setWeightFields.some(fld => !!f[fld])
+    if (!hasAnyWeight) {
+      showToast('Введите вес хотя бы в одном подходе')
+      return
+    }
+
     setSaving(key)
     const supabase = createClient()
-    const f = fields[key] || {}
-    const today = new Date().toISOString().slice(0, 10)
 
     const { error } = await supabase.from('workout_logs').upsert({
       player: userId,
@@ -128,6 +143,14 @@ export default function DynamicWorkoutPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, background: '#2d1f0e', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', borderRadius: '999px', padding: '10px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.18)', pointerEvents: 'none' }}>
+          {toast}
+        </div>
+      )}
+
       <div style={{ position: 'relative', zIndex: 1, padding: '28px 20px 60px' }}>
         <div style={{ maxWidth: '520px', margin: '0 auto' }}>
 
@@ -165,6 +188,7 @@ export default function DynamicWorkoutPage() {
             const isSaving = saving === key
             const fieldsArr = getFieldsForSets(ex.sets || '3')
             const f = fields[key] || {}
+            const p = prevLogs[key] || {}
 
             return (
               <div key={key} style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '20px', padding: '18px 20px', marginBottom: '10px' }}>
@@ -201,6 +225,9 @@ export default function DynamicWorkoutPage() {
                   const nextEx = exercises[idx + 1] || null
                   return (
                     <>
+                      {/* Prev / Goal header */}
+                      <PrevGoalHeader prev={p} />
+
                       {/* Why / description */}
                       {ex.description && (
                         <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
@@ -245,7 +272,7 @@ export default function DynamicWorkoutPage() {
                                 type="number"
                                 value={f[wField] || ''}
                                 onChange={e => setField(key, wField, e.target.value)}
-                                placeholder="—"
+                                placeholder={p[wField] || '—'}
                                 className="no-spin"
                                 style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
                               />
@@ -254,13 +281,13 @@ export default function DynamicWorkoutPage() {
                                   type="number"
                                   value={f.reps || ''}
                                   onChange={e => setField(key, 'reps', e.target.value)}
-                                  placeholder="—"
+                                  placeholder={p.reps || '—'}
                                   className="no-spin"
                                   style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
                                 />
                               ) : (
                                 <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: 'rgba(45,31,14,0.4)' }}>
-                                  {f.reps || '—'}
+                                  {f.reps || p.reps || '—'}
                                 </div>
                               )}
                               <p style={{ margin: 0, textAlign: 'center', fontSize: '14px', lineHeight: 1 }}>{isDone ? '✅' : '⭕'}</p>
