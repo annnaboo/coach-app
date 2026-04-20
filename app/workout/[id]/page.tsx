@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
@@ -95,6 +95,27 @@ export default function DynamicWorkoutPage() {
 
   function setField(key: string, field: string, value: string) {
     setFields(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [field]: value } }))
+    setSaved(prev => ({ ...prev, [key]: false }))
+  }
+
+  function stepWeight(key: string, field: string, delta: number) {
+    setFields(prev => {
+      const cur = parseFloat(prev[key]?.[field] || '')
+      const fallback = parseFloat(prevLogs[key]?.[field] || '')
+      const base = !isNaN(cur) ? cur : (!isNaN(fallback) ? fallback : 0)
+      const next = Math.max(0, Math.round((base + delta) * 10) / 10)
+      return { ...prev, [key]: { ...(prev[key] || {}), [field]: String(next) } }
+    })
+    setSaved(prev => ({ ...prev, [key]: false }))
+  }
+
+  function copyFirst(key: string, fields3: string[]) {
+    const val = fields[key]?.[fields3[0]] || prevLogs[key]?.[fields3[0]] || ''
+    if (!val) return
+    setFields(prev => ({
+      ...prev,
+      [key]: { ...(prev[key] || {}), ...Object.fromEntries(fields3.map(f => [f, val])) },
+    }))
     setSaved(prev => ({ ...prev, [key]: false }))
   }
 
@@ -264,33 +285,54 @@ export default function DynamicWorkoutPage() {
                         {/* Set rows */}
                         {setWeightFields.map((wField, setIdx) => {
                           const isDone = !!f[wField]
+                          const stepBtn: React.CSSProperties = { background: 'none', border: 'none', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontSize: '18px', fontWeight: 300, cursor: 'pointer', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }
                           return (
-                            <div key={wField} style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: 0, textAlign: 'center' }}>{setIdx + 1}</p>
-                              <input
-                                type="number"
-                                value={f[wField] || ''}
-                                onChange={e => setField(key, wField, e.target.value)}
-                                placeholder={p[wField] || '—'}
-                                className="no-spin"
-                                style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
-                              />
-                              {setIdx === 0 ? (
-                                <input
-                                  type="number"
-                                  value={f.reps || ''}
-                                  onChange={e => setField(key, 'reps', e.target.value)}
-                                  placeholder={p.reps || '—'}
-                                  className="no-spin"
-                                  style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
-                                />
-                              ) : (
-                                <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: 'rgba(45,31,14,0.4)' }}>
-                                  {f.reps || p.reps || '—'}
+                            <Fragment key={wField}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: 0, textAlign: 'center' }}>{setIdx + 1}</p>
+                                {/* Weight cell with ±2.5 steppers */}
+                                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', overflow: 'hidden' }}>
+                                  <button type="button" onClick={() => stepWeight(key, wField, -2.5)} style={stepBtn}>−</button>
+                                  <input
+                                    type="number"
+                                    value={f[wField] || ''}
+                                    onChange={e => setField(key, wField, e.target.value)}
+                                    placeholder={p[wField] || '—'}
+                                    autoFocus={setIdx === 0}
+                                    className="no-spin"
+                                    style={{ background: 'transparent', border: 'none', flex: 1, minWidth: 0, textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', padding: '8px 0' }}
+                                  />
+                                  <button type="button" onClick={() => stepWeight(key, wField, +2.5)} style={stepBtn}>+</button>
+                                </div>
+                                {setIdx === 0 ? (
+                                  <input
+                                    type="number"
+                                    value={f.reps || ''}
+                                    onChange={e => setField(key, 'reps', e.target.value)}
+                                    placeholder={p.reps || '—'}
+                                    className="no-spin"
+                                    style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
+                                  />
+                                ) : (
+                                  <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: 'rgba(45,31,14,0.4)' }}>
+                                    {f.reps || p.reps || '—'}
+                                  </div>
+                                )}
+                                <p style={{ margin: 0, textAlign: 'center', fontSize: '14px', lineHeight: 1 }}>{isDone ? '✅' : '⭕'}</p>
+                              </div>
+                              {/* Copy-to-all button after set 1 */}
+                              {setIdx === 0 && setWeightFields.length > 1 && (
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-2px', marginBottom: '6px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyFirst(key, setWeightFields)}
+                                    style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', cursor: 'pointer', padding: '0', letterSpacing: '0.5px', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                                  >
+                                    ↓ во все подходы
+                                  </button>
                                 </div>
                               )}
-                              <p style={{ margin: 0, textAlign: 'center', fontSize: '14px', lineHeight: 1 }}>{isDone ? '✅' : '⭕'}</p>
-                            </div>
+                            </Fragment>
                           )
                         })}
                       </div>
