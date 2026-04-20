@@ -222,7 +222,6 @@ export default function DynamicWorkoutPage() {
                 {isExpanded && (() => {
                   const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
                   const doneSets = setWeightFields.filter(fld => !!f[fld]).length
-                  const nextEx = exercises[idx + 1] || null
                   return (
                     <>
                       {/* Prev / Goal header */}
@@ -322,16 +321,7 @@ export default function DynamicWorkoutPage() {
                         {isSaving ? 'Сохраняем...' : isSaved ? '✓ Сохранено' : 'Сохранить'}
                       </button>
 
-                      {/* Next exercise */}
-                      {nextEx && (
-                        <div style={{ borderTop: '1px solid rgba(45,31,14,0.06)', paddingTop: '20px', marginTop: '20px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.25)', margin: '0 0 8px' }}>СЛЕДУЮЩЕЕ</p>
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 4px' }}>{nextEx.name}</p>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>
-                            {nextEx.sets} подхода × {nextEx.reps} повторений
-                          </p>
-                        </div>
-                      )}
+
                     </>
                   )
                 })()}
