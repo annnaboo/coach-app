@@ -7,6 +7,7 @@ import { EXERCISE_NAMES } from '@/lib/exercises'
 import ArtName from '@/app/components/ArtName'
 import BrandLogo from '@/app/components/BrandLogo'
 import { LABEL } from '@/lib/design/tokens'
+import { localDateStr } from '@/lib/utils'
 
 const card: React.CSSProperties = {
   borderBottom: '1px solid rgba(45,31,14,0.08)',
@@ -66,7 +67,7 @@ export default function ClientPage() {
   const [nextProgramWorkout, setNextProgramWorkout] = useState<Workout | null>(null)
   const router = useRouter()
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr(new Date())
   const programTodayId = program && programWorkouts ? Object.keys(programWorkouts)[0] : null
   const programTodayWorkout = programTodayId ? programWorkouts[programTodayId] : null
   const todayWorkout = weekSchedule[today] || programTodayWorkout || null
@@ -90,8 +91,8 @@ export default function ClientPage() {
       const weekStart = getMonday(new Date())
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekEnd.getDate() + 7)
-      const weekStartStr = weekStart.toISOString().slice(0, 10)
-      const weekEndStr = weekEnd.toISOString().slice(0, 10)
+      const weekStartStr = localDateStr(weekStart)
+      const weekEndStr = localDateStr(weekEnd)
 
       const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes, feedbackRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', user.id).order('saved_at', { ascending: false }),
@@ -364,7 +365,7 @@ export default function ClientPage() {
               {DAYS.map((day, i) => {
                 const date = new Date(monday)
                 date.setDate(monday.getDate() + i)
-                const dateStr = date.toISOString().slice(0, 10)
+                const dateStr = localDateStr(date)
                 const isToday = dateStr === today
                 const isDone = weekLogs.includes(dateStr)
                 const scheduled = weekSchedule[dateStr]

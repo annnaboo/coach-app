@@ -27,6 +27,17 @@ export function getPaymentStatus(payment: any): {
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
 
+/**
+ * Formats a local Date to YYYY-MM-DD using the device's local timezone.
+ * Unlike toISOString() which always returns UTC, this preserves the local date.
+ */
+export function localDateStr(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 export function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
@@ -40,32 +51,33 @@ export function daysSince(iso: string | null): number | null {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
 }
 
-/** Returns Monday and Sunday of the current ISO week as YYYY-MM-DD strings. */
+/** Returns Monday and Sunday of the current ISO week as YYYY-MM-DD strings (local timezone). */
 export function getMondaySunday(): { mondayStr: string; sundayStr: string } {
   const now = new Date()
   const day = now.getDay()
   const diff = day === 0 ? -6 : 1 - day
   const monday = new Date(now)
   monday.setDate(now.getDate() + diff)
+  monday.setHours(0, 0, 0, 0)
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
-  return { mondayStr: fmt(monday), sundayStr: fmt(sunday) }
+  return { mondayStr: localDateStr(monday), sundayStr: localDateStr(sunday) }
 }
 
-/** Returns YYYY-MM-DD for 6 days ago (so today is the 7th in a 7-day window). */
+/** Returns YYYY-MM-DD for 6 days ago in local timezone (so today is the 7th in a 7-day window). */
 export function sevenDaysAgo(): string {
   const d = new Date()
   d.setDate(d.getDate() - 6)
-  return d.toISOString().slice(0, 10)
+  d.setHours(0, 0, 0, 0)
+  return localDateStr(d)
 }
 
-/** Generates an array of 7 date strings (YYYY-MM-DD) starting from `fromDate`. */
+/** Generates an array of 7 date strings (YYYY-MM-DD) starting from `fromDate`, in local timezone. */
 export function buildWeek(fromDate: string): string[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(fromDate)
     d.setDate(d.getDate() + i)
-    return d.toISOString().slice(0, 10)
+    return localDateStr(d)
   })
 }
 
