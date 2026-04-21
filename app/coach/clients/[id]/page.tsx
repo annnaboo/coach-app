@@ -98,6 +98,14 @@ export default function ClientProfilePage() {
   const [view, setView] = useState<'list' | 'trajectory'>('list')
   const [trajPeriod, setTrajPeriod] = useState<4 | 8 | 12>(4)
 
+  // Payment editing
+  const [editingPayment, setEditingPayment] = useState(false)
+  const [payPaid, setPayPaid] = useState(true)
+  const [payPeriodEnd, setPayPeriodEnd] = useState('')
+  const [payAmount, setPayAmount] = useState('')
+  const [savingPayment, setSavingPayment] = useState(false)
+  const [paymentSaved, setPaymentSaved] = useState(false)
+
   // Pre-compute date windows once per mount so loadAll and render share the same values.
   const { mondayStr, sundayStr } = getMondaySunday()
   const sevenAgo = sevenDaysAgo()
@@ -174,6 +182,36 @@ export default function ClientProfilePage() {
     }
 
     setLoading(false)
+  }
+
+  function openPaymentEdit() {
+    setPayPaid(payment?.paid ?? true)
+    setPayPeriodEnd(payment?.period_end ? payment.period_end.slice(0, 10) : '')
+    setPayAmount(payment?.amount != null ? String(payment.amount) : '')
+    setPaymentSaved(false)
+    setEditingPayment(true)
+  }
+
+  async function savePayment() {
+    setSavingPayment(true)
+    const supabase = createClient()
+    const upsertData: Record<string, any> = {
+      player_id: clientId,
+      paid: payPaid,
+      period_end: payPeriodEnd || null,
+      amount: payAmount !== '' ? parseFloat(payAmount) : null,
+    }
+    let result
+    if (payment?.id) {
+      result = await supabase.from('payments').update(upsertData).eq('id', payment.id).select().single()
+    } else {
+      result = await supabase.from('payments').insert(upsertData).select().single()
+    }
+    if (result.data) setPayment(result.data)
+    setSavingPayment(false)
+    setPaymentSaved(true)
+    setEditingPayment(false)
+    setTimeout(() => setPaymentSaved(false), 2000)
   }
 
   async function sendFeedback() {
@@ -350,6 +388,96 @@ export default function ClientProfilePage() {
               {v === 'list' ? 'Список' : 'Траектория'}
             </button>
           ))}
+        </div>
+
+        {/* ── PAYMENT ── */}
+        <div style={{ ...SECTION }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <p style={{ ...LABEL, margin: 0 }}>Оплата</p>
+            {!editingPayment && (
+              <button
+                onClick={openPaymentEdit}
+                style={{ background: 'none', border: '1px solid rgba(45,31,14,0.15)', borderRadius: '999px', padding: '4px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', cursor: 'pointer', letterSpacing: '0.5px' }}
+              >
+                {paymentSaved ? '✓ Сохранено' : 'Изменить'}
+              </button>
+            )}
+          </div>
+
+          {!editingPayment ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', border: payStatus.border, color: payStatus.color, letterSpacing: '0.5px' }}>
+                {payStatus.label}
+              </span>
+              {payment?.amount != null && (
+                <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.45)', letterSpacing: '0.5px' }}>
+                  {payment.amount.toLocaleString('ru-RU')} ₽
+                </span>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Paid toggle */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[true, false].map((val) => (
+                  <button
+                    key={String(val)}
+                    onClick={() => setPayPaid(val)}
+                    style={{
+                      padding: '6px 16px', borderRadius: '999px', cursor: 'pointer',
+                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px',
+                      border: 'none',
+                      background: payPaid === val ? '#7a4a20' : 'rgba(45,31,14,0.06)',
+                      color: payPaid === val ? '#fff' : 'rgba(45,31,14,0.5)',
+                    }}
+                  >
+                    {val ? 'Оплачено' : 'Не оплачено'}
+                  </button>
+                ))}
+              </div>
+              {/* Period end date */}
+              <div>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px' }}>
+                  Оплачено до
+                </p>
+                <input
+                  type="date"
+                  value={payPeriodEnd}
+                  onChange={(e) => setPayPeriodEnd(e.target.value)}
+                  style={{ background: 'rgba(45,31,14,0.05)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Amount */}
+              <div>
+                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px' }}>
+                  Сумма (₽)
+                </p>
+                <input
+                  type="number"
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(e.target.value)}
+                  placeholder="Например, 5000"
+                  style={{ background: 'rgba(45,31,14,0.05)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button
+                  onClick={savePayment}
+                  disabled={savingPayment}
+                  style={{ flex: 1, padding: '10px', borderRadius: '10px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer', opacity: savingPayment ? 0.6 : 1 }}
+                >
+                  {savingPayment ? 'Сохранение...' : 'Сохранить'}
+                </button>
+                <button
+                  onClick={() => setEditingPayment(false)}
+                  style={{ padding: '10px 18px', borderRadius: '10px', background: 'rgba(45,31,14,0.06)', color: 'rgba(45,31,14,0.5)', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── TRAJECTORY VIEW ── */}
