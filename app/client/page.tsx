@@ -684,26 +684,6 @@ export default function ClientPage() {
                           </div>
                         )}
                       </div>
-                      {/* Quick assign to today */}
-                      <div style={{ flexShrink: 0, marginLeft: '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                        {w.id === programTodayId && (
-                          <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.15)', color: 'rgba(122,74,32,0.6)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-                            Следующая →
-                          </span>
-                        )}
-                        {!weekSchedule[today] || weekSchedule[today]?.id !== w.id ? (
-                          <button
-                            onClick={() => assignWorkout(today, w)}
-                            style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                          >
-                            На сегодня
-                          </button>
-                        ) : (
-                          <span style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(39,174,96,0.1)', border: '1px solid rgba(39,174,96,0.2)', color: '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', whiteSpace: 'nowrap' }}>
-                            Сегодня ✓
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                 ))}

@@ -261,8 +261,12 @@ export default function CoachPage() {
     setSavingRate(clientId)
     const supabase = createClient()
     const rate = parseFloat(monthlyRates[clientId] || '0') || null
-    await supabase.from('payments').update({ monthly_rate: rate }).eq('id', paymentId)
-    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, monthly_rate: rate } } : c))
+    const form = paymentForms[clientId]
+    const updates: Record<string, unknown> = { monthly_rate: rate }
+    if (form?.period_start) updates.period_start = form.period_start
+    if (form?.period_end) updates.period_end = form.period_end
+    await supabase.from('payments').update(updates).eq('id', paymentId)
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, monthly_rate: rate, period_start: form?.period_start || c.payment?.period_start, period_end: form?.period_end || c.payment?.period_end } } : c))
     setEditingRate(null)
     setSavingRate(null)
   }
@@ -1063,21 +1067,36 @@ export default function CoachPage() {
                         <Divider />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(113,87,57,0.35)', margin: 0 }}>Стоимость / месяц</p>
-                          <button onClick={() => { setEditingRate(editingRate === client.id ? null : client.id); if (!monthlyRates[client.id]) setMonthlyRates(prev => ({ ...prev, [client.id]: String(payment.monthly_rate || payment.amount || '') })) }} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>
+                          <button onClick={() => {
+                            if (editingRate === client.id) { setEditingRate(null); return }
+                            setEditingRate(client.id)
+                            if (!monthlyRates[client.id]) setMonthlyRates(prev => ({ ...prev, [client.id]: String(payment.monthly_rate || payment.amount || '') }))
+                            setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: payment.period_start?.slice(0, 10) || '', period_end: payment.period_end?.slice(0, 10) || '', amount: String(payment.monthly_rate || payment.amount || ''), paid: payment.paid ?? false } }))
+                          }} style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#8C6F4F', cursor: 'pointer', padding: 0 }}>
                             {editingRate === client.id ? 'Отмена' : 'Изменить'}
                           </button>
                         </div>
                         {editingRate === client.id ? (
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <input
                               type="number"
                               className="no-spin"
                               value={monthlyRates[client.id] || ''}
                               onChange={e => setMonthlyRates(prev => ({ ...prev, [client.id]: e.target.value }))}
                               placeholder="Сумма в €"
-                              style={{ ...inputSm, flex: 1, borderRadius: '10px' }}
+                              style={{ ...inputSm, borderRadius: '10px' }}
                             />
-                            <button onClick={() => saveMonthlyRate(client.id, payment.id)} disabled={savingRate === client.id} style={{ padding: '7px 14px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                              <div>
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>С</p>
+                                <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                              </div>
+                              <div>
+                                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(113,87,57,0.4)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>До</p>
+                                <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                              </div>
+                            </div>
+                            <button onClick={() => saveMonthlyRate(client.id, payment.id)} disabled={savingRate === client.id} style={{ padding: '7px 14px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
                               {savingRate === client.id ? '...' : 'Сохранить'}
                             </button>
                           </div>
