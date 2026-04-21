@@ -257,16 +257,28 @@ export default function CoachPage() {
     setFeedbackInputs(prev => ({ ...prev, [clientId]: '' }))
   }
 
+  function calcTotal(rate: string, start: string, end: string): number | null {
+    const r = parseFloat(rate)
+    if (!r || !start || !end) return null
+    const days = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
+    if (days <= 0) return null
+    return Math.round(r * (days / 30) * 100) / 100
+  }
+
   async function saveMonthlyRate(clientId: string, paymentId: string) {
     setSavingRate(clientId)
     const supabase = createClient()
     const rate = parseFloat(monthlyRates[clientId] || '0') || null
     const form = paymentForms[clientId]
+    const total = rate && form?.period_start && form?.period_end
+      ? calcTotal(String(rate), form.period_start, form.period_end)
+      : null
     const updates: Record<string, unknown> = { monthly_rate: rate }
     if (form?.period_start) updates.period_start = form.period_start
     if (form?.period_end) updates.period_end = form.period_end
+    if (total !== null) updates.amount = total
     await supabase.from('payments').update(updates).eq('id', paymentId)
-    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, monthly_rate: rate, period_start: form?.period_start || c.payment?.period_start, period_end: form?.period_end || c.payment?.period_end } } : c))
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, monthly_rate: rate, amount: total ?? c.payment?.amount, period_start: form?.period_start || c.payment?.period_start, period_end: form?.period_end || c.payment?.period_end } } : c))
     setEditingRate(null)
     setSavingRate(null)
   }
@@ -1096,6 +1108,14 @@ export default function CoachPage() {
                                 <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
                               </div>
                             </div>
+                            {(() => {
+                              const total = calcTotal(monthlyRates[client.id] || '', paymentForms[client.id]?.period_start || '', paymentForms[client.id]?.period_end || '')
+                              return total !== null ? (
+                                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#1C1C18', margin: '2px 0 0' }}>
+                                  Итого: €{total.toLocaleString('ru-RU')}
+                                </p>
+                              ) : null
+                            })()}
                             <button onClick={() => saveMonthlyRate(client.id, payment.id)} disabled={savingRate === client.id} style={{ padding: '7px 14px', borderRadius: '999px', background: '#8C6F4F', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
                               {savingRate === client.id ? '...' : 'Сохранить'}
                             </button>
