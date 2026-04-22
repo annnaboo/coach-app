@@ -11,13 +11,11 @@ import {
   ResponsiveContainer, Area, AreaChart,
 } from 'recharts'
 
-// ── Design tokens ────────────────────────────────────────────────────────────
 const card: React.CSSProperties = {
-  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  borderBottom: '1px solid var(--divider)',
   padding: '28px 0',
 }
 
-// ── Types ────────────────────────────────────────────────────────────────────
 type Report = {
   id: string
   week_start: string
@@ -31,7 +29,6 @@ type Report = {
   right_thigh: number | null
   left_arm: number | null
   right_arm: number | null
-  // старые — оставляем для backward compat со старыми отчётами
   one_thigh?: number | null
   arm?: number | null
   notes: string | null
@@ -43,7 +40,6 @@ type Report = {
   photoBackUrl?: string | null
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function fmtShort(iso: string): string {
   return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
 }
@@ -63,9 +59,9 @@ function isThisWeek(iso: string): boolean {
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#fff', border: '1px solid rgba(45,31,14,0.08)', borderRadius: '8px', padding: '8px 12px' }}>
-      <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: 0 }}>{payload[0].value} кг</p>
-      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>{payload[0].payload.date}</p>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px 12px', boxShadow: 'var(--shadow-soft)' }}>
+      <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '16px', color: 'var(--text-primary)', margin: 0 }}>{payload[0].value} кг</p>
+      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>{payload[0].payload.date}</p>
     </div>
   )
 }
@@ -88,7 +84,6 @@ function getParam(report: Report, key: string): number | null {
   return null
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function ReportsHistoryPage() {
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
@@ -136,9 +131,9 @@ export default function ReportsHistoryPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
-              <div style={{ height: '12px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', width: '30%', marginBottom: '12px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <div style={{ height: '10px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', width: '55%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div key={i} style={{ borderBottom: '1px solid var(--divider)', padding: '28px 0' }}>
+              <div className="skeleton" style={{ height: '12px', width: '30%', marginBottom: '12px' }} />
+              <div className="skeleton" style={{ height: '10px', width: '55%' }} />
             </div>
           ))}
         </div>
@@ -146,13 +141,12 @@ export default function ReportsHistoryPage() {
     </div>
   )
 
-  // ── Derived data ───────────────────────────────────────────────────────────
   const chronological = [...reports].reverse()
   const withWeight = chronological.filter(r => r.weight !== null)
   const chartData = withWeight.map(r => ({ date: fmtShort(r.week_start), weight: r.weight }))
 
-  const first = reports[reports.length - 1]   // oldest
-  const last = reports[0]                       // newest
+  const first = reports[reports.length - 1]
+  const last = reports[0]
 
   const totalWeeks = reports.length >= 2
     ? Math.round((new Date(last.week_start).getTime() - new Date(first.week_start).getTime()) / (7 * 86400000))
@@ -162,7 +156,6 @@ export default function ReportsHistoryPage() {
     ? +(last.weight - first.weight).toFixed(1)
     : null
 
-  // For photo compare: first report's front photo vs latest report's front photo
   const compareFirst = first?.photoFrontUrl ? first : reports.find(r => r.photoFrontUrl)
   const compareLast = last?.photoFrontUrl ? last : [...reports].find(r => r.photoFrontUrl)
   const showPhotoCompare = compareFirst && compareLast && compareFirst.id !== compareLast.id
@@ -175,7 +168,7 @@ export default function ReportsHistoryPage() {
       {modalUrl && (
         <div
           onClick={() => setModalUrl(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--bg-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
         >
           <button
             onClick={() => setModalUrl(null)}
@@ -196,16 +189,17 @@ export default function ReportsHistoryPage() {
           <div className="card-enter" style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
+              className="pressable"
+              style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
             >
               ← Назад
             </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
-                <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
+                <h1 style={{ fontFamily: "'Playfair Display', 'Bodoni 72', 'Didot', serif", fontWeight: 600, fontStyle: 'italic', fontSize: '52px', color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-1px', lineHeight: 0.95 }}>
                   Отчёты
                 </h1>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {reports.length} {reports.length === 1 ? 'отчёт' : reports.length < 5 ? 'отчёта' : 'отчётов'}
                   {totalWeeks > 0 ? ` · ${totalWeeks} нед.` : ''}
                   {reports.find(r => r.height_cm != null)?.height_cm ? ` · ${reports.find(r => r.height_cm != null)!.height_cm} см` : ''}
@@ -213,7 +207,8 @@ export default function ReportsHistoryPage() {
               </div>
               <button
                 onClick={() => router.push('/report')}
-                style={{ padding: '9px 20px', borderRadius: '999px', background: '#7a4a20', border: 'none', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.5px' }}
+                className="pressable"
+                style={{ padding: '9px 20px', borderRadius: '999px', background: 'var(--accent-primary)', border: 'none', color: '#fff', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.5px' }}
               >
                 + Отчёт
               </button>
@@ -223,15 +218,16 @@ export default function ReportsHistoryPage() {
           {/* EMPTY STATE */}
           {reports.length === 0 && (
             <div style={{ ...card, textAlign: 'center', padding: '48px 0' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'rgba(45,31,14,0.18)', margin: '0 0 8px' }}>
+              <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'var(--text-tertiary)', margin: '0 0 8px' }}>
                 Ещё нет отчётов
               </p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.28)', margin: '0 0 20px' }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', margin: '0 0 20px' }}>
                 Заполни первый отчёт — он появится здесь
               </p>
               <button
                 onClick={() => router.push('/report')}
-                style={{ padding: '10px 24px', borderRadius: '999px', background: '#7a4a20', border: 'none', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
+                className="pressable"
+                style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--accent-primary)', border: 'none', color: '#fff', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}
               >
                 Отправить первый отчёт
               </button>
@@ -245,21 +241,21 @@ export default function ReportsHistoryPage() {
                 <p style={{ ...LABEL }}>Первый отчёт · {fmtDate(reports[0].week_start)}</p>
                 {reports[0].weight != null && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '20px' }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '48px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
+                    <p className="number-mount" style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '48px', color: 'var(--text-primary)', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
                       {reports[0].weight}
                     </p>
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
+                    <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-tertiary)' }}>кг</span>
                   </div>
                 )}
                 {PARAMS.some(k => getParam(reports[0], k) != null) && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(45,31,14,0.06)', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--divider)', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
                     {PARAMS.map(key => {
                       const val = getParam(reports[0], key)
                       if (val == null) return null
                       return (
-                        <div key={key} style={{ background: '#f5f0e8', padding: '12px', textAlign: 'center' }}>
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '20px', color: '#2d1f0e', margin: 0, lineHeight: 1 }}>{val}</p>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '4px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{PARAM_LABELS[key]}</p>
+                        <div key={key} style={{ background: 'var(--bg-card-soft)', padding: '12px', textAlign: 'center' }}>
+                          <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '20px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>{val}</p>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: '4px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{PARAM_LABELS[key]}</p>
                         </div>
                       )
                     })}
@@ -274,7 +270,7 @@ export default function ReportsHistoryPage() {
                 )}
               </div>
               <div style={{ ...card, textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '1px' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, letterSpacing: '1px' }}>
                   После следующего отчёта появится динамика и сравнение фото
                 </p>
               </div>
@@ -302,15 +298,15 @@ export default function ReportsHistoryPage() {
                             onClick={() => setModalUrl(report.photoFrontUrl!)}
                             style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '6px', display: 'block', cursor: 'pointer' }}
                           />
-                          <span style={{ position: 'absolute', bottom: '8px', left: '8px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#fff', background: 'rgba(0,0,0,0.4)', padding: '3px 8px', borderRadius: '4px' }}>
+                          <span style={{ position: 'absolute', bottom: '8px', left: '8px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#fff', background: 'rgba(0,0,0,0.4)', padding: '3px 8px', borderRadius: '4px' }}>
                             {label}
                           </span>
                         </div>
-                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#2d1f0e', margin: '8px 0 2px', letterSpacing: '-0.2px' }}>
+                        <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', margin: '8px 0 2px', letterSpacing: '-0.2px' }}>
                           {fmtDate(report.week_start)}
                         </p>
                         {report.weight && (
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: '#7a4a20', margin: 0 }}>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--accent-primary)', margin: 0 }}>
                             {report.weight} кг
                           </p>
                         )}
@@ -318,11 +314,11 @@ export default function ReportsHistoryPage() {
                     ))}
                   </div>
                   {weightDiffTotal !== null && (
-                    <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(122,74,32,0.05)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    <div style={{ marginTop: '16px', padding: '12px 16px', background: 'var(--accent-soft-bg)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>
                         За {totalWeeks} нед.
                       </span>
-                      <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: weightDiffTotal <= 0 ? '#1a7a3c' : '#8a2520', letterSpacing: '-0.5px' }}>
+                      <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '22px', color: weightDiffTotal <= 0 ? 'var(--success)' : 'var(--error)', letterSpacing: '-0.5px' }}>
                         {weightDiffTotal <= 0 ? '−' : '+'}{Math.abs(weightDiffTotal)} кг
                       </span>
                     </div>
@@ -338,17 +334,17 @@ export default function ReportsHistoryPage() {
                       <p style={{ ...LABEL, marginBottom: '8px' }}>Вес</p>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px' }}>
                         <div>
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '38px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
+                          <p className="number-mount" style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '38px', color: 'var(--text-primary)', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
                             {last.weight}
                           </p>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.5)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Сейчас</p>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-secondary)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>Сейчас</p>
                         </div>
                         {weightDiffTotal !== null && (
-                          <div style={{ borderLeft: '1px solid rgba(45,31,14,0.08)', paddingLeft: '16px' }}>
-                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '24px', color: weightDiffTotal <= 0 ? '#1a7a3c' : '#8a2520', margin: 0, lineHeight: 1, letterSpacing: '-0.5px' }}>
+                          <div style={{ borderLeft: '1px solid var(--divider)', paddingLeft: '16px' }}>
+                            <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '24px', color: weightDiffTotal <= 0 ? 'var(--success)' : 'var(--error)', margin: 0, lineHeight: 1, letterSpacing: '-0.5px' }}>
                               {weightDiffTotal <= 0 ? '−' : '+'}{Math.abs(weightDiffTotal)}
                             </p>
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.5)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>С начала</p>
+                            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-secondary)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>С начала</p>
                           </div>
                         )}
                       </div>
@@ -358,49 +354,49 @@ export default function ReportsHistoryPage() {
                     <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#7a4a20" stopOpacity={0.18} />
-                          <stop offset="100%" stopColor="#7a4a20" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#8B1E3F" stopOpacity={0.18} />
+                          <stop offset="100%" stopColor="#8B1E3F" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid vertical={false} stroke="rgba(45,31,14,0.04)" />
-                      <XAxis dataKey="date" tick={{ fontFamily: 'Chillax, sans-serif', fontSize: 8, fill: 'rgba(45,31,14,0.25)' }} axisLine={false} tickLine={false} />
+                      <CartesianGrid vertical={false} stroke="#E8E1DA" />
+                      <XAxis dataKey="date" tick={{ fontFamily: 'var(--font-text)', fontSize: 8, fill: '#B7ADA7' }} axisLine={false} tickLine={false} />
                       <YAxis hide domain={['auto', 'auto']} />
                       <Tooltip content={<CustomTooltip />} />
                       <Area
                         type="monotone"
                         dataKey="weight"
-                        stroke="#7a4a20"
+                        stroke="#8B1E3F"
                         strokeWidth={1.5}
                         fill="url(#weightGrad)"
-                        dot={{ fill: '#f5f0e8', stroke: '#7a4a20', strokeWidth: 1.5, r: 3 }}
-                        activeDot={{ fill: '#7a4a20', r: 5, strokeWidth: 0 }}
+                        dot={{ fill: '#FBF8F5', stroke: '#8B1E3F', strokeWidth: 1.5, r: 3 }}
+                        activeDot={{ fill: '#8B1E3F', r: 5, strokeWidth: 0 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
 
-              {/* MEASUREMENTS SUMMARY: first → last */}
+              {/* MEASUREMENTS SUMMARY */}
               {PARAMS.some(k => getParam(first, k) != null || getParam(last, k) != null) && (
                 <div style={{ ...card }}>
                   <p style={{ ...LABEL }}>Замеры</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(45,31,14,0.06)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--divider)', borderRadius: '8px', overflow: 'hidden' }}>
                     {PARAMS.map(key => {
                       const val = getParam(last, key)
                       const firstVal = getParam(first, key)
                       if (val == null && firstVal == null) return null
                       const diff = val != null && firstVal != null ? +(val - firstVal).toFixed(1) : null
                       return (
-                        <div key={key} style={{ background: '#f5f0e8', padding: '14px 10px', textAlign: 'center' }}>
+                        <div key={key} style={{ background: 'var(--bg-card-soft)', padding: '14px 10px', textAlign: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '3px' }}>
-                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '20px', color: '#2d1f0e', margin: 0, lineHeight: 1 }}>{val ?? firstVal}</p>
+                            <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '20px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>{val ?? firstVal}</p>
                             {diff !== null && diff !== 0 && (
-                              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: diff < 0 ? '#1a7a3c' : '#8a2520', lineHeight: 1 }}>
+                              <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: diff < 0 ? 'var(--success)' : 'var(--error)', lineHeight: 1 }}>
                                 {diff < 0 ? `↓${Math.abs(diff)}` : `↑${diff}`}
                               </span>
                             )}
                           </div>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.35)', margin: '5px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: '5px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>
                             {PARAM_LABELS[key]}
                           </p>
                         </div>
@@ -431,36 +427,37 @@ export default function ReportsHistoryPage() {
                   return (
                     <div
                       key={report.id}
-                      style={{ borderBottom: '1px solid rgba(45,31,14,0.06)' }}
+                      style={{ borderBottom: '1px solid var(--divider)' }}
                     >
                       {/* ROW */}
                       <div
                         onClick={() => setExpandedId(isExpanded ? null : report.id)}
+                        className="pressable"
                         style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0', cursor: 'pointer' }}
                       >
-                        <div style={{ width: isLatest ? 8 : 6, height: isLatest ? 8 : 6, borderRadius: '50%', background: '#7a4a20', opacity: isLatest ? 1 : 0.4, flexShrink: 0 }} />
+                        <div style={{ width: isLatest ? 8 : 6, height: isLatest ? 8 : 6, borderRadius: '50%', background: 'var(--accent-primary)', opacity: isLatest ? 1 : 0.4, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.6)', margin: '0 0 2px' }}>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 2px' }}>
                             {fmtDate(report.week_start)}
-                            {isLatest && isThisWeek(report.week_start) ? <span style={{ color: '#7a4a20', marginLeft: '6px' }}>· эта неделя</span> : ''}
+                            {isLatest && isThisWeek(report.week_start) ? <span style={{ color: 'var(--accent-primary)', marginLeft: '6px' }}>· эта неделя</span> : ''}
                           </p>
                           {shortParams && (
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.28)', margin: 0 }}>{shortParams}</p>
+                            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>{shortParams}</p>
                           )}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           {report.weight != null && (
-                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', letterSpacing: '-0.3px' }}>
+                            <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
                               {report.weight}
                             </span>
                           )}
                           {wDiff !== null && (
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: wDiff <= 0 ? '#1a7a3c' : '#8a2520', marginLeft: '4px' }}>
+                            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: wDiff <= 0 ? 'var(--success)' : 'var(--error)', marginLeft: '4px' }}>
                               {wDiff <= 0 ? `↓${Math.abs(wDiff)}` : `↑${wDiff}`}
                             </span>
                           )}
                         </div>
-                        <span style={{ color: 'rgba(45,31,14,0.2)', fontSize: '10px', flexShrink: 0 }}>{isExpanded ? '▴' : '▾'}</span>
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', flexShrink: 0 }}>{isExpanded ? '▴' : '▾'}</span>
                       </div>
 
                       {/* EXPANDED DETAIL */}
@@ -485,10 +482,10 @@ export default function ReportsHistoryPage() {
                                 const val = getParam(report, key)
                                 if (val == null) return null
                                 return (
-                                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid rgba(45,31,14,0.04)', paddingBottom: '6px' }}>
-                                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)' }}>{PARAM_LABELS[key]}</span>
-                                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '15px', color: '#2d1f0e' }}>
-                                      {val} <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>см</span>
+                                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid var(--divider)', paddingBottom: '6px' }}>
+                                    <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)' }}>{PARAM_LABELS[key]}</span>
+                                    <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '15px', color: 'var(--text-primary)' }}>
+                                      {val} <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)' }}>см</span>
                                     </span>
                                   </div>
                                 )
@@ -496,7 +493,7 @@ export default function ReportsHistoryPage() {
                             </div>
                           )}
                           {report.notes && (
-                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontStyle: 'italic', fontSize: '12px', color: 'rgba(45,31,14,0.45)', margin: 0 }}>
+                            <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 300, fontStyle: 'italic', fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
                               "{report.notes}"
                             </p>
                           )}

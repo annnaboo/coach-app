@@ -5,23 +5,22 @@ import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const sectionLabel: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
+  fontFamily: 'var(--font-text)',
+  fontWeight: 600,
   fontSize: '11px',
-  letterSpacing: '2px',
+  letterSpacing: '0.4px',
   textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.35)',
+  color: 'var(--text-secondary)',
   margin: '0 0 12px',
 }
 
-const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
+const solidCard: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--divider)',
   borderRadius: '20px',
   padding: '22px',
   marginBottom: '12px',
+  boxShadow: 'var(--shadow-soft)',
 }
 
 type PhotoPosition = 'front' | 'side' | 'back'
@@ -161,6 +160,19 @@ export default function ReportPage() {
     { label: 'Прав. рука', unit: 'см', value: rightArm, setter: setRightArm },
   ]
 
+  const numInputStyle: React.CSSProperties = {
+    width: '80px',
+    background: 'var(--bg-card-soft)',
+    border: '1px solid var(--divider)',
+    borderRadius: '999px',
+    padding: '7px 12px',
+    textAlign: 'center',
+    fontFamily: 'var(--font-text)',
+    fontSize: '13px',
+    color: 'var(--text-primary)',
+    outline: 'none',
+  }
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
@@ -171,9 +183,10 @@ export default function ReportPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <button
               onClick={() => router.push('/client')}
+              className="pressable"
               style={{
-                background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
+                background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '999px',
+                color: 'var(--text-secondary)', fontFamily: 'var(--font-text)',
                 fontWeight: 300, fontSize: '13px', padding: '8px 18px',
                 cursor: 'pointer', flexShrink: 0,
               }}
@@ -181,25 +194,26 @@ export default function ReportPage() {
               ← назад
             </button>
             <div>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '24px', margin: 0 }}>
                 Отчёт недели
               </h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '12px', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--text-tertiary)', fontSize: '12px', margin: 0 }}>
                 {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
               </p>
             </div>
           </div>
 
           {success ? (
-            <div style={{ ...glassCard, textAlign: 'center', padding: '40px 24px' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '22px', margin: '0 0 20px' }}>
+            <div style={{ ...solidCard, textAlign: 'center', padding: '40px 24px' }}>
+              <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '22px', margin: '0 0 20px' }}>
                 Отчёт отправлен ✓
               </p>
               <button
                 onClick={() => router.push('/client')}
+                className="pressable"
                 style={{
-                  padding: '12px 28px', borderRadius: '999px', background: '#7a4a20',
-                  color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif',
+                  padding: '12px 28px', borderRadius: '999px', background: 'var(--accent-primary)',
+                  color: '#fff', border: 'none', fontFamily: 'var(--font-text)',
                   fontWeight: 500, fontSize: '15px', cursor: 'pointer',
                 }}
               >
@@ -219,8 +233,8 @@ export default function ReportPage() {
                       <div key={pos}>
                         <div style={{
                           position: 'relative', borderRadius: '16px',
-                          background: preview ? 'transparent' : 'rgba(0,0,0,0.05)',
-                          border: '1px dashed rgba(0,0,0,0.12)', overflow: 'hidden',
+                          background: preview ? 'transparent' : 'var(--bg-card-soft)',
+                          border: '1px dashed var(--divider)', overflow: 'hidden',
                         }}>
                           <div style={{ paddingBottom: '100%', position: 'relative' }}>
                             {preview ? (
@@ -228,8 +242,8 @@ export default function ReportPage() {
                             ) : (
                               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="rgba(45,31,14,0.25)" strokeWidth="1.5" fill="none" />
-                                  <circle cx="12" cy="13" r="4" stroke="rgba(45,31,14,0.25)" strokeWidth="1.5" fill="none" />
+                                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="var(--text-tertiary)" strokeWidth="1.5" fill="none" />
+                                  <circle cx="12" cy="13" r="4" stroke="var(--text-tertiary)" strokeWidth="1.5" fill="none" />
                                 </svg>
                               </div>
                             )}
@@ -239,7 +253,7 @@ export default function ReportPage() {
                             />
                           </div>
                         </div>
-                        <p style={{ fontSize: '10px', color: 'rgba(45,31,14,0.35)', textAlign: 'center', marginTop: '6px', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
+                        <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', textAlign: 'center', marginTop: '6px', fontFamily: 'var(--font-text)', fontWeight: 300 }}>
                           {labelMap[pos]}
                         </p>
                       </div>
@@ -249,7 +263,7 @@ export default function ReportPage() {
               </div>
 
               {/* PARAMS */}
-              <div style={glassCard} onClick={() => setActiveTooltip(null)}>
+              <div style={solidCard} onClick={() => setActiveTooltip(null)}>
                 <p style={sectionLabel}>ПАРАМЕТРЫ</p>
                 {FIELDS.map(({ label, unit, value, setter }, i) => {
                   const hasTooltip = !!TOOLTIPS[label]
@@ -258,7 +272,7 @@ export default function ReportPage() {
                     <div key={label} style={{ marginBottom: i < FIELDS.length - 1 ? '14px' : 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>
+                          <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)' }}>
                             {label}
                           </span>
                           {hasTooltip && (
@@ -266,10 +280,10 @@ export default function ReportPage() {
                               onClick={e => { e.stopPropagation(); setActiveTooltip(isOpen ? null : label) }}
                               style={{
                                 width: '18px', height: '18px', borderRadius: '50%',
-                                background: 'rgba(122,74,32,0.1)',
+                                background: 'var(--accent-soft-bg)',
                                 border: 'none',
-                                color: '#7a4a20',
-                                fontFamily: 'Chillax, sans-serif',
+                                color: 'var(--accent-primary)',
+                                fontFamily: 'var(--font-text)',
                                 fontSize: '10px',
                                 cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -287,13 +301,9 @@ export default function ReportPage() {
                             onChange={e => setter(e.target.value)}
                             placeholder="—"
                             className="no-spin"
-                            style={{
-                              width: '80px', background: 'rgba(0,0,0,0.05)', border: 'none',
-                              borderRadius: '999px', padding: '7px 12px', textAlign: 'center',
-                              fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: '#2d1f0e', outline: 'none',
-                            }}
+                            style={numInputStyle}
                           />
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)', width: '20px' }}>
+                          <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)', width: '20px' }}>
                             {unit}
                           </span>
                         </div>
@@ -305,27 +315,26 @@ export default function ReportPage() {
                           onClick={e => e.stopPropagation()}
                           style={{ position: 'relative', marginTop: '8px' }}
                         >
-                          {/* Arrow */}
                           <div style={{
                             position: 'absolute', top: 0, left: '14px',
                             width: 0, height: 0,
                             borderLeft: '6px solid transparent',
                             borderRight: '6px solid transparent',
-                            borderBottom: '6px solid rgba(255,255,255,0.95)',
+                            borderBottom: '6px solid var(--bg-card)',
                             filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.06))',
                           }} />
                           <div style={{
                             marginTop: '6px',
-                            background: 'rgba(255,255,255,0.95)',
-                            border: '1px solid rgba(0,0,0,0.07)',
+                            background: 'var(--bg-card)',
+                            border: '1px solid var(--divider)',
                             borderRadius: '12px',
                             padding: '8px 12px',
-                            fontFamily: 'Chillax, sans-serif',
+                            fontFamily: 'var(--font-text)',
                             fontWeight: 300,
                             fontSize: '11px',
-                            color: 'rgba(45,31,14,0.6)',
+                            color: 'var(--text-secondary)',
                             lineHeight: 1.55,
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
+                            boxShadow: 'var(--shadow-soft)',
                           }}>
                             {TOOLTIPS[label]}
                           </div>
@@ -337,17 +346,17 @@ export default function ReportPage() {
               </div>
 
               {/* NOTES */}
-              <div style={glassCard}>
+              <div style={solidCard}>
                 <p style={sectionLabel}>ЗАМЕТКИ</p>
                 <textarea
                   placeholder="Как прошла неделя? Что чувствуешь?"
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   style={{
-                    width: '100%', minHeight: '100px', background: 'rgba(0,0,0,0.04)',
-                    border: 'none', borderRadius: '16px', padding: '14px 16px',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
-                    color: '#2d1f0e', outline: 'none', resize: 'none',
+                    width: '100%', minHeight: '100px', background: 'var(--bg-card-soft)',
+                    border: '1px solid var(--divider)', borderRadius: '16px', padding: '14px 16px',
+                    fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px',
+                    color: 'var(--text-primary)', outline: 'none', resize: 'none',
                     boxSizing: 'border-box', lineHeight: 1.65,
                   }}
                 />
@@ -357,10 +366,11 @@ export default function ReportPage() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
+                className="pressable"
                 style={{
                   width: '100%', padding: '14px', borderRadius: '999px',
-                  background: '#7a4a20', color: '#fff', border: 'none',
-                  fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+                  background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                  fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px',
                   cursor: loading ? 'not-allowed' : 'pointer', marginTop: '16px',
                   opacity: loading ? 0.7 : 1,
                 }}

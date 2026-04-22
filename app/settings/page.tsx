@@ -4,37 +4,36 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
+const card: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--divider)',
   borderRadius: '20px',
   padding: '22px',
   marginBottom: '12px',
+  boxShadow: 'var(--shadow-soft)',
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(255,255,255,0.6)',
-  border: '1px solid rgba(0,0,0,0.08)',
+  background: 'var(--bg-card-soft)',
+  border: '1px solid var(--divider)',
   borderRadius: '999px',
   padding: '12px 18px',
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '15px',
-  color: '#2d1f0e',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
 }
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
-  fontWeight: 300,
-  fontSize: '10px',
-  letterSpacing: '1.5px',
+  fontFamily: 'var(--font-text)',
+  fontWeight: 600,
+  fontSize: '11px',
+  letterSpacing: '0.4px',
   textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.35)',
+  color: 'var(--text-secondary)',
   display: 'block',
   marginBottom: '8px',
 }
@@ -42,10 +41,10 @@ const labelStyle: React.CSSProperties = {
 const btnPrimary: React.CSSProperties = {
   padding: '11px 24px',
   borderRadius: '999px',
-  background: '#7a4a20',
+  background: 'var(--accent-primary)',
   color: '#fff',
   border: 'none',
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 500,
   fontSize: '14px',
   cursor: 'pointer',
@@ -147,7 +146,7 @@ export default function SettingsPage() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+        <p style={{ fontFamily: 'var(--font-text)', color: 'var(--text-tertiary)', fontSize: '16px' }}>Загружаем...</p>
       </div>
     </div>
   )
@@ -162,46 +161,47 @@ export default function SettingsPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <button
               onClick={() => router.push('/client')}
+              className="pressable"
               style={{
-                background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
+                background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '999px',
+                color: 'var(--text-secondary)', fontFamily: 'var(--font-text)',
                 fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0,
               }}
             >
               ← назад
             </button>
-            <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>
+            <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '24px', margin: 0 }}>
               Настройки
             </h1>
           </div>
 
           {/* AVATAR */}
-          <div style={{ ...glass, textAlign: 'center' }}>
+          <div style={{ ...card, textAlign: 'center' }}>
             <div
               style={{
                 width: '80px', height: '80px', borderRadius: '50%',
                 margin: '0 auto 14px',
-                background: 'rgba(122,74,32,0.12)',
+                background: 'var(--accent-soft-bg)',
                 overflow: 'hidden',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid rgba(122,74,32,0.2)',
+                border: '2px solid rgba(139,30,63,0.2)',
               }}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '28px', color: '#7a4a20' }}>{initials}</span>
+                <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 300, fontSize: '28px', color: 'var(--accent-primary)' }}>{initials}</span>
               )}
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
             <button
               onClick={() => fileRef.current?.click()}
               disabled={avatarUploading}
+              className="pressable"
               style={{
                 padding: '8px 20px', borderRadius: '999px',
-                background: 'rgba(122,74,32,0.1)', border: '1px solid rgba(122,74,32,0.2)',
-                color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px',
+                background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.2)',
+                color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px',
                 cursor: 'pointer',
               }}
             >
@@ -210,7 +210,7 @@ export default function SettingsPage() {
           </div>
 
           {/* NAME */}
-          <div style={glass}>
+          <div style={card}>
             <span style={labelStyle}>Имя</span>
             <input
               type="text"
@@ -221,6 +221,7 @@ export default function SettingsPage() {
             <button
               onClick={saveName}
               disabled={nameSaving}
+              className="pressable"
               style={{ ...btnPrimary, opacity: nameSaving ? 0.6 : 1 }}
             >
               {nameSuccess ? '✓ Сохранено' : nameSaving ? 'Сохраняем...' : 'Сохранить'}
@@ -228,7 +229,7 @@ export default function SettingsPage() {
           </div>
 
           {/* PASSWORD */}
-          <div style={glass}>
+          <div style={card}>
             <span style={labelStyle}>Смена пароля</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
               <input
@@ -247,11 +248,12 @@ export default function SettingsPage() {
               />
             </div>
             {pwdError && (
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#8a2520', margin: '0 0 10px' }}>{pwdError}</p>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--error)', margin: '0 0 10px' }}>{pwdError}</p>
             )}
             <button
               onClick={savePassword}
               disabled={pwdSaving}
+              className="pressable"
               style={{ ...btnPrimary, opacity: pwdSaving ? 0.6 : 1 }}
             >
               {pwdSuccess ? '✓ Изменён' : pwdSaving ? 'Сохраняем...' : 'Изменить пароль'}
@@ -261,11 +263,12 @@ export default function SettingsPage() {
           {/* LOGOUT */}
           <button
             onClick={handleLogout}
+            className="pressable"
             style={{
               width: '100%', padding: '14px', borderRadius: '999px',
-              background: 'rgba(192,57,43,0.1)', color: '#8a2520',
-              border: '1px solid rgba(192,57,43,0.15)',
-              fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '15px',
+              background: 'var(--error-bg)', color: 'var(--error)',
+              border: '1px solid rgba(178,58,72,0.15)',
+              fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '15px',
               cursor: 'pointer', marginTop: '8px',
             }}
           >

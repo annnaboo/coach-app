@@ -79,13 +79,13 @@ export default function LoginPage() {
   }
 
   const inputStyle: React.CSSProperties = {
-    borderRadius: '999px',
-    background: 'rgba(0,0,0,0.05)',
-    border: '1px solid rgba(0,0,0,0.08)',
-    fontFamily: 'Chillax, sans-serif',
-    fontWeight: 300,
+    borderRadius: 'var(--radius-sm)',
+    background: 'var(--bg-card)',
+    border: '1px solid var(--divider)',
+    fontFamily: 'var(--font-text)',
+    fontWeight: 400,
     fontSize: '16px',
-    color: '#2d1f0e',
+    color: 'var(--text-primary)',
     padding: '14px 20px',
     outline: 'none',
     width: '100%',
@@ -101,26 +101,27 @@ export default function LoginPage() {
         <div style={{
           width: '100%',
           maxWidth: '400px',
-          background: 'rgba(255,255,255,0.6)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(0,0,0,0.06)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--divider)',
           borderRadius: '24px',
           padding: '40px 32px',
+          boxShadow: 'var(--shadow-modal)',
         }}>
           <h1 style={{
-            fontFamily: 'Epilogue, sans-serif',
-            fontWeight: 400,
-            fontSize: '38px',
+            fontFamily: "'Playfair Display', 'Bodoni 72', 'Didot', serif",
+            fontWeight: 600,
+            fontStyle: 'italic',
+            fontSize: '48px',
             margin: '0 0 8px 0',
-            lineHeight: 1.1,
+            lineHeight: 1.05,
+            letterSpacing: '-1px',
           }}>
-            <span style={{ color: '#2d1f0e' }}>Log</span><span style={{ color: '#7a4a20' }}>In.</span>
+            <span style={{ color: 'var(--text-primary)' }}>Log</span><span style={{ color: 'var(--accent-primary)' }}>In.</span>
           </h1>
           <p style={{
-            fontFamily: 'Chillax, sans-serif',
+            fontFamily: 'var(--font-text)',
             fontWeight: 300,
-            color: 'rgba(45,31,14,0.55)',
+            color: 'var(--text-secondary)',
             fontSize: '20px',
             margin: '0 0 32px 0',
           }}>
@@ -128,7 +129,7 @@ export default function LoginPage() {
           </p>
 
           {magicSent ? (
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '15px', color: '#1a7a3c', textAlign: 'center', margin: '8px 0 0' }}>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '15px', color: 'var(--success)', textAlign: 'center', margin: '8px 0 0' }}>
               Ссылка отправлена на {email} — проверь почту
             </p>
           ) : (
@@ -137,20 +138,20 @@ export default function LoginPage() {
             <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="login-input" style={inputStyle} />
 
             {error && (
-              <p style={{ color: '#ff6b6b', fontSize: '14px', margin: 0, paddingLeft: '16px', fontFamily: 'Chillax, sans-serif', fontWeight: 300 }}>
+              <p style={{ color: 'var(--error)', fontSize: '14px', margin: 0, paddingLeft: '16px', fontFamily: 'var(--font-text)', fontWeight: 300 }}>
                 {error}
               </p>
             )}
 
-            <button type="submit" disabled={loading} className="login-btn" style={{
+            <button type="submit" disabled={loading} className="login-btn pressable" style={{
               position: 'relative',
               overflow: 'hidden',
               width: '100%',
               borderRadius: '999px',
-              background: '#7a4a20',
+              background: 'var(--accent-primary)',
               border: 'none',
-              color: '#ffffff',
-              fontFamily: 'Chillax, sans-serif',
+              color: 'var(--text-inverse)',
+              fontFamily: 'var(--font-text)',
               fontWeight: 500,
               fontSize: '17px',
               padding: '14px 20px',
@@ -168,18 +169,18 @@ export default function LoginPage() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '4px 0' }}>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(45,31,14,0.1)' }} />
-              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.3)' }}>или</span>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(45,31,14,0.1)' }} />
+              <div style={{ flex: 1, height: '1px', background: 'var(--divider)' }} />
+              <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)' }}>или</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--divider)' }} />
             </div>
 
-            <button type="button" onClick={handleMagicLink} disabled={magicLoading} style={{
+            <button type="button" onClick={handleMagicLink} disabled={magicLoading} className="pressable" style={{
               width: '100%',
               borderRadius: '999px',
               background: 'transparent',
-              border: '1px solid rgba(122,74,32,0.3)',
-              color: '#7a4a20',
-              fontFamily: 'Chillax, sans-serif',
+              border: '1px solid var(--divider)',
+              color: 'var(--accent-primary)',
+              fontFamily: 'var(--font-text)',
               fontWeight: 300,
               fontSize: '15px',
               padding: '13px 20px',

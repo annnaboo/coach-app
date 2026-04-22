@@ -4,14 +4,13 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
+const card: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--divider)',
   borderRadius: '20px',
   padding: '22px',
   marginBottom: '12px',
+  boxShadow: 'var(--shadow-soft)',
 }
 
 export default function WelcomePage() {
@@ -71,31 +70,31 @@ export default function WelcomePage() {
               <div key={s} style={{
                 height: '4px', borderRadius: '999px', transition: 'all 0.3s ease',
                 width: step === s ? '28px' : '14px',
-                background: step >= s ? '#7a4a20' : 'rgba(122,74,32,0.2)',
+                background: step >= s ? 'var(--accent-primary)' : 'var(--accent-soft-bg)',
               }} />
             ))}
           </div>
 
           {/* ── STEP 1: Приветствие ── */}
           {step === 1 && (
-            <div style={{ animation: 'fadeIn 0.4s ease' }}>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '42px', color: '#2d1f0e', margin: '0 0 6px', lineHeight: 1.1, letterSpacing: '-1px' }}>
+            <div style={{ animation: 'fadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) both' }}>
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', fontSize: '42px', color: 'var(--text-primary)', margin: '0 0 6px', lineHeight: 1.1, letterSpacing: '-1px' }}>
                 Привет,{' '}
-                <span style={{ color: '#7a4a20' }}>{name.split(' ')[0] || 'там'}</span>
-                <span style={{ color: '#7a4a20' }}>.</span>
+                <span style={{ color: 'var(--accent-primary)' }}>{name.split(' ')[0] || 'там'}</span>
+                <span style={{ color: 'var(--accent-primary)' }}>.</span>
               </h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '18px', color: 'rgba(45,31,14,0.55)', margin: '0 0 32px', lineHeight: 1.45 }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '18px', color: 'var(--text-secondary)', margin: '0 0 32px', lineHeight: 1.45 }}>
                 Твой персональный тренировочный дневник готов
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
                 {FEATURES.map(f => (
-                  <div key={f.title} style={glass}>
+                  <div key={f.title} style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                       <span style={{ fontSize: '28px', flexShrink: 0 }}>{f.icon}</span>
                       <div>
-                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '17px', color: '#2d1f0e', margin: '0 0 3px' }}>{f.title}</p>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>{f.desc}</p>
+                        <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '17px', color: 'var(--text-primary)', margin: '0 0 3px' }}>{f.title}</p>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{f.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -104,10 +103,11 @@ export default function WelcomePage() {
 
               <button
                 onClick={() => setStep(2)}
+                className="pressable"
                 style={{
                   width: '100%', padding: '16px', borderRadius: '999px',
-                  background: '#7a4a20', color: '#fff', border: 'none',
-                  fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+                  background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                  fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px',
                   cursor: 'pointer', letterSpacing: '0.3px',
                 }}
               >
@@ -118,24 +118,24 @@ export default function WelcomePage() {
 
           {/* ── STEP 2: Как это работает ── */}
           {step === 2 && (
-            <div style={{ animation: 'fadeIn 0.4s ease' }}>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '32px', color: '#2d1f0e', margin: '0 0 28px', letterSpacing: '-0.5px' }}>
+            <div style={{ animation: 'fadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) both' }}>
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '32px', color: 'var(--text-primary)', margin: '0 0 28px', letterSpacing: '-0.5px' }}>
                 Как это работает
               </h1>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '36px' }}>
                 {STEPS_HOW.map(s => (
-                  <div key={s.n} style={{ ...glass, padding: '18px 20px' }}>
+                  <div key={s.n} style={{ ...card, padding: '18px 20px', marginBottom: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div style={{
                         width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
-                        background: 'rgba(122,74,32,0.1)',
+                        background: 'var(--accent-soft-bg)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#7a4a20',
+                        fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '16px', color: 'var(--accent-primary)',
                       }}>
                         {s.n}
                       </div>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '15px', color: '#2d1f0e', margin: 0, lineHeight: 1.4 }}>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '15px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
                         {s.text}
                       </p>
                     </div>
@@ -146,20 +146,22 @@ export default function WelcomePage() {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   onClick={() => setStep(1)}
+                  className="pressable"
                   style={{
                     padding: '16px 24px', borderRadius: '999px',
-                    background: 'rgba(0,0,0,0.06)', color: 'rgba(45,31,14,0.5)', border: 'none',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '15px', cursor: 'pointer',
+                    background: 'var(--bg-card-soft)', color: 'var(--text-secondary)', border: '1px solid var(--divider)',
+                    fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '15px', cursor: 'pointer',
                   }}
                 >
                   ←
                 </button>
                 <button
                   onClick={() => setStep(3)}
+                  className="pressable"
                   style={{
                     flex: 1, padding: '16px', borderRadius: '999px',
-                    background: '#7a4a20', color: '#fff', border: 'none',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px', cursor: 'pointer',
+                    background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                    fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px', cursor: 'pointer',
                   }}
                 >
                   Понятно →
@@ -170,32 +172,31 @@ export default function WelcomePage() {
 
           {/* ── STEP 3: Готово ── */}
           {step === 3 && (
-            <div style={{ animation: 'fadeIn 0.4s ease', textAlign: 'center', paddingTop: '40px' }}>
+            <div style={{ animation: 'fadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) both', textAlign: 'center', paddingTop: '40px' }}>
               {/* Animated checkmark */}
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
                 <div style={{
                   width: '96px', height: '96px', borderRadius: '50%',
-                  background: 'rgba(26,122,60,0.1)', border: '2px solid rgba(26,122,60,0.25)',
+                  background: 'var(--success-bg)', border: '2px solid rgba(74,143,110,0.25)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  animation: 'popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  animation: 'fadeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 }}>
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
                     <path
                       d="M10 24L20 34L38 14"
-                      stroke="#1a7a3c"
+                      stroke="var(--success)"
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      style={{ animation: 'drawCheck 0.5s ease 0.2s both' }}
                     />
                   </svg>
                 </div>
               </div>
 
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '32px', color: '#2d1f0e', margin: '0 0 10px' }}>
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '32px', color: 'var(--text-primary)', margin: '0 0 10px' }}>
                 Всё готово!
               </h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '16px', color: 'rgba(45,31,14,0.5)', margin: '0 0 48px' }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '16px', color: 'var(--text-secondary)', margin: '0 0 48px' }}>
                 Твой тренер уже ждёт тебя
               </p>
 
@@ -203,10 +204,11 @@ export default function WelcomePage() {
                 <button
                   onClick={finish}
                   disabled={finishing}
+                  className="pressable"
                   style={{
                     padding: '16px', borderRadius: '999px',
-                    background: '#7a4a20', color: '#fff', border: 'none',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+                    background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                    fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px',
                     cursor: finishing ? 'not-allowed' : 'pointer',
                     opacity: finishing ? 0.7 : 1,
                   }}
@@ -219,21 +221,6 @@ export default function WelcomePage() {
 
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes popIn {
-          from { transform: scale(0.5); opacity: 0; }
-          to   { transform: scale(1); opacity: 1; }
-        }
-        @keyframes drawCheck {
-          from { stroke-dasharray: 60; stroke-dashoffset: 60; }
-          to   { stroke-dasharray: 60; stroke-dashoffset: 0; }
-        }
-      `}</style>
     </div>
   )
 }

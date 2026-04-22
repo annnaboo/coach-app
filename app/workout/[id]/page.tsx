@@ -10,21 +10,17 @@ function PrevGoalHeader({ prev }: { prev: Record<string, string> }) {
   const maxW = Math.max(...weights.map(Number))
   const goal = (maxW + 2.5).toFixed(1).replace(/\.0$/, '')
   return (
-    <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px', display: 'flex', gap: '24px' }}>
+    <div style={{ background: 'var(--accent-soft-bg)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px', display: 'flex', gap: '24px' }}>
       <div>
-        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'rgba(45,31,14,0.3)', margin: '0 0 3px' }}>Было</p>
-        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: 'rgba(45,31,14,0.55)', margin: 0 }}>{weights.join(' / ')} кг</p>
+        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'var(--text-tertiary)', margin: '0 0 3px' }}>Было</p>
+        <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>{weights.join(' / ')} кг</p>
       </div>
       <div>
-        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'rgba(45,31,14,0.3)', margin: '0 0 3px' }}>Цель</p>
-        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 500, fontSize: '14px', color: '#7a4a20', margin: 0 }}>{goal} кг</p>
+        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'var(--text-tertiary)', margin: '0 0 3px' }}>Цель</p>
+        <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 500, fontSize: '14px', color: 'var(--accent-primary)', margin: 0 }}>{goal} кг</p>
       </div>
     </div>
   )
-}
-
-const FIELD_LABELS: Record<string, string> = {
-  w1: 'П1 кг', w2: 'П2 кг', w3: 'П3 кг', reps: 'Повторы',
 }
 
 export default function DynamicWorkoutPage() {
@@ -64,7 +60,6 @@ export default function DynamicWorkoutPage() {
       } catch {}
       setExercises(exs)
 
-      // Build prev logs for placeholders/PrevGoalHeader — fields start empty (no accidental re-save)
       const prev: Record<string, Record<string, string>> = {}
       ;(logsRes.data || []).forEach((row: any) => {
         const key = row.exercise_id
@@ -156,7 +151,7 @@ export default function DynamicWorkoutPage() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+        <p style={{ fontFamily: 'var(--font-text)', color: 'var(--text-tertiary)', fontSize: '16px' }}>Загружаем...</p>
       </div>
     </div>
   )
@@ -167,7 +162,7 @@ export default function DynamicWorkoutPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, background: '#2d1f0e', color: '#fff', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', borderRadius: '999px', padding: '10px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.18)', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, background: 'var(--text-primary)', color: '#fff', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', borderRadius: '999px', padding: '10px 22px', boxShadow: 'var(--shadow-modal)', pointerEvents: 'none' }}>
           {toast}
         </div>
       )}
@@ -179,25 +174,26 @@ export default function DynamicWorkoutPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}
+              className="pressable"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '999px', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}
             >
               ← назад
             </button>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '22px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '22px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {workout?.title || 'Тренировка'}
               </h1>
               {workout?.subtitle && (
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '12px', margin: 0 }}>{workout.subtitle}</p>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--text-tertiary)', fontSize: '12px', margin: 0 }}>{workout.subtitle}</p>
               )}
             </div>
           </div>
 
           {/* EMPTY STATE */}
           {exercises.length === 0 && (
-            <div style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '20px', padding: '48px 22px', textAlign: 'center' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: '#2d1f0e', margin: '0 0 8px' }}>Упражнения скоро появятся</p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>Тренер ещё добавляет упражнения</p>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '20px', padding: '48px 22px', textAlign: 'center', boxShadow: 'var(--shadow-soft)' }}>
+              <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '18px', color: 'var(--text-primary)', margin: '0 0 8px' }}>Упражнения скоро появятся</p>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>Тренер ещё добавляет упражнения</p>
             </div>
           )}
 
@@ -212,31 +208,32 @@ export default function DynamicWorkoutPage() {
             const p = prevLogs[key] || {}
 
             return (
-              <div key={key} style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '20px', padding: '18px 20px', marginBottom: '10px' }}>
+              <div key={key} className="card-enter" style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '20px', padding: '18px 20px', marginBottom: '10px', boxShadow: 'var(--shadow-soft)' }}>
 
                 {/* Header row */}
                 <div
                   onClick={() => setExpanded(prev => ({ ...prev, [key]: !isExpanded }))}
+                  className="pressable"
                   style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', marginBottom: isExpanded ? '16px' : 0 }}
                 >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSaved ? 'rgba(26,122,60,0.12)' : 'rgba(122,74,32,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: isSaved ? '#1a7a3c' : '#7a4a20' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSaved ? 'var(--success-bg)' : 'var(--accent-soft-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '13px', color: isSaved ? 'var(--success)' : 'var(--accent-primary)' }}>
                       {isSaved ? '✓' : String(idx + 1).padStart(2, '0')}
                     </span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '15px', color: '#2d1f0e', margin: 0 }}>{ex.name}</p>
+                    <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '15px', color: 'var(--text-primary)', margin: 0 }}>{ex.name}</p>
                     {ex.muscleGroup && (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: 0 }}>{ex.muscleGroup}</p>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)', margin: 0 }}>{ex.muscleGroup}</p>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     {(ex.sets || ex.reps) && (
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.35)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 9px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)', background: 'var(--bg-card-soft)', borderRadius: '999px', padding: '3px 9px' }}>
                         {ex.sets}×{ex.reps || '?'}
                       </span>
                     )}
-                    <span style={{ color: 'rgba(45,31,14,0.25)', fontSize: '12px' }}>{isExpanded ? '▴' : '▾'}</span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{isExpanded ? '▴' : '▾'}</span>
                   </div>
                 </div>
 
@@ -248,50 +245,50 @@ export default function DynamicWorkoutPage() {
                       {/* Prev / Goal header */}
                       <PrevGoalHeader prev={p} />
 
-                      {/* Why / description */}
+                      {/* Description */}
                       {ex.description && (
-                        <div style={{ background: 'rgba(122,74,32,0.05)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
-                          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.55)', margin: 0, lineHeight: 1.6 }}>{ex.description}</p>
+                        <div style={{ background: 'var(--bg-card-soft)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
+                          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>{ex.description}</p>
                         </div>
                       )}
 
                       {/* YouTube link */}
                       {ex.youtube && (
-                        <a href={ex.youtube} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: '#7a4a20', textDecoration: 'none', marginBottom: '14px' }}>
+                        <a href={ex.youtube} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--accent-primary)', textDecoration: 'none', marginBottom: '14px' }}>
                           ▶ Смотреть видео
                         </a>
                       )}
 
                       {/* Progress label */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)', margin: 0 }}>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: 0 }}>
                           Прогресс занятия
                         </p>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-                          <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', color: '#2d1f0e' }}>{doneSets}</span>
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.3)' }}>/{setWeightFields.length}</span>
+                          <span className="number-mount" style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '22px', color: 'var(--text-primary)' }}>{doneSets}</span>
+                          <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)' }}>/{setWeightFields.length}</span>
                         </div>
                       </div>
 
                       {/* Table */}
                       <div style={{ marginBottom: '4px' }}>
                         {/* Column headers */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid rgba(45,31,14,0.06)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid var(--divider)' }}>
                           {['СЕТ', 'ВЕС (кг)', 'ПОВТОРЫ', ''].map((h, i) => (
-                            <p key={i} style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.25)', margin: 0, textAlign: 'center' }}>{h}</p>
+                            <p key={i} style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: 0, textAlign: 'center' }}>{h}</p>
                           ))}
                         </div>
 
                         {/* Set rows */}
                         {setWeightFields.map((wField, setIdx) => {
                           const isDone = !!f[wField]
-                          const stepBtn: React.CSSProperties = { background: 'none', border: 'none', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontSize: '18px', fontWeight: 300, cursor: 'pointer', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }
+                          const stepBtn: React.CSSProperties = { background: 'none', border: 'none', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontSize: '18px', fontWeight: 300, cursor: 'pointer', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }
                           return (
                             <Fragment key={wField}>
                               <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 1fr 26px', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                                <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '16px', color: '#2d1f0e', margin: 0, textAlign: 'center' }}>{setIdx + 1}</p>
+                                <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '16px', color: 'var(--text-primary)', margin: 0, textAlign: 'center' }}>{setIdx + 1}</p>
                                 {/* Weight cell with ±2.5 steppers */}
-                                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '8px', overflow: 'hidden' }}>
                                   <button type="button" onClick={() => stepWeight(key, wField, -2.5)} style={stepBtn}>−</button>
                                   <input
                                     type="number"
@@ -300,7 +297,7 @@ export default function DynamicWorkoutPage() {
                                     placeholder={p[wField] || '—'}
                                     autoFocus={setIdx === 0}
                                     className="no-spin"
-                                    style={{ background: 'transparent', border: 'none', flex: 1, minWidth: 0, textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', padding: '8px 0' }}
+                                    style={{ background: 'transparent', border: 'none', flex: 1, minWidth: 0, textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', padding: '8px 0' }}
                                   />
                                   <button type="button" onClick={() => stepWeight(key, wField, +2.5)} style={stepBtn}>+</button>
                                 </div>
@@ -311,14 +308,25 @@ export default function DynamicWorkoutPage() {
                                     onChange={e => setField(key, 'reps', e.target.value)}
                                     placeholder={p.reps || '—'}
                                     className="no-spin"
-                                    style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
+                                    style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
                                   />
                                 ) : (
-                                  <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'Chillax, sans-serif', fontSize: '15px', color: 'rgba(45,31,14,0.4)' }}>
+                                  <div style={{ background: 'var(--bg-card-soft)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-tertiary)' }}>
                                     {f.reps || p.reps || '—'}
                                   </div>
                                 )}
-                                <p style={{ margin: 0, textAlign: 'center', fontSize: '14px', lineHeight: 1 }}>{isDone ? '✅' : '⭕'}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {isDone ? (
+                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                      <circle cx="11" cy="11" r="11" fill="var(--success)" />
+                                      <path d="M6.5 11l3 3 5.5-5.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                  ) : (
+                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                      <circle cx="11" cy="11" r="10" stroke="var(--divider)" strokeWidth="1.5" fill="none" />
+                                    </svg>
+                                  )}
+                                </div>
                               </div>
                               {/* Copy-to-all button after set 1 */}
                               {setIdx === 0 && setWeightFields.length > 1 && (
@@ -326,7 +334,7 @@ export default function DynamicWorkoutPage() {
                                   <button
                                     type="button"
                                     onClick={() => copyFirst(key, setWeightFields)}
-                                    style={{ background: 'none', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)', cursor: 'pointer', padding: '0', letterSpacing: '0.5px', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                                    style={{ background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '0', letterSpacing: '0.5px', textDecoration: 'underline', textUnderlineOffset: '2px' }}
                                   >
                                     ↓ во все подходы
                                   </button>
@@ -340,9 +348,9 @@ export default function DynamicWorkoutPage() {
                       {/* Add set button */}
                       <button style={{
                         width: '100%', padding: '11px', borderRadius: '999px',
-                        background: 'transparent', border: '1px solid rgba(45,31,14,0.15)',
-                        fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px',
-                        color: 'rgba(45,31,14,0.4)', cursor: 'pointer', letterSpacing: '1px', marginTop: '12px',
+                        background: 'transparent', border: '1px solid var(--divider)',
+                        fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px',
+                        color: 'var(--text-tertiary)', cursor: 'pointer', letterSpacing: '1px', marginTop: '12px',
                       }}>
                         + ДОБАВИТЬ ПОДХОД
                       </button>
@@ -351,19 +359,20 @@ export default function DynamicWorkoutPage() {
                       <button
                         onClick={() => saveExercise(ex, idx)}
                         disabled={isSaving}
+                        className="pressable"
                         style={{
-                          width: '100%', padding: '10px', borderRadius: '999px', border: isSaved ? '1px solid rgba(122,74,32,0.3)' : 'none',
-                          background: isSaved ? 'rgba(122,74,32,0.15)' : '#7a4a20',
-                          color: isSaved ? '#7a4a20' : '#fff',
-                          fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px',
-                          cursor: isSaving ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                          width: '100%', padding: '10px', borderRadius: '999px',
+                          border: isSaved ? '1px solid rgba(139,30,63,0.3)' : 'none',
+                          background: isSaved ? 'var(--accent-soft-bg)' : 'var(--accent-primary)',
+                          color: isSaved ? 'var(--accent-primary)' : '#fff',
+                          fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '13px',
+                          cursor: isSaving ? 'not-allowed' : 'pointer',
+                          transition: 'all var(--duration-fast) var(--easing-standard)',
                           marginTop: '10px',
                         }}
                       >
                         {isSaving ? 'Сохраняем...' : isSaved ? '✓ Сохранено' : 'Сохранить'}
                       </button>
-
-
                     </>
                   )
                 })()}
@@ -375,7 +384,8 @@ export default function DynamicWorkoutPage() {
           {exercises.length > 0 && (
             <button
               onClick={() => router.push('/client')}
-              style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}
+              className="pressable"
+              style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.2)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}
             >
               Завершить тренировку
             </button>
