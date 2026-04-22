@@ -171,6 +171,15 @@ body {
   text-transform: uppercase;
 }
 
+.type-display-italic {
+  font-family: 'Playfair Display', 'Bodoni 72', 'Didot', serif;
+  font-style: italic;
+  font-size: 56px;
+  line-height: 60px;
+  font-weight: 600;
+  letter-spacing: -1.0px;
+}
+
 .type-number {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
@@ -455,6 +464,15 @@ body {
 }
 
 /* ─── Form helpers ──────────────────────────────────────────────────────────── */
+
+/* Kill browser autofill yellow background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--bg-card) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 /* Prevent iOS auto-zoom on input focus */
 input, textarea, select {

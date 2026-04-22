@@ -8,7 +8,7 @@ import { LABEL } from '@/lib/design/tokens'
 import { EXERCISE_NAMES } from '@/lib/exercises'
 
 const card: React.CSSProperties = {
-  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  borderBottom: '1px solid var(--divider)',
   padding: '28px 0',
 }
 
@@ -43,14 +43,12 @@ function getMaxWeight(log: Log): number {
 }
 
 function buildExerciseSeries(logs: Log[]): ExerciseSeries[] {
-  // Group by exercise
   const byExercise: Record<string, { date: string; max: number }[]> = {}
   logs.forEach(log => {
     const max = getMaxWeight(log)
     if (max === 0) return
     const date = log.saved_at.slice(0, 10)
     if (!byExercise[log.exercise_id]) byExercise[log.exercise_id] = []
-    // One entry per date (keep max of that day)
     const existing = byExercise[log.exercise_id].find(e => e.date === date)
     if (existing) {
       existing.max = Math.max(existing.max, max)
@@ -77,7 +75,7 @@ function buildExerciseSeries(logs: Log[]): ExerciseSeries[] {
         trend,
       }
     })
-    .filter(e => e.sessions.length >= 2) // only show exercises with history
+    .filter(e => e.sessions.length >= 2)
     .sort((a, b) => b.pr - a.pr)
 }
 
@@ -115,7 +113,6 @@ export default function HistoryPage() {
     })
   }, [])
 
-  // ── TAB 1: group by date ──────────────────────────────────────────────────
   const byDate: Record<string, Log[]> = {}
   logs.forEach(log => {
     const d = log.saved_at.slice(0, 10)
@@ -129,7 +126,6 @@ export default function HistoryPage() {
     return vals.length === 0 ? '—' : vals.join(' / ') + ' кг'
   }
 
-  // ── TAB 2: exercise series ────────────────────────────────────────────────
   const series = buildExerciseSeries(logs)
 
   if (loading) return (
@@ -138,9 +134,9 @@ export default function HistoryPage() {
       <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ borderBottom: '1px solid rgba(45,31,14,0.08)', padding: '28px 0' }}>
-              <div style={{ height: '12px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', width: '25%', marginBottom: '16px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <div style={{ height: '10px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', width: '65%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div key={i} style={{ borderBottom: '1px solid var(--divider)', padding: '28px 0' }}>
+              <div className="skeleton" style={{ height: '12px', width: '25%', marginBottom: '16px' }} />
+              <div className="skeleton" style={{ height: '10px', width: '65%' }} />
             </div>
           ))}
         </div>
@@ -160,16 +156,17 @@ export default function HistoryPage() {
           <div className="card-enter" style={{ ...card }}>
             <button
               onClick={() => router.push('/client')}
-              style={{ background: 'none', border: 'none', color: 'rgba(45,31,14,0.35)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
+              className="pressable"
+              style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: '12px 16px 20px 0', cursor: 'pointer', letterSpacing: '1px', display: 'flex', alignItems: 'center', minHeight: '44px' }}
             >
               ← Назад
             </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
-                <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '52px', color: '#2d1f0e', margin: '0 0 4px', letterSpacing: '-2px', lineHeight: 0.95 }}>
+                <h1 style={{ fontFamily: "'Playfair Display', 'Bodoni 72', 'Didot', serif", fontWeight: 600, fontStyle: 'italic', fontSize: '52px', color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-1px', lineHeight: 0.95 }}>
                   {activeTab === 'history' ? 'История' : 'Прогресс'}
                 </h1>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', margin: 0, letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   {activeTab === 'history'
                     ? `${sortedDates.length} ${pluralSessions(sortedDates.length)}`
                     : `${series.length} упражнений`}
@@ -179,26 +176,27 @@ export default function HistoryPage() {
           </div>
 
           {/* TABS */}
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(45,31,14,0.08)', marginBottom: '0' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--divider)', marginBottom: '0' }}>
             {(['history', 'progress'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
+                className="pressable"
                 style={{
                   flex: 1,
                   padding: '16px 0',
                   background: 'none',
                   border: 'none',
-                  borderBottom: activeTab === tab ? '2px solid #7a4a20' : '2px solid transparent',
+                  borderBottom: activeTab === tab ? '2px solid var(--accent-primary)' : '2px solid transparent',
                   marginBottom: '-1px',
-                  fontFamily: 'Chillax, sans-serif',
+                  fontFamily: 'var(--font-text)',
                   fontWeight: 300,
                   fontSize: '11px',
                   letterSpacing: '2.5px',
                   textTransform: 'uppercase',
-                  color: activeTab === tab ? '#7a4a20' : 'rgba(45,31,14,0.3)',
+                  color: activeTab === tab ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   cursor: 'pointer',
-                  transition: 'color 0.15s',
+                  transition: 'color var(--duration-instant) var(--easing-standard)',
                 }}
               >
                 {tab === 'history' ? 'Тренировки' : 'Прогресс'}
@@ -211,8 +209,8 @@ export default function HistoryPage() {
             <>
               {sortedDates.length === 0 && (
                 <div style={{ ...card, textAlign: 'center', padding: '48px 0' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'rgba(45,31,14,0.18)', margin: '0 0 8px' }}>Пока пусто</p>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.28)', margin: 0 }}>Заполни первую тренировку — здесь появится история</p>
+                  <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'var(--text-tertiary)', margin: '0 0 8px' }}>Пока пусто</p>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>Заполни первую тренировку — здесь появится история</p>
                 </div>
               )}
               {sortedDates.map(dateStr => {
@@ -225,21 +223,21 @@ export default function HistoryPage() {
                 return (
                   <div key={dateStr} style={{ ...card }}>
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                      <div style={{ flexShrink: 0, width: '52px', textAlign: 'center', paddingRight: '20px', borderRight: '1px solid rgba(45,31,14,0.07)' }}>
-                        <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '38px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1px' }}>{dayNum}</p>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.5)', margin: '3px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{monthStr}</p>
+                      <div style={{ flexShrink: 0, width: '52px', textAlign: 'center', paddingRight: '20px', borderRight: '1px solid var(--divider)' }}>
+                        <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', fontSize: '38px', color: 'var(--text-primary)', margin: 0, lineHeight: 1, letterSpacing: '-1px' }}>{dayNum}</p>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-secondary)', margin: '3px 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{monthStr}</p>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         {workoutTitle
-                          ? <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '15px', color: '#7a4a20', margin: '0 0 12px', letterSpacing: '-0.2px' }}>{workoutTitle}</p>
-                          : <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.25)', margin: '0 0 10px', letterSpacing: '2px', textTransform: 'uppercase' }}>{weekday}</p>
+                          ? <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 500, fontSize: '15px', color: 'var(--text-primary)', margin: '0 0 12px', letterSpacing: '-0.2px' }}>{workoutTitle}</p>
+                          : <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: '0 0 10px', letterSpacing: '2px', textTransform: 'uppercase' }}>{weekday}</p>
                         }
                         {dayLogs.map((log, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: i < dayLogs.length - 1 ? '10px' : 0, borderBottom: i < dayLogs.length - 1 ? '1px solid rgba(45,31,14,0.04)' : 'none', marginBottom: i < dayLogs.length - 1 ? '10px' : 0 }}>
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.55)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: i < dayLogs.length - 1 ? '10px' : 0, borderBottom: i < dayLogs.length - 1 ? '1px solid var(--divider)' : 'none', marginBottom: i < dayLogs.length - 1 ? '10px' : 0 }}>
+                            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {EXERCISE_NAMES[log.exercise_id] || log.exercise_id}
                             </span>
-                            <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '14px', color: '#7a4a20', marginLeft: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '14px', color: 'var(--accent-primary)', marginLeft: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                               {formatWeights(log)}
                             </span>
                           </div>
@@ -257,43 +255,42 @@ export default function HistoryPage() {
             <>
               {series.length === 0 && (
                 <div style={{ ...card, textAlign: 'center', padding: '48px 0' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'rgba(45,31,14,0.18)', margin: '0 0 8px' }}>Ещё нет данных</p>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', color: 'rgba(45,31,14,0.28)', margin: 0 }}>Сделай минимум 2 тренировки — и здесь появятся графики</p>
+                  <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', fontSize: '22px', color: 'var(--text-tertiary)', margin: '0 0 8px' }}>Ещё нет данных</p>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>Сделай минимум 2 тренировки — и здесь появятся графики</p>
                 </div>
               )}
               {series.map(ex => {
                 const maxVal = Math.max(...ex.sessions.map(s => s.max))
                 const minVal = Math.min(...ex.sessions.map(s => s.max))
-                // Show last 8 sessions as bar chart
                 const visible = ex.sessions.slice(-8)
                 const firstWeight = ex.sessions[0].max
                 const lastWeight = ex.sessions[ex.sessions.length - 1].max
                 const delta = +(lastWeight - firstWeight).toFixed(1)
-                const trendColor = ex.trend === 'up' ? '#1a7a3c' : ex.trend === 'down' ? '#8a2520' : 'rgba(45,31,14,0.3)'
+                const trendColor = ex.trend === 'up' ? 'var(--success)' : ex.trend === 'down' ? 'var(--error)' : 'var(--text-tertiary)'
                 const trendLabel = ex.trend === 'up' ? `+${delta} кг` : ex.trend === 'down' ? `${delta} кг` : 'стабильно'
 
                 return (
                   <div key={ex.id} style={{ ...card }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                       <div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.5)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-secondary)', margin: '0 0 6px', letterSpacing: '2px', textTransform: 'uppercase' }}>
                           {ex.name}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                          <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '40px', color: '#2d1f0e', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
+                          <p className="number-mount" style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '40px', color: 'var(--text-primary)', margin: 0, lineHeight: 1, letterSpacing: '-1.5px' }}>
                             {ex.pr}
                           </p>
-                          <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.4)' }}>кг</span>
+                          <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)' }}>кг</span>
                         </div>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.25)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: '4px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>
                           Личный рекорд
                         </p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', color: trendColor, letterSpacing: '-0.5px' }}>
+                        <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '18px', color: trendColor, letterSpacing: '-0.5px' }}>
                           {trendLabel}
                         </span>
-                        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.25)', margin: '3px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: '3px 0 0', letterSpacing: '2px', textTransform: 'uppercase' }}>
                           С первой тренировки
                         </p>
                       </div>
@@ -311,7 +308,7 @@ export default function HistoryPage() {
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
                           >
                             {isPR && (
-                              <span style={{ fontFamily: 'Chillax, sans-serif', fontSize: '8px', color: '#7a4a20', letterSpacing: '0px' }}>★</span>
+                              <span style={{ fontFamily: 'var(--font-text)', fontSize: '8px', color: 'var(--accent-primary)', letterSpacing: '0px' }}>★</span>
                             )}
                             {!isPR && <span style={{ fontSize: '8px', opacity: 0 }}>·</span>}
                             <div
@@ -320,12 +317,12 @@ export default function HistoryPage() {
                                 height: `${heightPct}%`,
                                 minHeight: '4px',
                                 background: isLast
-                                  ? '#7a4a20'
+                                  ? 'var(--accent-primary)'
                                   : isPR
-                                    ? 'rgba(122,74,32,0.5)'
-                                    : 'rgba(45,31,14,0.12)',
+                                    ? 'var(--accent-soft-bg)'
+                                    : 'var(--divider)',
                                 borderRadius: '2px 2px 0 0',
-                                transition: 'height 0.4s ease',
+                                transition: 'height var(--duration-slow) var(--easing-standard)',
                               }}
                             />
                           </div>
@@ -335,10 +332,10 @@ export default function HistoryPage() {
 
                     {/* Date range */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.25)', letterSpacing: '1px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>
                         {new Date(ex.sessions[0].date + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                       </span>
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.4)', letterSpacing: '1px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '1px' }}>
                         {new Date(ex.sessions[ex.sessions.length - 1].date + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                       </span>
                     </div>
