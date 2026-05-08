@@ -45,6 +45,7 @@ type WorkoutItem = { id: string; title: string; subtitle: string | null }
 export default function NewProgramPage() {
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState('') // #46 — added missing end_date field
   const [selectedClients, setSelectedClients] = useState<string[]>([])
   const [clients, setClients] = useState<ClientProfile[]>([])
   const [allWorkouts, setAllWorkouts] = useState<WorkoutItem[]>([])
@@ -115,12 +116,13 @@ export default function NewProgramPage() {
       assigned_to: selectedClients,
       workout_ids: orderedWorkouts.map(w => w.id),
       start_date: startDate,
+      end_date: endDate || null, // #46 — save end_date
       created_by: authData.user.id,
       is_active: true,
     })
 
     if (error) { alert('Ошибка: ' + error.message); setLoading(false); return }
-    router.push('/coach')
+    router.push('/coach/programs') // #45 — redirect to programs list, not coach home
   }
 
   if (!authChecked) return (
@@ -158,9 +160,14 @@ export default function NewProgramPage() {
               <span style={fieldLabel}>Название программы</span>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Базовый цикл" style={inputStyle} />
             </div>
-            <div>
+            <div style={{ marginBottom: '14px' }}>
               <span style={fieldLabel}>Дата старта</span>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle} />
+            </div>
+            {/* #46 — end_date field was missing from new program form */}
+            <div>
+              <span style={fieldLabel}>Дата окончания (необязательно)</span>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={inputStyle} />
             </div>
           </div>
 

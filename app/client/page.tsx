@@ -75,14 +75,13 @@ export default function ClientPage() {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('[PREVIEW] session:', session?.user?.id)
+      // #23 — removed debug console.log that exposed user ID and profile data
       const user = session?.user
       if (!user) { router.push('/'); return }
       setUserId(user.id)
 
       const profResult = await supabase
         .from('profiles').select('name, role, onboarded, height_cm').eq('id', user.id).single()
-      console.log('[PREVIEW] prof:', profResult)
       const { data: prof } = profResult
       if (prof?.role === 'coach') { router.push('/coach'); return }
       if (!prof?.onboarded) { router.push('/welcome'); return }
@@ -177,19 +176,42 @@ export default function ClientPage() {
   }
 
   async function saveMood() {
+    // #13 — require at least a mood emoji before saving
+    if (mood === null) {
+      alert('Выбери настроение перед сохранением')
+      return
+    }
     setMoodLoading(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    await supabase.from('mood_logs').upsert({ player_id: user.id, logged_date: today, mood, energy, muscle_pain: musclePain }, { onConflict: 'player_id,logged_date' })
-    setMoodSaved(true)
+    if (!user) { setMoodLoading(false); return }
+    // #14 — check for error before showing "Сохранено"
+    const { error } = await supabase.from('mood_logs').upsert(
+      { player_id: user.id, logged_date: today, mood, energy, muscle_pain: musclePain },
+      { onConflict: 'player_id,logged_date' }
+    )
+    if (error) {
+      console.error('Mood save error:', error.message)
+      alert('Не удалось сохранить. Попробуй ещё раз.')
+    } else {
+      setMoodSaved(true)
+    }
     setMoodLoading(false)
   }
 
   async function assignWorkout(dateStr: string, workout: Workout) {
     if (!userId) return
     const supabase = createClient()
-    await supabase.from('workout_schedule').upsert({ player_id: userId, workout_id: workout.id, scheduled_date: dateStr }, { onConflict: 'player_id,scheduled_date' })
+    // #18 — check error before updating local state
+    const { error } = await supabase.from('workout_schedule').upsert(
+      { player_id: userId, workout_id: workout.id, scheduled_date: dateStr },
+      { onConflict: 'player_id,scheduled_date' }
+    )
+    if (error) {
+      console.error('assignWorkout error:', error.message)
+      alert('Не удалось назначить тренировку. Попробуй ещё раз.')
+      return
+    }
     setWeekSchedule(prev => ({ ...prev, [dateStr]: workout }))
     setSchedulingDay(null)
   }
@@ -197,7 +219,14 @@ export default function ClientPage() {
   async function removeSchedule(dateStr: string) {
     if (!userId) return
     const supabase = createClient()
-    await supabase.from('workout_schedule').delete().eq('player_id', userId).eq('scheduled_date', dateStr)
+    // #18 — check error before updating local state
+    const { error } = await supabase.from('workout_schedule').delete()
+      .eq('player_id', userId).eq('scheduled_date', dateStr)
+    if (error) {
+      console.error('removeSchedule error:', error.message)
+      alert('Не удалось убрать тренировку. Попробуй ещё раз.')
+      return
+    }
     setWeekSchedule(prev => { const n = { ...prev }; delete n[dateStr]; return n })
     setSchedulingDay(null)
   }
@@ -218,12 +247,18 @@ export default function ClientPage() {
   async function sendSwapRequest() {
     if (!userId || !todayWorkout) return
     const supabase = createClient()
-    await supabase.from('workout_swap_requests').insert({
+    // #19 — check error before showing "Запрос отправлен"
+    const { error } = await supabase.from('workout_swap_requests').insert({
       player_id: userId,
       current_workout_id: todayWorkout.id,
       reason: swapReason,
       status: 'pending',
     })
+    if (error) {
+      console.error('sendSwapRequest error:', error.message)
+      alert('Не удалось отправить запрос. Попробуй ещё раз.')
+      return
+    }
     setSwapSent(true)
     setShowSwapForm(false)
   }
@@ -593,7 +628,8 @@ export default function ClientPage() {
                   </div>
                 )}
                 <button
-                  onClick={() => router.push(todayWorkout.id ? `/workout/${todayWorkout.id}` : '/workout/2')}
+                  // #54 — only navigate if there's a real workout id; removed /workout/2 fallback (data-leak)
+                  onClick={() => { if (todayWorkout.id) router.push(`/workout/${todayWorkout.id}`) }}
                   style={{ position: 'relative', overflow: 'hidden', borderRadius: '999px', background: 'var(--accent-primary)', border: 'none', color: 'var(--text-inverse)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '15px', padding: '12px 28px', cursor: 'pointer' }}
                 >
                   <span style={{ position: 'absolute', inset: 0, borderRadius: '999px', background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)', pointerEvents: 'none', zIndex: 1 }} />

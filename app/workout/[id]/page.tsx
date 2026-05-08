@@ -36,6 +36,8 @@ export default function DynamicWorkoutPage() {
   const [saving, setSaving] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
+  // #49 — extra sets added dynamically per exercise (on top of what's in ex.sets)
+  const [extraSets, setExtraSets] = useState<Record<string, number>>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -83,9 +85,11 @@ export default function DynamicWorkoutPage() {
     return ex.id || ex.name || `ex-${idx}`
   }
 
-  function getFieldsForSets(setsStr: string): string[] {
-    const n = parseInt(setsStr) || 3
-    return [...Array.from({ length: Math.min(n, 3) }, (_, i) => `w${i + 1}`), 'reps']
+  function getFieldsForSets(setsStr: string, key: string): string[] {
+    const base = parseInt(setsStr) || 3
+    const extra = extraSets[key] || 0
+    const total = Math.min(base + extra, 8) // cap at 8 sets
+    return [...Array.from({ length: total }, (_, i) => `w${i + 1}`), 'reps']
   }
 
   function setField(key: string, field: string, value: string) {
@@ -118,7 +122,7 @@ export default function DynamicWorkoutPage() {
     if (!userId) return
     const key = getKey(ex, idx)
     const f = fields[key] || {}
-    const fieldsArr = getFieldsForSets(ex.sets || '3')
+    const fieldsArr = getFieldsForSets(ex.sets || '3', key)
     const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
 
     const hasAnyWeight = setWeightFields.some(fld => !!f[fld])
@@ -203,7 +207,7 @@ export default function DynamicWorkoutPage() {
             const isExpanded = expanded[key] !== false
             const isSaved = saved[key]
             const isSaving = saving === key
-            const fieldsArr = getFieldsForSets(ex.sets || '3')
+            const fieldsArr = getFieldsForSets(ex.sets || '3', key)
             const f = fields[key] || {}
             const p = prevLogs[key] || {}
 
@@ -295,7 +299,6 @@ export default function DynamicWorkoutPage() {
                                     value={f[wField] || ''}
                                     onChange={e => setField(key, wField, e.target.value)}
                                     placeholder={p[wField] || '—'}
-                                    autoFocus={setIdx === 0}
                                     className="no-spin"
                                     style={{ background: 'transparent', border: 'none', flex: 1, minWidth: 0, textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', padding: '8px 0' }}
                                   />
@@ -345,13 +348,16 @@ export default function DynamicWorkoutPage() {
                         })}
                       </div>
 
-                      {/* Add set button */}
-                      <button style={{
-                        width: '100%', padding: '11px', borderRadius: '999px',
-                        background: 'transparent', border: '1px solid var(--divider)',
-                        fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px',
-                        color: 'var(--text-tertiary)', cursor: 'pointer', letterSpacing: '1px', marginTop: '12px',
-                      }}>
+                      {/* Add set button — #49 fixed: onClick now increments set count */}
+                      <button
+                        onClick={() => setExtraSets(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }))}
+                        style={{
+                          width: '100%', padding: '11px', borderRadius: '999px',
+                          background: 'transparent', border: '1px solid var(--divider)',
+                          fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px',
+                          color: 'var(--text-tertiary)', cursor: 'pointer', letterSpacing: '1px', marginTop: '12px',
+                        }}
+                      >
                         + ДОБАВИТЬ ПОДХОД
                       </button>
 

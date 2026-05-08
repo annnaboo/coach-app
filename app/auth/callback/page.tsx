@@ -32,7 +32,9 @@ function CallbackHandler() {
     const type      = searchParams.get('type') as
       | 'recovery' | 'invite' | 'email' | 'signup' | 'magiclink'
       | null
-    const next = searchParams.get('next') ?? '/client'
+    // #74 — validate `next` to prevent open redirect: only allow relative paths
+    const rawNext = searchParams.get('next') ?? '/client'
+    const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/client'
 
     async function handle() {
       try {

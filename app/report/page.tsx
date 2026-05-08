@@ -74,13 +74,17 @@ export default function ReportPage() {
   }, [])
 
   function getWeekStart(): string {
+    // #63 — use local date, not toISOString() (which gives UTC and shifts to prev week at night)
     const d = new Date()
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1)
     const monday = new Date(d)
     monday.setDate(diff)
     monday.setHours(0, 0, 0, 0)
-    return monday.toISOString().slice(0, 10)
+    const y = monday.getFullYear()
+    const m = String(monday.getMonth() + 1).padStart(2, '0')
+    const dd = String(monday.getDate()).padStart(2, '0')
+    return `${y}-${m}-${dd}`
   }
 
   function handlePhotoChange(position: PhotoPosition, file: File) {
@@ -92,6 +96,21 @@ export default function ReportPage() {
     if (!userId) return
     setLoading(true)
     const supabase = createClient()
+    const weekStart = getWeekStart()
+
+    // #64 — check for an existing report this week before doing anything
+    const { data: existing } = await supabase
+      .from('weekly_reports')
+      .select('id')
+      .eq('player_id', userId)
+      .eq('week_start', weekStart)
+      .maybeSingle()
+
+    if (existing) {
+      alert('Ты уже отправила отчёт за эту неделю. Можно только один отчёт в неделю.')
+      setLoading(false)
+      return
+    }
 
     const uploadPhoto = async (file: File | null, position: string): Promise<string | null> => {
       if (!file) return null
@@ -106,6 +125,7 @@ export default function ReportPage() {
       return path
     }
 
+    // #62 — upload photos first, but track paths so we can clean up on insert failure
     const photo_front = await uploadPhoto(photos.front, 'front')
     const photo_side = await uploadPhoto(photos.side, 'side')
     const photo_back = await uploadPhoto(photos.back, 'back')
@@ -114,7 +134,7 @@ export default function ReportPage() {
 
     const { error: insertError } = await supabase.from('weekly_reports').insert({
       player_id: userId,
-      week_start: getWeekStart(),
+      week_start: weekStart,
       weight: weight ? parseFloat(weight) : null,
       height_cm: parsedHeight,
       chest: chest ? parseFloat(chest) : null,
@@ -131,15 +151,20 @@ export default function ReportPage() {
       photo_back,
     })
 
-    if (!insertError && parsedHeight) {
-      await supabase.from('profiles').update({ height_cm: parsedHeight }).eq('id', userId)
-    }
-
     if (insertError) {
+      // #62 — clean up orphaned files from Storage since the DB row wasn't created
+      const uploadedPaths = [photo_front, photo_side, photo_back].filter(Boolean) as string[]
+      if (uploadedPaths.length > 0) {
+        await supabase.storage.from('reports').remove(uploadedPaths)
+      }
       console.error('Insert error:', insertError)
       alert('Ошибка сохранения: ' + insertError.message)
       setLoading(false)
       return
+    }
+
+    if (parsedHeight) {
+      await supabase.from('profiles').update({ height_cm: parsedHeight }).eq('id', userId)
     }
 
     setLoading(false)

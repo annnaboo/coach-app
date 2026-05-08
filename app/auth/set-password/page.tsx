@@ -21,8 +21,9 @@ export default function SetPasswordPage() {
     const type = params.get('type') as 'invite' | 'recovery' | null
 
     if (token_hash && type === 'invite') {
+      // #77 — verify OTP but stay on this page so the user can set a password
       supabase.auth.verifyOtp({ token_hash, type: 'invite' }).then(({ error }) => {
-        if (!error) router.replace('/client')
+        if (!error) setSessionReady(true)
       })
       return
     }
@@ -36,10 +37,9 @@ export default function SetPasswordPage() {
 
     // Implicit flow: tokens in hash fragment (older Supabase config)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        router.replace('/client')
-      }
-      if (event === 'PASSWORD_RECOVERY' && session) {
+      // #77 — SIGNED_IN fires for invite/magic-link hash flows; don't redirect away,
+      // instead unlock the form so the user can choose a password
+      if ((event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') && session) {
         setSessionReady(true)
       }
     })
@@ -72,11 +72,13 @@ export default function SetPasswordPage() {
     // Создать профиль если не существует
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
+      // #76 — ignoreDuplicates:true silently skips existing rows, leaving role unset.
+      // Use ignoreDuplicates:false (default) so the role is always written.
       await supabase.from('profiles').upsert({
         id: user.id,
         role: 'client',
         onboarded: false,
-      }, { onConflict: 'id', ignoreDuplicates: true })
+      }, { onConflict: 'id', ignoreDuplicates: false })
     }
 
     router.push('/welcome')

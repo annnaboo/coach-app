@@ -40,7 +40,14 @@ export default function WelcomePage() {
     if (!userId || finishing) return
     setFinishing(true)
     const supabase = createClient()
-    await supabase.from('profiles').update({ onboarded: true }).eq('id', userId)
+    // #8 — check for error; only navigate if the update actually succeeded
+    const { error } = await supabase.from('profiles').update({ onboarded: true }).eq('id', userId)
+    if (error) {
+      console.error('Could not mark onboarded:', error.message)
+      alert('Что-то пошло не так. Попробуй ещё раз.')
+      setFinishing(false)
+      return
+    }
     router.push('/client')
   }
 

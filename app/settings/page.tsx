@@ -100,9 +100,10 @@ export default function SettingsPage() {
       .upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true })
     if (!error) {
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
-      const url = pub.publicUrl + '?t=' + Date.now()
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId)
-      setAvatarUrl(url)
+      // #71 — save the clean URL to DB; use ?t= only for the local img preview to bust cache
+      const cleanUrl = pub.publicUrl
+      await supabase.from('profiles').update({ avatar_url: cleanUrl }).eq('id', userId)
+      setAvatarUrl(cleanUrl + '?t=' + Date.now())
     }
     setAvatarUploading(false)
   }

@@ -77,7 +77,11 @@ export default function ProgressPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setPendingFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
+    // #59 — revoke the previous object URL before creating a new one to prevent memory leaks
+    setPreviewUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
     setShowUploadForm(true)
   }
 
@@ -107,7 +111,8 @@ export default function ProgressPage() {
     setUploading(false)
     setShowUploadForm(false)
     setPendingFile(null)
-    setPreviewUrl(null)
+    // #59 — revoke the object URL before clearing it
+    setPreviewUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null })
     setWeightInput('')
     setNotesInput('')
     setDateInput(new Date().toISOString().slice(0, 10))

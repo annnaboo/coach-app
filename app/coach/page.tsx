@@ -277,7 +277,14 @@ export default function CoachPage() {
     if (form?.period_start) updates.period_start = form.period_start
     if (form?.period_end) updates.period_end = form.period_end
     if (total !== null) updates.amount = total
-    await supabase.from('payments').update(updates).eq('id', paymentId)
+    // #30 — check for error so the button doesn't stay in "saving" state forever
+    const { error } = await supabase.from('payments').update(updates).eq('id', paymentId)
+    if (error) {
+      console.error('saveMonthlyRate error:', error.message)
+      alert('Не удалось сохранить ставку. Попробуй ещё раз.')
+      setSavingRate(null)
+      return
+    }
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, payment: { ...c.payment, monthly_rate: rate, amount: total ?? c.payment?.amount, period_start: form?.period_start || c.payment?.period_start, period_end: form?.period_end || c.payment?.period_end } } : c))
     setEditingRate(null)
     setSavingRate(null)
@@ -355,13 +362,15 @@ export default function CoachPage() {
     const data = await res.json()
     if (data.success) {
       setInviteSuccess(true)
+      // #27 — reset inviteSending so the button isn't stuck; #28 — use loadData() not reload()
+      setInviteSending(false)
       setTimeout(() => {
         setShowInviteForm(false)
         setInviteSuccess(false)
         setInviteName('')
         setInviteEmail('')
         setInvitePassword('')
-        window.location.reload()
+        loadData()
       }, 4000)
     } else {
       setInviteError(data.error || 'Ошибка при создании')
