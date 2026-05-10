@@ -161,7 +161,7 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       onClick={() => toggleActive(prog)}
-                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'var(--bg-card-soft)' : 'var(--success-bg)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(93,108,73,0.25)', color: prog.is_active ? 'var(--text-secondary)' : 'var(--success)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'var(--bg-card-soft)' : 'var(--success-bg)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid var(--divider)', color: prog.is_active ? 'var(--text-secondary)' : 'var(--success)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       {prog.is_active ? 'Деактивировать' : 'Активировать'}
                     </button>

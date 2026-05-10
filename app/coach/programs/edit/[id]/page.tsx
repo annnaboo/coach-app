@@ -206,7 +206,7 @@ export default function EditProgramPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {clients.length === 0 && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Нет клиентов</p>}
               {clients.map(c => (
-                <div key={c.id} onClick={() => toggleClient(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedClients.includes(c.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedClients.includes(c.id) ? '1px solid rgba(220,80,0,0.15)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                <div key={c.id} onClick={() => toggleClient(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedClients.includes(c.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedClients.includes(c.id) ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent', transition: 'all 0.15s' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedClients.includes(c.id) ? 'var(--accent-primary)' : 'var(--bg-card-soft)', border: selectedClients.includes(c.id) ? 'none' : '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedClients.includes(c.id) && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                   </div>
@@ -222,7 +222,7 @@ export default function EditProgramPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {allWorkouts.length === 0 && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Нет тренировок</p>}
               {allWorkouts.map(w => (
-                <div key={w.id} onClick={() => toggleWorkout(w)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedWorkoutIds.includes(w.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedWorkoutIds.includes(w.id) ? '1px solid rgba(220,80,0,0.15)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                <div key={w.id} onClick={() => toggleWorkout(w)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedWorkoutIds.includes(w.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedWorkoutIds.includes(w.id) ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent', transition: 'all 0.15s' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedWorkoutIds.includes(w.id) ? 'var(--accent-primary)' : 'var(--bg-card-soft)', border: selectedWorkoutIds.includes(w.id) ? 'none' : '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedWorkoutIds.includes(w.id) && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                   </div>
@@ -241,7 +241,7 @@ export default function EditProgramPage() {
               <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 14px' }}>Порядок тренировок</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {orderedWorkouts.map((w, idx) => (
-                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(220,80,0,0.06)', border: '1px solid rgba(220,80,0,0.1)' }}>
+                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--accent-soft-bg)', border: '1px solid var(--accent-soft-bg)' }}>
                     <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '13px', color: '#fff' }}>{LETTERS[idx] || idx + 1}</span>
                     </div>

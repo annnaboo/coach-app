@@ -337,7 +337,7 @@ export default function CoachPage() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => setApprovingSwap(req.id)} style={{ flex: 1, padding: '7px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontSize: '12px', cursor: 'pointer' }}>+ Одобрить</button>
+                        <button onClick={() => setApprovingSwap(req.id)} style={{ flex: 1, padding: '7px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontSize: '12px', cursor: 'pointer' }}>+ Одобрить</button>
                         <button onClick={() => { if (confirm('Отклонить заявку?')) resolveSwap(req.id, 'declined') }} style={{ flex: 1, padding: '7px', borderRadius: '999px', background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontSize: '12px', cursor: 'pointer' }}>Отклонить</button>
                       </div>
                     )}
@@ -354,7 +354,7 @@ export default function CoachPage() {
               <button
                 onClick={() => setShowInviteForm(v => !v)}
                 className="pressable"
-                style={{ padding: '6px 14px', borderRadius: '999px', background: showInviteForm ? 'var(--accent-primary)' : 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.2)', color: showInviteForm ? '#fff' : 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }}
+                style={{ padding: '6px 14px', borderRadius: '999px', background: showInviteForm ? 'var(--accent-primary)' : 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.08)', color: showInviteForm ? '#fff' : 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }}
               >
                 {showInviteForm ? '✕ Отмена' : '+ Добавить'}
               </button>
@@ -402,7 +402,7 @@ export default function CoachPage() {
                       style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid var(--divider)', cursor: 'pointer' }}
                     >
                       {/* Avatar */}
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <span style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '15px', color: 'var(--accent-primary)' }}>{c.name[0]?.toUpperCase()}</span>
                       </div>
 

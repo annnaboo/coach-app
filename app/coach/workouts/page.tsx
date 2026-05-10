@@ -128,7 +128,7 @@ export default function AllWorkoutsPage() {
                   <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>
                     <button
                       onClick={() => router.push(`/coach/workout/edit/${w.id}`)}
-                      style={{ background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', borderRadius: '999px', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
+                      style={{ background: 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '999px', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
                     >
                       Изменить
                     </button>

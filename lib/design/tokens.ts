@@ -1,6 +1,6 @@
 /**
- * ORYZO — typed token constants v2.0
- * Source: styles.refero.design/style/1f204e95-454a-437e-845b-c1b169d35607
+ * Dia Browser — Liquid iOS — design-system v3.0
+ * Source: styles.refero.design/style/b458ca1a-70f0-4f85-b745-f879a4d08457
  */
 import type React from 'react'
 
@@ -8,72 +8,85 @@ import type React from 'react'
 
 export const color = {
   bg: {
-    base:     '#100904',
-    primary:  '#100904',
-    gradient: 'linear-gradient(180deg, #100904 0%, #0d0702 100%)',
-    card:     '#1c1108',
-    cardSoft: '#261a0d',
-    overlay:  'rgba(16, 9, 4, 0.75)',
+    base:      '#f8f8f8',
+    primary:   '#f8f8f8',
+    gradient:  'linear-gradient(180deg, #f8f8f8 0%, #efefef 100%)',
+    card:      'rgba(255, 255, 255, 0.85)',
+    cardSolid: '#ffffff',
+    cardSoft:  '#efefef',
+    overlay:   'rgba(0, 0, 0, 0.35)',
   },
   text: {
-    primary:  '#ffedd7',
-    secondary:'#bbac97',
-    tertiary: '#887b6d',
-    inverse:  '#100904',
-    disabled: 'rgba(255, 237, 215, 0.3)',
+    primary:  '#000000',
+    secondary:'#636363',
+    tertiary: '#959595',
+    inverse:  '#ffffff',
+    disabled: '#aeaeae',
   },
   accent: {
-    primary:  '#dc5000',
-    hover:    '#f05a00',
-    pressed:  '#b84200',
-    softBg:   'rgba(220, 80, 0, 0.14)',
-    gradient: 'linear-gradient(135deg, #dc5000 0%, #f05a00 100%)',
+    primary:  '#000000',
+    hover:    '#2a2a2a',
+    pressed:  '#404040',
+    softBg:   'rgba(0, 0, 0, 0.06)',
+    gradient: 'linear-gradient(135deg, #000000 0%, #404040 100%)',
   },
   palette: {
-    corkDust:   '#ffedd7',
-    lightCork:  '#f6e0c6',
-    faintHazel: '#bbac97',
-    agedStone:  '#887b6d',
-    fadedBark:  '#382416',
-    deepMocha:  '#40372e',
-    oliveGreen: '#445231',
-    subtleMoss: '#5d6c49',
-    rust:       '#dc5000',
+    ink:        '#000000',
+    snow:       '#ffffff',
+    canvas:     '#f8f8f8',
+    fog:        '#efefef',
+    pebble:     '#d9d9d9',
+    graphite:   '#636363',
+    slate:      '#959595',
+    steel:      '#aeaeae',
+    ash:        '#7c7c7c',
+    roseQuartz: '#c679c4',
+    marigold:   '#ffb005',
+    signalBlue: '#0358f7',
   },
-  divider: 'rgba(255, 237, 215, 0.1)',
+  spectrum: 'linear-gradient(90deg, #c679c4 0%, #fa3d1d 25%, #ffb005 50%, #e1e1fe 75%, #0358f7 100%)',
+  divider: '#d9d9d9',
   system: {
-    success:   '#5d6c49',
-    successBg: 'rgba(93, 108, 73, 0.18)',
-    warning:   '#887b6d',
-    warningBg: 'rgba(136, 123, 109, 0.14)',
-    error:     '#e05a00',
-    errorBg:   'rgba(220, 80, 0, 0.14)',
+    success:   '#34c759',
+    successBg: 'rgba(52, 199, 89, 0.12)',
+    warning:   '#ff9500',
+    warningBg: 'rgba(255, 149, 0, 0.12)',
+    error:     '#ff3b30',
+    errorBg:   'rgba(255, 59, 48, 0.12)',
   },
-  chart: ['#dc5000', '#f6e0c6', '#5d6c49', '#bbac97', '#887b6d'] as const,
+  chart: ['#0358f7', '#c679c4', '#ffb005', '#34c759', '#959595'] as const,
+} as const
+
+// ─── Glass ────────────────────────────────────────────────────────────────────
+
+export const glass = {
+  bg:     'rgba(255, 255, 255, 0.72)',
+  border: 'rgba(255, 255, 255, 0.85)',
+  blur:   'saturate(180%) blur(20px)',
 } as const
 
 // ─── Typography ───────────────────────────────────────────────────────────────
 
 export const font = {
-  primary: "'DM Sans', 'Inter', system-ui, -apple-system, sans-serif",
-  text:    "'DM Sans', 'Inter', system-ui, -apple-system, sans-serif",
-  serif:   "'Literata', 'Merriweather', Georgia, serif",
-  mono:    "'DM Mono', 'ui-monospace', monospace",
+  primary: "-apple-system, 'SF Pro Display', 'DM Sans', 'Helvetica Neue', sans-serif",
+  text:    "-apple-system, 'SF Pro Text',    'DM Sans', 'Helvetica Neue', sans-serif",
+  serif:   "'New York', 'Georgia', serif",
+  mono:    "'SF Mono', 'DM Mono', ui-monospace, monospace",
 } as const
 
 export const type = {
-  display:    { fontSize: 49, lineHeight: 1,    fontWeight: 600, letterSpacing: -0.018 },
-  h1:         { fontSize: 34, lineHeight: 1.09, fontWeight: 600, letterSpacing: -0.018 },
-  h2:         { fontSize: 23, lineHeight: 1.09, fontWeight: 500, letterSpacing: -0.018 },
-  h3:         { fontSize: 18, lineHeight: 1.2,  fontWeight: 500, letterSpacing: 0 },
-  body:       { fontSize: 16, lineHeight: 1.26, fontWeight: 400, letterSpacing: 0 },
-  bodyLg:     { fontSize: 16, lineHeight: 1.26, fontWeight: 400, letterSpacing: 0 },
-  bodySm:     { fontSize: 14, lineHeight: 1.33, fontWeight: 400, letterSpacing: 0 },
-  caption:    { fontSize: 10, lineHeight: 1.5,  fontWeight: 400, letterSpacing: 0 },
-  micro:      { fontSize: 10, lineHeight: 1.5,  fontWeight: 500, letterSpacing: 0.4 },
+  display:   { fontSize: 72, lineHeight: 1.11, fontWeight: 300, letterSpacing: -2.88 },
+  headingLg: { fontSize: 54, lineHeight: 1.17, fontWeight: 300, letterSpacing: -2.16 },
+  heading:   { fontSize: 50, lineHeight: 1.18, fontWeight: 400, letterSpacing: -2    },
+  h1:        { fontSize: 22, lineHeight: 1.25, fontWeight: 400, letterSpacing: -0.44 },
+  h2:        { fontSize: 18, lineHeight: 1.33, fontWeight: 400, letterSpacing: 0     },
+  body:      { fontSize: 16, lineHeight: 1.5,  fontWeight: 400, letterSpacing: 0     },
+  bodySm:    { fontSize: 14, lineHeight: 1.5,  fontWeight: 400, letterSpacing: 0     },
+  caption:   { fontSize: 10, lineHeight: 1.5,  fontWeight: 400, letterSpacing: 0     },
+  micro:     { fontSize: 10, lineHeight: 1.5,  fontWeight: 500, letterSpacing: 0.4   },
 } as const
 
-// ─── Spacing ──────────────────────────────────────────────────────────────────
+// ─── Spacing — 8px base ───────────────────────────────────────────────────────
 
 export const space = {
   xs:    4,
@@ -85,58 +98,45 @@ export const space = {
   '3xl': 64,
 } as const
 
-// ─── Radius ───────────────────────────────────────────────────────────────────
+// ─── Radius — Dia Browser large-radius ───────────────────────────────────────
 
 export const radius = {
-  sm:   8,
-  md:   12,
-  lg:   20,
-  xl:   28,
-  pill: 999,
+  sm:   16,
+  md:   20,
+  lg:   30,
+  xl:   40,
+  pill: 9999,
 } as const
 
-// ─── Shadow — flat per ORYZO ──────────────────────────────────────────────────
+// ─── Shadow ───────────────────────────────────────────────────────────────────
 
 export const shadow = {
-  soft:       'none',
-  hover:      'none',
-  modal:      'none',
-  accentGlow: '0 0 0 3px rgba(220, 80, 0, 0.25)',
+  soft:       'rgba(0, 0, 0, 0.08) 0px 0px 8px 0px',
+  hover:      'rgba(0, 0, 0, 0.12) 0px 0px 16px 0px',
+  modal:      'rgba(0, 0, 0, 0.16) 0px 8px 32px 0px',
+  accentGlow: '0 0 0 3px rgba(0, 0, 0, 0.12)',
 } as const
 
 // ─── Motion ───────────────────────────────────────────────────────────────────
 
-export const duration = {
-  instant: 120,
-  fast:    200,
-  base:    300,
-  slow:    500,
-} as const
+export const duration = { instant: 120, fast: 200, base: 300, slow: 500 } as const
 
 export const easing = {
   standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
+  spring:   'cubic-bezier(0.34, 1.56, 0.64, 1)',
   inOut:    'cubic-bezier(0.65, 0, 0.35, 1)',
 } as const
 
 // ─── Z-index ──────────────────────────────────────────────────────────────────
 
 export const zIndex = {
-  base:          0,
-  cardHover:     1,
-  sticky:        10,
-  dropdown:      100,
-  modalBackdrop: 1000,
-  modal:         1001,
-  toast:         2000,
+  base: 0, cardHover: 1, sticky: 10, dropdown: 100,
+  modalBackdrop: 1000, modal: 1001, toast: 2000,
 } as const
 
 // ─── Accessibility ────────────────────────────────────────────────────────────
 
-export const a11y = {
-  touchTargetIOS:     44,
-  touchTargetAndroid: 48,
-  focusRingWidth:     2,
-} as const
+export const a11y = { touchTargetIOS: 44, touchTargetAndroid: 48, focusRingWidth: 2 } as const
 
 // ─── CSS var helpers ──────────────────────────────────────────────────────────
 
@@ -153,9 +153,7 @@ export const cssVar = {
   textDisabled:   'var(--text-disabled)',
   accentPrimary:  'var(--accent-primary)',
   accentHover:    'var(--accent-hover)',
-  accentPressed:  'var(--accent-pressed)',
   accentSoftBg:   'var(--accent-soft-bg)',
-  accentGradient: 'var(--accent-gradient)',
   divider:        'var(--divider)',
   success:        'var(--success)',
   successBg:      'var(--success-bg)',
@@ -166,11 +164,12 @@ export const cssVar = {
   shadowSoft:     'var(--shadow-soft)',
   shadowModal:    'var(--shadow-modal)',
   shadowGlow:     'var(--shadow-accent-glow)',
+  spectrum:       'var(--spectrum)',
 } as const
 
 // ─── Legacy re-exports ────────────────────────────────────────────────────────
 
-/** @deprecated use color.accent.primary */
+/** @deprecated */
 export const colors = {
   ink:      color.text.primary,
   accent:   color.accent.primary,
@@ -179,27 +178,26 @@ export const colors = {
   inputBg:  color.bg.cardSoft,
 }
 
-/** @deprecated use radius.* */
+/** @deprecated */
 export const radii = {
   pill:  `${radius.pill}px`,
-  card:  `${radius.md}px`,
+  card:  `${radius.lg}px`,
   image: `${radius.sm}px`,
   chip:  `${radius.pill}px`,
 }
 
-/** @deprecated use shadow.* */
-export const shadows = {
-  sm: shadow.soft,
-  md: shadow.hover,
-  lg: shadow.modal,
-}
+/** @deprecated */
+export const shadows = { sm: shadow.soft, md: shadow.hover, lg: shadow.modal }
 
-/** @deprecated use .card CSS class */
+/** @deprecated */
 export const glassCard: React.CSSProperties = {
-  background:   color.bg.card,
-  borderRadius: `${radius.md}px`,
-  border:       `1px solid ${color.divider}`,
-  padding:      `${space.md}px`,
+  background:         glass.bg,
+  backdropFilter:     glass.blur,
+  WebkitBackdropFilter: glass.blur,
+  border:             `1px solid ${glass.border}`,
+  borderRadius:       `${radius.lg}px`,
+  boxShadow:          shadow.soft,
+  padding:            `${space.md}px`,
 }
 
 /** @deprecated use .type-micro CSS class */

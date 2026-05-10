@@ -166,7 +166,7 @@ export default function SetPasswordPage() {
               width: '100%',
               padding: '14px',
               borderRadius: '999px',
-              background: sessionReady ? 'var(--accent-primary)' : 'rgba(220,80,0,0.3)',
+              background: sessionReady ? 'var(--accent-primary)' : 'rgba(0,0,0,0.1)',
               color: '#fff',
               border: 'none',
               fontFamily: 'var(--font-text)',

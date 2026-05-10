@@ -257,7 +257,7 @@ export default function NewWorkoutPage() {
             onClick={() => setExercises(prev => [...prev, newExercise()])}
             style={{
               width: '100%', padding: '13px', borderRadius: '999px',
-              background: 'var(--accent-soft-bg)', border: '1px dashed rgba(220,80,0,0.18)',
+              background: 'var(--accent-soft-bg)', border: '1px dashed rgba(0,0,0,0.07)',
               color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300,
               fontSize: '14px', cursor: 'pointer', marginBottom: '16px',
             }}

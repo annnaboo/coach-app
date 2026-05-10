@@ -387,7 +387,7 @@ export default function ClientProfilePage() {
 
         {/* ── HEADER ── */}
         <div style={{ ...SECTION, display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0, background: 'rgba(220,80,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', color: 'var(--accent-primary)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0, background: 'var(--accent-soft-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', color: 'var(--accent-primary)' }}>
             {name ? initials(name) : '?'}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -399,7 +399,7 @@ export default function ClientProfilePage() {
                 {payStatus.label}
               </span>
               {program && (
-                <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>
+                <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>
                   {program.title}
                 </span>
               )}
@@ -528,7 +528,7 @@ export default function ClientProfilePage() {
                   style={{
                     padding: '4px 14px', borderRadius: '999px', cursor: 'pointer',
                     fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px',
-                    border: trajPeriod === p ? '1px solid rgba(220,80,0,0.3)' : '1px solid var(--text-tertiary)',
+                    border: trajPeriod === p ? '1px solid rgba(0,0,0,0.1)' : '1px solid var(--text-tertiary)',
                     background: trajPeriod === p ? 'var(--accent-soft-bg)' : 'transparent',
                     color: trajPeriod === p ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   }}
@@ -694,7 +694,7 @@ export default function ClientProfilePage() {
                   <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isToday ? 'var(--accent-primary)' : 'var(--text-tertiary)', margin: '0 0 6px' }}>
                     {WEEK_DAYS_RU[i]}
                   </p>
-                  <div style={{ minHeight: '36px', borderRadius: '8px', background: title ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: isToday ? '1px solid rgba(220,80,0,0.2)' : '1px solid transparent', padding: '4px 2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ minHeight: '36px', borderRadius: '8px', background: title ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: isToday ? '1px solid rgba(0,0,0,0.08)' : '1px solid transparent', padding: '4px 2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: title ? 'var(--accent-primary)' : 'var(--text-tertiary)', margin: 0, lineHeight: 1.2, textAlign: 'center' }}>
                       {title || '—'}
                     </p>
@@ -764,7 +764,7 @@ export default function ClientProfilePage() {
             <p style={LABEL}>Последние отзывы тренера</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {feedbacks.map((fb, i) => (
-                <div key={i} style={{ borderLeft: '2px solid rgba(220,80,0,0.15)', paddingLeft: '12px' }}>
+                <div key={i} style={{ borderLeft: '2px solid rgba(0,0,0,0.06)', paddingLeft: '12px' }}>
                   <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 4px', lineHeight: 1.4 }}>
                     {fb.message}
                   </p>
