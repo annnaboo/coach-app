@@ -95,7 +95,6 @@ export default function NewWorkoutPage() {
 
     const exercisesPayload = exercises
       .filter(ex => ex.name.trim())
-      .map(({ id: _, ...rest }) => rest)
 
     const { error } = await supabase.from('workouts').insert({
       title: title.trim(),

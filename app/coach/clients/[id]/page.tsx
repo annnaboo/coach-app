@@ -97,6 +97,7 @@ export default function ClientProfilePage() {
   const [coachId, setCoachId] = useState<string | null>(null)
   const [view, setView] = useState<'list' | 'trajectory'>('list')
   const [trajPeriod, setTrajPeriod] = useState<4 | 8 | 12>(4)
+  const [latestPhotoUrl, setLatestPhotoUrl] = useState<string | null>(null)
 
   // Payment editing
   const [editingPayment, setEditingPayment] = useState(false)
@@ -177,8 +178,8 @@ export default function ClientProfilePage() {
     // Signed URL for latest report photo
     const latestPhoto = reportsRes.data?.[0]?.photo_front
     if (latestPhoto) {
-      await supabase.storage.from('reports').createSignedUrl(latestPhoto, 3600)
-      // URL stored in signed URL state if needed for display — currently unused in this view
+      const { data: urlData } = await supabase.storage.from('reports').createSignedUrl(latestPhoto, 3600)
+      if (urlData?.signedUrl) setLatestPhotoUrl(urlData.signedUrl)
     }
 
     setLoading(false)
@@ -634,13 +635,25 @@ export default function ClientProfilePage() {
           </div>
         )}
 
+        {/* ── LATEST PHOTO ── */}
+        {latestPhotoUrl && (
+          <div style={SECTION}>
+            <p style={LABEL}>Фото (последний отчёт)</p>
+            <img
+              src={latestPhotoUrl}
+              alt="Фото прогресса"
+              style={{ width: '120px', height: '160px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(45,31,14,0.1)' }}
+            />
+          </div>
+        )}
+
         {/* ── THIS WEEK ── */}
         <div style={SECTION}>
           <p style={LABEL}>Эта неделя</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
             {weekDays.map((dateStr, i) => {
               const title = scheduleByDate[dateStr]
-              const isToday = dateStr === new Date().toISOString().slice(0, 10)
+              const now = new Date(); const isToday = dateStr === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
               return (
                 <div key={dateStr} style={{ textAlign: 'center' }}>
                   <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isToday ? '#7a4a20' : 'rgba(45,31,14,0.3)', margin: '0 0 6px' }}>

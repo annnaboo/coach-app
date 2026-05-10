@@ -89,7 +89,7 @@ export default function EditWorkoutPage() {
         let exs: Exercise[] = []
         try {
           const raw = Array.isArray(w.exercises) ? w.exercises : JSON.parse(w.exercises || '[]')
-          exs = raw.map((e: any) => ({ id: Math.random().toString(36).slice(2), name: e.name || '', muscleGroup: e.muscleGroup || '', sets: e.sets || '', reps: e.reps || '', description: e.description || '', youtube: e.youtube || '' }))
+          exs = raw.map((e: any) => ({ id: e.id || Math.random().toString(36).slice(2), name: e.name || '', muscleGroup: e.muscleGroup || '', sets: e.sets || '', reps: e.reps || '', description: e.description || '', youtube: e.youtube || '' }))
         } catch {}
         setExercises(exs.length > 0 ? exs : [newExercise()])
       }
@@ -120,7 +120,6 @@ export default function EditWorkoutPage() {
 
     const exercisesPayload = exercises
       .filter(ex => ex.name.trim())
-      .map(({ id: _, ...rest }) => rest)
 
     const { error } = await supabase.from('workouts').update({
       title: title.trim(),
