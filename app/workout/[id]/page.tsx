@@ -3,6 +3,7 @@ import { useEffect, useState, Fragment } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import BottomNav from '@/app/components/BottomNav'
 
 function PrevGoalHeader({ prev }: { prev: Record<string, string> }) {
   const weights = ['w1', 'w2', 'w3'].map(k => prev[k]).filter(v => v && v !== '')
@@ -36,6 +37,7 @@ export default function DynamicWorkoutPage() {
   const [saving, setSaving] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
+  const [showCompletion, setShowCompletion] = useState(false)
   // #49 — extra sets added dynamically per exercise (on top of what's in ex.sets)
   const [extraSets, setExtraSets] = useState<Record<string, number>>({})
   const router = useRouter()
@@ -389,7 +391,7 @@ export default function DynamicWorkoutPage() {
           {/* FINISH BUTTON */}
           {exercises.length > 0 && (
             <button
-              onClick={() => router.push('/client')}
+              onClick={() => setShowCompletion(true)}
               className="pressable"
               style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.2)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}
             >
@@ -399,6 +401,82 @@ export default function DynamicWorkoutPage() {
 
         </div>
       </div>
+
+      {/* COMPLETION SCREEN */}
+      {showCompletion && (() => {
+        const savedCount = exercises.filter((ex, idx) => saved[getKey(ex, idx)]).length
+        const totalCount = exercises.length
+        const totalVolume = exercises.reduce((sum, ex, idx) => {
+          const key = getKey(ex, idx)
+          const f = fields[key] || {}
+          const sets = ['w1','w2','w3'].map(k => parseFloat(f[k] || '') || 0)
+          const reps = parseInt(f.reps || '') || 1
+          return sum + sets.reduce((s, w) => s + w * reps, 0)
+        }, 0)
+
+        return (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+            <AnimatedBackground />
+            <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+
+              {/* Medal */}
+              <div style={{ fontSize: '64px', marginBottom: '20px', lineHeight: 1 }}>🏆</div>
+
+              <h1 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '36px', color: 'var(--text-primary)', margin: '0 0 6px', letterSpacing: '-1px' }}>
+                Готово!
+              </h1>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '15px', color: 'var(--text-secondary)', margin: '0 0 32px' }}>
+                {workout?.title}
+              </p>
+
+              {/* Stats row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '32px' }}>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '16px', padding: '18px 12px' }}>
+                  <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '40px', color: 'var(--accent-primary)', margin: 0, lineHeight: 1 }}>
+                    {savedCount}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '6px 0 0' }}>
+                    из {totalCount} выполнено
+                  </p>
+                </div>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '16px', padding: '18px 12px' }}>
+                  <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '40px', color: 'var(--accent-primary)', margin: 0, lineHeight: 1 }}>
+                    {Math.round(totalVolume)}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '6px 0 0' }}>
+                    кг · объём
+                  </p>
+                </div>
+              </div>
+
+              {/* Exercise checklist */}
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '16px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
+                {exercises.map((ex, idx) => {
+                  const done = !!saved[getKey(ex, idx)]
+                  return (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: idx < exercises.length - 1 ? '1px solid var(--divider)' : 'none' }}>
+                      <span style={{ fontSize: '14px', flexShrink: 0 }}>{done ? '✅' : '⬜'}</span>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: done ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+                        {ex.name}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <button
+                onClick={() => router.push('/client')}
+                className="pressable"
+                style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'var(--accent-primary)', color: 'var(--text-inverse)', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px', cursor: 'pointer' }}
+              >
+                Вернуться на главную
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
+      <BottomNav />
     </div>
   )
 }

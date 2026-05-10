@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
+import BottomNav from '@/app/components/BottomNav'
 
 const sectionLabel: React.CSSProperties = {
   fontFamily: 'var(--font-text)',
@@ -201,7 +202,7 @@ export default function ReportPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 48px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 100px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
           {/* HEADER */}
@@ -407,6 +408,7 @@ export default function ReportPage() {
 
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

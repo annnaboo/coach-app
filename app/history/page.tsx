@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 import BrandLogo from '@/app/components/BrandLogo'
+import BottomNav from '@/app/components/BottomNav'
 import { LABEL } from '@/lib/design/tokens'
 import { EXERCISE_NAMES } from '@/lib/exercises'
 
@@ -131,7 +132,7 @@ export default function HistoryPage() {
   if (loading) return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 120px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{ borderBottom: '1px solid var(--divider)', padding: '28px 0' }}>
@@ -147,7 +148,7 @@ export default function HistoryPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 120px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
           <BrandLogo />
@@ -347,6 +348,7 @@ export default function HistoryPage() {
 
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

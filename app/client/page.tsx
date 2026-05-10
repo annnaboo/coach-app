@@ -6,6 +6,7 @@ import AnimatedBackground from '@/app/components/AnimatedBackground'
 import { EXERCISE_NAMES } from '@/lib/exercises'
 import ArtName from '@/app/components/ArtName'
 import BrandLogo from '@/app/components/BrandLogo'
+import BottomNav from '@/app/components/BottomNav'
 import { LABEL } from '@/lib/design/tokens'
 import { localDateStr } from '@/lib/utils'
 
@@ -332,7 +333,7 @@ export default function ClientPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }} onClick={() => setSchedulingDay(null)}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 120px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
           <BrandLogo />
@@ -797,21 +798,16 @@ export default function ClientPage() {
             )}
           </div>
 
-          {/* ACTION BUTTONS */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '32px', flexWrap: 'wrap' }}>
-            <button onClick={() => router.push('/report')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(139,30,63,0.08)', border: '1px solid rgba(139,30,63,0.12)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
-              Отчёт недели →
-            </button>
+          {/* Мои отчёты — not in bottom nav, keep as secondary link */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
             <button onClick={() => router.push('/reports-history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(139,30,63,0.08)', border: '1px solid rgba(139,30,63,0.12)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
               Мои отчёты →
             </button>
-            <button onClick={() => router.push('/history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(139,30,63,0.08)', border: '1px solid rgba(139,30,63,0.12)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
-  История тренировок →
-</button>
           </div>
 
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

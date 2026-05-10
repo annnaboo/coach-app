@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 import BrandLogo from '@/app/components/BrandLogo'
+import BottomNav from '@/app/components/BottomNav'
 import { LABEL } from '@/lib/design/tokens'
 
 const card: React.CSSProperties = {
@@ -150,7 +151,7 @@ export default function ProgressPage() {
   if (loading) return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 120px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
           <div style={{ borderBottom: '1px solid var(--divider)', padding: '28px 0' }}>
             <div className="skeleton" style={{ height: '52px', width: '45%' }} />
@@ -168,7 +169,7 @@ export default function ProgressPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '52px 28px 120px' }}>
         <div style={{ maxWidth: '460px', margin: '0 auto' }}>
 
           <BrandLogo />
@@ -402,6 +403,7 @@ export default function ProgressPage() {
 
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }
