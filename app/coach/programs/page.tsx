@@ -127,8 +127,8 @@ export default function ProgramsPage() {
                       <span style={{
                         fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px',
                         padding: '2px 8px', borderRadius: '999px',
-                        background: prog.is_active ? 'rgba(26,122,60,0.1)' : 'var(--bg-card-soft)',
-                        color: prog.is_active ? '#1a7a3c' : 'var(--text-tertiary)',
+                        background: prog.is_active ? 'var(--success-bg)' : 'var(--bg-card-soft)',
+                        color: prog.is_active ? 'var(--success)' : 'var(--text-tertiary)',
                       }}>
                         {prog.is_active ? 'Активна' : 'Неактивна'}
                       </span>
@@ -161,7 +161,7 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       onClick={() => toggleActive(prog)}
-                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'var(--bg-card-soft)' : 'rgba(26,122,60,0.1)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(26,122,60,0.2)', color: prog.is_active ? 'var(--text-secondary)' : '#1a7a3c', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'var(--bg-card-soft)' : 'var(--success-bg)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(93,108,73,0.25)', color: prog.is_active ? 'var(--text-secondary)' : 'var(--success)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       {prog.is_active ? 'Деактивировать' : 'Активировать'}
                     </button>

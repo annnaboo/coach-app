@@ -415,7 +415,7 @@ export default function ClientPage() {
                   : isRest
                     ? { background: 'transparent', border: '1.5px solid var(--divider)' }
                     : scheduled
-                      ? { background: 'transparent', border: '1.5px solid rgba(139,30,63,0.3)' }
+                      ? { background: 'transparent', border: '1.5px solid rgba(220,80,0,0.3)' }
                       : { background: 'var(--bg-card-soft)', border: '1.5px solid transparent' }
 
                 const numColor = isDone ? 'var(--text-inverse)' : isRest ? 'var(--text-tertiary)' : scheduled ? 'var(--accent-primary)' : 'var(--text-tertiary)'
@@ -473,7 +473,7 @@ export default function ClientPage() {
                                 style={{
                                   display: 'block', width: '100%', textAlign: 'left',
                                   padding: '8px 10px', borderRadius: '10px',
-                                  background: scheduled?.id === w.id ? 'rgba(139,30,63,0.08)' : 'transparent',
+                                  background: scheduled?.id === w.id ? 'var(--accent-soft-bg)' : 'transparent',
                                   border: 'none', cursor: 'pointer',
                                   marginBottom: '2px',
                                 }}
@@ -561,7 +561,7 @@ export default function ClientPage() {
           <div className="card-enter" style={{ ...card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <p style={{ ...LABEL, margin: 0 }}>Самочувствие</p>
-              <button onClick={saveMood} disabled={moodLoading} style={{ padding: '5px 14px', borderRadius: '999px', background: moodSaved ? 'var(--accent-soft-bg)' : 'var(--accent-primary)', color: moodSaved ? 'var(--accent-primary)' : 'var(--text-inverse)', border: moodSaved ? '1px solid rgba(139,30,63,0.12)' : 'none', fontFamily: 'var(--font-text)', fontSize: '11px', cursor: 'pointer' }}>
+              <button onClick={saveMood} disabled={moodLoading} style={{ padding: '5px 14px', borderRadius: '999px', background: moodSaved ? 'var(--accent-soft-bg)' : 'var(--accent-primary)', color: moodSaved ? 'var(--accent-primary)' : 'var(--text-inverse)', border: moodSaved ? '1px solid rgba(220,80,0,0.15)' : 'none', fontFamily: 'var(--font-text)', fontSize: '11px', cursor: 'pointer' }}>
                 {moodSaved ? 'Сохранено' : 'Сохранить'}
               </button>
             </div>
@@ -602,7 +602,7 @@ export default function ClientPage() {
                 <h2 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '32px', margin: '0 0 4px', letterSpacing: '-0.5px' }}>{todayWorkout.title}</h2>
                 {program && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px', marginTop: '2px' }}>
-                    <span style={{ display: 'inline-flex', background: 'rgba(139,30,63,0.08)', border: '1px solid rgba(139,30,63,0.12)', borderRadius: '999px', padding: '3px 12px', fontSize: '11px', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300 }}>
+                    <span style={{ display: 'inline-flex', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', borderRadius: '999px', padding: '3px 12px', fontSize: '11px', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300 }}>
                       📋 {program.title}
                     </span>
                     {program.start_date && (
@@ -619,7 +619,7 @@ export default function ClientPage() {
                 {todayWorkout.exercises && todayWorkout.exercises.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
                     {todayWorkout.exercises.slice(0, 4).map((ex: any, i: number) => (
-                      <span key={i} style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--accent-primary)', background: 'rgba(139,30,63,0.06)', border: '1px solid rgba(139,30,63,0.1)', borderRadius: '999px', padding: '3px 10px' }}>
+                      <span key={i} style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--accent-primary)', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.12)', borderRadius: '999px', padding: '3px 10px' }}>
                         {ex.name}
                       </span>
                     ))}
@@ -800,7 +800,7 @@ export default function ClientPage() {
 
           {/* Мои отчёты — not in bottom nav, keep as secondary link */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
-            <button onClick={() => router.push('/reports-history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'rgba(139,30,63,0.08)', border: '1px solid rgba(139,30,63,0.12)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={() => router.push('/reports-history')} style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer' }}>
               Мои отчёты →
             </button>
           </div>

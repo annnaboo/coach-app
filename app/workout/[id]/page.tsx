@@ -409,7 +409,8 @@ export default function DynamicWorkoutPage() {
         const totalVolume = exercises.reduce((sum, ex, idx) => {
           const key = getKey(ex, idx)
           const f = fields[key] || {}
-          const sets = ['w1','w2','w3'].map(k => parseFloat(f[k] || '') || 0)
+          const setFields = getFieldsForSets(ex.sets || '3', key).filter((fld: string) => fld !== 'reps')
+          const sets = setFields.map((k: string) => parseFloat(f[k] || '') || 0)
           const reps = parseInt(f.reps || '') || 1
           return sum + sets.reduce((s, w) => s + w * reps, 0)
         }, 0)

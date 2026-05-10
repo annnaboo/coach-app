@@ -70,9 +70,9 @@ const MEASUREMENTS = [
 
 function moodColor(score: number | null): string {
   if (score == null) return 'var(--bg-card-soft)'
-  if (score <= 2) return 'rgba(138,37,32,0.3)'
-  if (score === 3) return 'var(--text-tertiary)'
-  return 'rgba(26,122,60,0.3)'
+  if (score <= 2) return 'var(--error-bg)'
+  if (score === 3) return 'var(--bg-card-soft)'
+  return 'var(--success-bg)'
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -98,6 +98,9 @@ export default function ClientProfilePage() {
   const [view, setView] = useState<'list' | 'trajectory'>('list')
   const [trajPeriod, setTrajPeriod] = useState<4 | 8 | 12>(4)
   const [latestPhotoUrl, setLatestPhotoUrl] = useState<string | null>(null)
+  const [resetPassword, setResetPassword] = useState('')
+  const [savingReset, setSavingReset] = useState(false)
+  const [resetDone, setResetDone] = useState(false)
 
   // Payment editing
   const [editingPayment, setEditingPayment] = useState(false)
@@ -116,10 +119,42 @@ export default function ClientProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
 
+  async function deleteClient() {
+    if (!confirm(`Удалить клиента ${name}?`)) return
+    if (!confirm('Все данные клиента будут удалены. Продолжить?')) return
+    const supabase = createClient()
+    await supabase.from('workout_logs').delete().eq('player', clientId)
+    await supabase.from('mood_logs').delete().eq('player_id', clientId)
+    await supabase.from('weekly_reports').delete().eq('player_id', clientId)
+    await supabase.from('nutrition_plans').delete().eq('player_id', clientId)
+    await supabase.from('payments').delete().eq('player_id', clientId)
+    await supabase.from('workout_swap_requests').delete().eq('player_id', clientId)
+    await supabase.from('profiles').delete().eq('id', clientId)
+    router.push('/coach')
+  }
+
+  async function handleResetPassword() {
+    if (resetPassword.length < 6) return
+    setSavingReset(true)
+    const res = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: clientId, password: resetPassword }),
+    })
+    setSavingReset(false)
+    if (res.ok) { setResetDone(true); setResetPassword('') }
+    else { alert('Ошибка при смене пароля') }
+  }
+
   async function loadAll() {
     const supabase = createClient()
     const { data: authData } = await supabase.auth.getUser()
     if (!authData.user) { router.push('/'); return }
+
+    const { data: callerProf } = await supabase
+      .from('profiles').select('role').eq('id', authData.user.id).single()
+    if (callerProf?.role !== 'coach') { router.push('/client'); return }
+
     setCoachId(authData.user.id)
 
     const [
@@ -527,7 +562,7 @@ export default function ClientProfilePage() {
                             </LineChart>
                           )}
                           {diff !== 0 && (
-                            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: diff > 0 ? '#1a7a3c' : 'var(--error)' }}>
+                            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: diff > 0 ? 'var(--success)' : 'var(--error)' }}>
                               {diff > 0 ? '↗' : '↘'} {diff > 0 ? '+' : ''}{diff} кг
                             </span>
                           )}
@@ -744,6 +779,27 @@ export default function ClientProfilePage() {
 
         </>}
 
+        {/* ── RESET PASSWORD ── */}
+        <div style={SECTION}>
+          <p style={LABEL}>Сменить пароль клиента</p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="password"
+              placeholder="Новый пароль (мин. 6 символов)"
+              value={resetPassword}
+              onChange={e => { setResetPassword(e.target.value); setResetDone(false) }}
+              style={{ flex: 1, background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontFamily: 'var(--font-text)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
+            />
+            <button
+              onClick={handleResetPassword}
+              disabled={savingReset || resetPassword.length < 6}
+              style={{ padding: '10px 16px', borderRadius: 'var(--radius-sm)', background: resetDone ? 'var(--success)' : 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontSize: '13px', cursor: 'pointer', opacity: resetPassword.length < 6 ? 0.5 : 1, flexShrink: 0 }}
+            >
+              {resetDone ? '✓' : savingReset ? '...' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+
         {/* ── SEND FEEDBACK ── */}
         <div style={{ ...SECTION, borderBottom: 'none' }}>
           <p style={LABEL}>Написать клиенту</p>
@@ -759,11 +815,22 @@ export default function ClientProfilePage() {
             <button
               onClick={sendFeedback}
               disabled={sendingFeedback || !feedbackInput.trim()}
-              style={{ padding: '10px 18px', borderRadius: 'var(--radius-sm)', background: feedbackSent ? '#1a7a3c' : 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer', transition: 'background 0.2s', opacity: !feedbackInput.trim() ? 0.5 : 1, flexShrink: 0 }}
+              style={{ padding: '10px 18px', borderRadius: 'var(--radius-sm)', background: feedbackSent ? 'var(--success)' : 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer', transition: 'background 0.2s', opacity: !feedbackInput.trim() ? 0.5 : 1, flexShrink: 0 }}
             >
               {feedbackSent ? '✓' : sendingFeedback ? '...' : 'Отправить'}
             </button>
           </div>
+        </div>
+
+        {/* ── DELETE CLIENT ── */}
+        <div style={{ padding: '28px 0' }}>
+          <button
+            onClick={deleteClient}
+            className="pressable"
+            style={{ background: 'transparent', border: '1px solid var(--error)', borderRadius: '999px', color: 'var(--error)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', padding: '8px 20px', cursor: 'pointer', letterSpacing: '0.5px' }}
+          >
+            Удалить клиента
+          </button>
         </div>
 
       </div>

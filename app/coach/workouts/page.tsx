@@ -112,7 +112,7 @@ export default function AllWorkoutsPage() {
                     <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '16px', margin: '0 0 3px' }}>{w.title}</h3>
                     {w.subtitle && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', margin: '0 0 8px' }}>{w.subtitle}</p>}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '3px 10px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--bg-card-soft)', borderRadius: '999px', padding: '3px 10px' }}>
                         👤 {getAssignedLabel(w)}
                       </span>
                       {w.exercises && (

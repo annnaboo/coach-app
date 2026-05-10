@@ -107,9 +107,16 @@ CREATE POLICY "nutrition_select" ON nutrition_plans
     OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'coach')
   );
 
--- Только тренер создаёт и обновляет план питания
+-- Только тренер создаёт, обновляет и удаляет план питания
 CREATE POLICY "nutrition_insert" ON nutrition_plans
   FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'coach')
+  );
+
+DROP POLICY IF EXISTS "nutrition_delete" ON nutrition_plans;
+
+CREATE POLICY "nutrition_delete" ON nutrition_plans
+  FOR DELETE USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'coach')
   );
 

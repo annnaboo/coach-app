@@ -32,6 +32,9 @@ export async function POST(request: Request) {
   if (!email || !name || !password) {
     return NextResponse.json({ error: 'Необходимо заполнить имя, email и пароль' }, { status: 400 })
   }
+  if (password.length < 6) {
+    return NextResponse.json({ error: 'Пароль — минимум 6 символов' }, { status: 400 })
+  }
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
