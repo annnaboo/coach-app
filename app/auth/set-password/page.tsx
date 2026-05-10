@@ -89,10 +89,10 @@ export default function SetPasswordPage() {
     padding: '14px 18px',
     borderRadius: '999px',
     border: 'none',
-    background: 'rgba(255,255,255,0.6)',
-    fontFamily: 'Chillax, sans-serif',
+    background: 'var(--bg-card)',
+    fontFamily: 'var(--font-text)',
     fontSize: '16px',
-    color: '#2d1f0e',
+    color: 'var(--text-primary)',
     outline: 'none',
     boxSizing: 'border-box',
   }
@@ -102,36 +102,34 @@ export default function SetPasswordPage() {
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', padding: '24px 16px' }}>
         <div style={{
-          background: 'rgba(255,255,255,0.55)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,0.7)',
-          borderRadius: '24px',
+          background: 'var(--bg-card)',
+                              border: '1px solid var(--divider)',
+          borderRadius: 'var(--radius-lg)',
           padding: '32px 24px',
         }}>
           <h1 style={{
-            fontFamily: 'Epilogue, sans-serif',
+            fontFamily: 'var(--font-serif)',
             fontStyle: 'italic',
             fontWeight: 300,
             fontSize: '38px',
-            color: '#2d1f0e',
+            color: 'var(--text-primary)',
             margin: '0 0 8px',
             lineHeight: 1,
           }}>
             Добро пожаловать.
           </h1>
           <p style={{
-            fontFamily: 'Chillax, sans-serif',
+            fontFamily: 'var(--font-text)',
             fontWeight: 300,
             fontSize: '16px',
-            color: 'rgba(45,31,14,0.5)',
+            color: 'var(--text-secondary)',
             margin: '0 0 28px',
           }}>
             Придумай пароль для входа
           </p>
 
           {!sessionReady && (
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontSize: '13px', color: 'rgba(45,31,14,0.4)', textAlign: 'center', marginBottom: '16px' }}>
+            <p style={{ fontFamily: 'var(--font-text)', fontSize: '13px', color: 'var(--text-tertiary)', textAlign: 'center', marginBottom: '16px' }}>
               Загружаем твой аккаунт...
             </p>
           )}
@@ -156,7 +154,7 @@ export default function SetPasswordPage() {
           </div>
 
           {error && (
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: '#8a2520', fontSize: '13px', marginBottom: '12px', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--error)', fontSize: '13px', marginBottom: '12px', textAlign: 'center' }}>
               {error}
             </p>
           )}
@@ -168,10 +166,10 @@ export default function SetPasswordPage() {
               width: '100%',
               padding: '14px',
               borderRadius: '999px',
-              background: sessionReady ? '#7a4a20' : 'rgba(122,74,32,0.4)',
+              background: sessionReady ? 'var(--accent-primary)' : 'rgba(220,80,0,0.3)',
               color: '#fff',
               border: 'none',
-              fontFamily: 'Chillax, sans-serif',
+              fontFamily: 'var(--font-text)',
               fontWeight: 500,
               fontSize: '16px',
               cursor: loading || !sessionReady ? 'not-allowed' : 'pointer',

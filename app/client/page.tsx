@@ -311,8 +311,8 @@ export default function ClientPage() {
       <div style={{ maxWidth: '480px', margin: '0 auto' }}>
         {/* Skeleton header */}
         <div style={{ marginBottom: '28px' }}>
-          <div style={{ height: '48px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', width: '55%', marginBottom: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-          <div style={{ height: '12px', background: 'rgba(255,255,255,0.4)', borderRadius: '6px', width: '35%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '48px', background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', width: '55%', marginBottom: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '12px', background: 'var(--bg-card-soft)', borderRadius: '6px', width: '35%', animation: 'pulse 1.5s ease-in-out infinite' }} />
         </div>
         {[1, 2, 3].map(i => (
           <div key={i} style={{ background: 'var(--bg-card-soft)', borderRadius: '20px', padding: '20px', marginBottom: '10px', animation: 'pulse 1.5s ease-in-out infinite' }}>

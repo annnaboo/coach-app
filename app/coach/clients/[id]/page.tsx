@@ -19,36 +19,36 @@ import { EXERCISE_NAMES, WEEK_DAYS_RU } from '@/lib/exercises'
 // ─── Shared style tokens ─────────────────────────────────────────────────────
 
 const SECTION: React.CSSProperties = {
-  borderBottom: '1px solid rgba(45,31,14,0.08)',
+  borderBottom: '1px solid var(--divider)',
   padding: '28px 0',
 }
 
 const LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '10px',
   letterSpacing: '3px',
   textTransform: 'uppercase' as const,
-  color: 'rgba(45,31,14,0.3)',
+  color: 'var(--text-tertiary)',
   margin: '0 0 16px',
 }
 
 const MICRO_LABEL: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '9px',
   letterSpacing: '2px',
   textTransform: 'uppercase' as const,
-  color: 'rgba(45,31,14,0.3)',
+  color: 'var(--text-tertiary)',
   margin: '0 0 4px',
 }
 
 const BIG: React.CSSProperties = {
-  fontFamily: 'Epilogue, sans-serif',
+  fontFamily: 'var(--font-serif)',
   fontWeight: 400,
   fontSize: '40px',
   letterSpacing: '-1.5px',
-  color: '#2d1f0e',
+  color: 'var(--text-primary)',
   margin: 0,
   lineHeight: 1,
 }
@@ -69,9 +69,9 @@ const MEASUREMENTS = [
 // ─── Mood circle color ───────────────────────────────────────────────────────
 
 function moodColor(score: number | null): string {
-  if (score == null) return 'rgba(45,31,14,0.07)'
+  if (score == null) return 'var(--bg-card-soft)'
   if (score <= 2) return 'rgba(138,37,32,0.3)'
-  if (score === 3) return 'rgba(45,31,14,0.15)'
+  if (score === 3) return 'var(--text-tertiary)'
   return 'rgba(26,122,60,0.3)'
 }
 
@@ -286,9 +286,9 @@ export default function ClientProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f5f0e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <AnimatedBackground />
-        <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.4)', fontSize: '14px' }}>
+        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--text-tertiary)', fontSize: '14px' }}>
           Загрузка...
         </p>
       </div>
@@ -336,7 +336,7 @@ export default function ClientProfilePage() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f0e8', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '480px', margin: '0 auto', padding: '0 20px 60px' }}>
 
@@ -344,7 +344,7 @@ export default function ClientProfilePage() {
         <div style={{ padding: '20px 0 0' }}>
           <button
             onClick={() => router.back()}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(45,31,14,0.45)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: 0 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: 0 }}
           >
             ← Клиенты
           </button>
@@ -352,19 +352,19 @@ export default function ClientProfilePage() {
 
         {/* ── HEADER ── */}
         <div style={{ ...SECTION, display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0, background: 'rgba(122,74,32,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '20px', color: '#7a4a20' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0, background: 'rgba(220,80,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', color: 'var(--accent-primary)' }}>
             {name ? initials(name) : '?'}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontStyle: 'italic', fontWeight: 400, fontSize: '28px', letterSpacing: '-0.5px', color: '#2d1f0e', margin: '0 0 8px', lineHeight: 1.1 }}>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400, fontSize: '28px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: '0 0 8px', lineHeight: 1.1 }}>
               {name || 'Клиент'}
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', border: payStatus.border, color: payStatus.color, letterSpacing: '0.5px' }}>
+              <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', border: payStatus.border, color: payStatus.color, letterSpacing: '0.5px' }}>
                 {payStatus.label}
               </span>
               {program && (
-                <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(122,74,32,0.08)', border: '1px solid rgba(122,74,32,0.2)', color: '#7a4a20', letterSpacing: '0.5px' }}>
+                <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(220,80,0,0.15)', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>
                   {program.title}
                 </span>
               )}
@@ -373,16 +373,16 @@ export default function ClientProfilePage() {
         </div>
 
         {/* ── TOGGLE ── */}
-        <div style={{ display: 'flex', gap: '6px', padding: '16px 0', borderBottom: '1px solid rgba(45,31,14,0.08)' }}>
+        <div style={{ display: 'flex', gap: '6px', padding: '16px 0', borderBottom: '1px solid var(--divider)' }}>
           {(['list', 'trajectory'] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               style={{
                 padding: '6px 16px', borderRadius: '999px', border: 'none', cursor: 'pointer',
-                fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px', letterSpacing: '0.5px',
-                background: view === v ? '#7a4a20' : 'rgba(45,31,14,0.06)',
-                color: view === v ? '#fff' : 'rgba(45,31,14,0.5)',
+                fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', letterSpacing: '0.5px',
+                background: view === v ? 'var(--accent-primary)' : 'var(--bg-card-soft)',
+                color: view === v ? '#fff' : 'var(--text-secondary)',
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
@@ -398,7 +398,7 @@ export default function ClientProfilePage() {
             {!editingPayment && (
               <button
                 onClick={openPaymentEdit}
-                style={{ background: 'none', border: '1px solid rgba(45,31,14,0.15)', borderRadius: '999px', padding: '4px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', cursor: 'pointer', letterSpacing: '0.5px' }}
+                style={{ background: 'none', border: '1px solid var(--divider)', borderRadius: '999px', padding: '4px 14px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer', letterSpacing: '0.5px' }}
               >
                 {paymentSaved ? '✓ Сохранено' : 'Изменить'}
               </button>
@@ -407,11 +407,11 @@ export default function ClientProfilePage() {
 
           {!editingPayment ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', border: payStatus.border, color: payStatus.color, letterSpacing: '0.5px' }}>
+              <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', padding: '3px 10px', borderRadius: '999px', border: payStatus.border, color: payStatus.color, letterSpacing: '0.5px' }}>
                 {payStatus.label}
               </span>
               {payment?.amount != null && (
-                <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.45)', letterSpacing: '0.5px' }}>
+                <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
                   {payment.amount.toLocaleString('ru-RU')} ₽
                 </span>
               )}
@@ -426,10 +426,10 @@ export default function ClientProfilePage() {
                     onClick={() => setPayPaid(val)}
                     style={{
                       padding: '6px 16px', borderRadius: '999px', cursor: 'pointer',
-                      fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '12px',
+                      fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px',
                       border: 'none',
-                      background: payPaid === val ? '#7a4a20' : 'rgba(45,31,14,0.06)',
-                      color: payPaid === val ? '#fff' : 'rgba(45,31,14,0.5)',
+                      background: payPaid === val ? 'var(--accent-primary)' : 'var(--bg-card-soft)',
+                      color: payPaid === val ? '#fff' : 'var(--text-secondary)',
                     }}
                   >
                     {val ? 'Оплачено' : 'Не оплачено'}
@@ -438,19 +438,19 @@ export default function ClientProfilePage() {
               </div>
               {/* Period end date */}
               <div>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '0 0 6px' }}>
                   Оплачено до
                 </p>
                 <input
                   type="date"
                   value={payPeriodEnd}
                   onChange={(e) => setPayPeriodEnd(e.target.value)}
-                  style={{ background: 'rgba(45,31,14,0.05)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                  style={{ background: 'var(--bg-card-soft)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '9px 14px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' }}
                 />
               </div>
               {/* Amount */}
               <div>
-                <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 6px' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '0 0 6px' }}>
                   Сумма (₽)
                 </p>
                 <input
@@ -458,7 +458,7 @@ export default function ClientProfilePage() {
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                   placeholder="Например, 5000"
-                  style={{ background: 'rgba(45,31,14,0.05)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                  style={{ background: 'var(--bg-card-soft)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '9px 14px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' }}
                 />
               </div>
               {/* Actions */}
@@ -466,13 +466,13 @@ export default function ClientProfilePage() {
                 <button
                   onClick={savePayment}
                   disabled={savingPayment}
-                  style={{ flex: 1, padding: '10px', borderRadius: '10px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer', opacity: savingPayment ? 0.6 : 1 }}
+                  style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer', opacity: savingPayment ? 0.6 : 1 }}
                 >
                   {savingPayment ? 'Сохранение...' : 'Сохранить'}
                 </button>
                 <button
                   onClick={() => setEditingPayment(false)}
-                  style={{ padding: '10px 18px', borderRadius: '10px', background: 'rgba(45,31,14,0.06)', color: 'rgba(45,31,14,0.5)', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
+                  style={{ padding: '10px 18px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-card-soft)', color: 'var(--text-secondary)', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
                 >
                   Отмена
                 </button>
@@ -492,10 +492,10 @@ export default function ClientProfilePage() {
                   onClick={() => setTrajPeriod(p)}
                   style={{
                     padding: '4px 14px', borderRadius: '999px', cursor: 'pointer',
-                    fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px',
-                    border: trajPeriod === p ? '1px solid rgba(122,74,32,0.4)' : '1px solid rgba(45,31,14,0.1)',
-                    background: trajPeriod === p ? 'rgba(122,74,32,0.1)' : 'transparent',
-                    color: trajPeriod === p ? '#7a4a20' : 'rgba(45,31,14,0.4)',
+                    fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px',
+                    border: trajPeriod === p ? '1px solid rgba(220,80,0,0.3)' : '1px solid var(--text-tertiary)',
+                    background: trajPeriod === p ? 'var(--accent-soft-bg)' : 'transparent',
+                    color: trajPeriod === p ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   }}
                 >
                   {p} нед
@@ -504,7 +504,7 @@ export default function ClientProfilePage() {
             </div>
 
             {trajExercises.length === 0 ? (
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.35)', textAlign: 'center', padding: '32px 0' }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', textAlign: 'center', padding: '32px 0' }}>
                 Нет данных за выбранный период
               </p>
             ) : (
@@ -515,19 +515,19 @@ export default function ClientProfilePage() {
                   const last = weeks[weeks.length - 1]?.maxWeight ?? 0
                   const diff = +(last - first).toFixed(1)
                   return (
-                    <div key={exId} style={{ borderBottom: '1px solid rgba(45,31,14,0.06)', padding: '16px 0' }}>
+                    <div key={exId} style={{ borderBottom: '1px solid var(--bg-card-soft)', padding: '16px 0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e' }}>
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)' }}>
                           {EXERCISE_NAMES[exId] ?? exId}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {weeks.length > 1 && (
                             <LineChart width={56} height={20} data={sparkPoints}>
-                              <Line type="monotone" dataKey="w" stroke="#7a4a20" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                              <Line type="monotone" dataKey="w" stroke="var(--accent-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
                             </LineChart>
                           )}
                           {diff !== 0 && (
-                            <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: diff > 0 ? '#1a7a3c' : '#8a2520' }}>
+                            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: diff > 0 ? '#1a7a3c' : 'var(--error)' }}>
                               {diff > 0 ? '↗' : '↘'} {diff > 0 ? '+' : ''}{diff} кг
                             </span>
                           )}
@@ -536,10 +536,10 @@ export default function ClientProfilePage() {
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {weeks.map(({ weekKey, maxWeight }) => (
                           <div key={weekKey} style={{ textAlign: 'center', minWidth: '40px' }}>
-                            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', color: 'rgba(45,31,14,0.3)', margin: '0 0 2px', letterSpacing: '0.5px' }}>
+                            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 2px', letterSpacing: '0.5px' }}>
                               {new Date(weekKey).toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric' })}
                             </p>
-                            <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#2d1f0e', margin: 0 }}>
+                            <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', margin: 0 }}>
                               {maxWeight}
                             </p>
                           </div>
@@ -566,7 +566,7 @@ export default function ClientProfilePage() {
               {firstReport?.weight != null && (
                 <div>
                   <p style={MICRO_LABEL}>Старт</p>
-                  <p style={{ ...BIG, fontSize: '28px', color: 'rgba(45,31,14,0.4)' }}>
+                  <p style={{ ...BIG, fontSize: '28px', color: 'var(--text-tertiary)' }}>
                     {firstReport.weight} <span style={{ fontSize: '14px' }}>кг</span>
                   </p>
                 </div>
@@ -579,7 +579,7 @@ export default function ClientProfilePage() {
               )}
               {weightDelta && weightDelta !== '0' && (
                 <div style={{ marginBottom: '6px' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '22px', margin: 0, color: deltaColor(weightDelta), letterSpacing: '-0.5px' }}>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '22px', margin: 0, color: deltaColor(weightDelta), letterSpacing: '-0.5px' }}>
                     {weightDelta} кг
                   </p>
                 </div>
@@ -594,9 +594,9 @@ export default function ClientProfilePage() {
                   const isLast = i === reportsAsc.length - 1
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
-                      <div style={{ width: '100%', height: `${h}px`, borderRadius: '3px 3px 0 0', background: isLast ? '#7a4a20' : 'rgba(122,74,32,0.2)' }} />
+                      <div style={{ width: '100%', height: `${h}px`, borderRadius: '3px 3px 0 0', background: isLast ? 'var(--accent-primary)' : 'var(--accent-soft-bg)' }} />
                       {r.weight != null && (
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '8px', color: isLast ? '#7a4a20' : 'rgba(45,31,14,0.3)' }}>
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: isLast ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
                           {r.weight}
                         </span>
                       )}
@@ -618,13 +618,13 @@ export default function ClientProfilePage() {
                 const first = firstReport?.[key] ?? null
                 const d = delta(curr, first)
                 return (
-                  <div key={key} style={{ background: 'rgba(45,31,14,0.03)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div key={key} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
                     <p style={{ ...MICRO_LABEL, margin: '0 0 4px' }}>{label}</p>
-                    <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: '#2d1f0e', margin: 0, lineHeight: 1 }}>
+                    <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
                       {curr != null ? curr : '—'}
                     </p>
                     {d && d !== '0' && (
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: deltaColor(d), margin: '2px 0 0' }}>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: deltaColor(d), margin: '2px 0 0' }}>
                         {d}
                       </p>
                     )}
@@ -642,7 +642,7 @@ export default function ClientProfilePage() {
             <img
               src={latestPhotoUrl}
               alt="Фото прогресса"
-              style={{ width: '120px', height: '160px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(45,31,14,0.1)' }}
+              style={{ width: '120px', height: '160px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--divider)' }}
             />
           </div>
         )}
@@ -656,11 +656,11 @@ export default function ClientProfilePage() {
               const now = new Date(); const isToday = dateStr === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
               return (
                 <div key={dateStr} style={{ textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isToday ? '#7a4a20' : 'rgba(45,31,14,0.3)', margin: '0 0 6px' }}>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isToday ? 'var(--accent-primary)' : 'var(--text-tertiary)', margin: '0 0 6px' }}>
                     {WEEK_DAYS_RU[i]}
                   </p>
-                  <div style={{ minHeight: '36px', borderRadius: '8px', background: title ? 'rgba(122,74,32,0.1)' : 'rgba(45,31,14,0.03)', border: isToday ? '1px solid rgba(122,74,32,0.3)' : '1px solid transparent', padding: '4px 2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '8px', color: title ? '#7a4a20' : 'rgba(45,31,14,0.2)', margin: 0, lineHeight: 1.2, textAlign: 'center' }}>
+                  <div style={{ minHeight: '36px', borderRadius: '8px', background: title ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: isToday ? '1px solid rgba(220,80,0,0.2)' : '1px solid transparent', padding: '4px 2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: title ? 'var(--accent-primary)' : 'var(--text-tertiary)', margin: 0, lineHeight: 1.2, textAlign: 'center' }}>
                       {title || '—'}
                     </p>
                   </div>
@@ -684,12 +684,12 @@ export default function ClientProfilePage() {
                 <div key={dateStr} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                   <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: moodColor(score), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {score != null && (
-                      <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.6)' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)' }}>
                         {score}
                       </span>
                     )}
                   </div>
-                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.3)' }}>
+                  <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
                     {dayLabel}
                   </span>
                 </div>
@@ -702,21 +702,21 @@ export default function ClientProfilePage() {
         <div style={SECTION}>
           <p style={LABEL}>Статистика тренировок</p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ background: 'rgba(45,31,14,0.03)', borderRadius: '12px', padding: '14px 18px', flex: '1 1 0' }}>
+            <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', flex: '1 1 0' }}>
               <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Тренировок</p>
               <p style={{ ...BIG, fontSize: '32px' }}>{totalSessions}</p>
             </div>
-            <div style={{ background: 'rgba(45,31,14,0.03)', borderRadius: '12px', padding: '14px 18px', flex: '1 1 0' }}>
+            <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', flex: '1 1 0' }}>
               <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Последняя</p>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '18px', letterSpacing: '-0.5px', color: '#2d1f0e', margin: 0, lineHeight: 1 }}>
+              <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '18px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
                 {lastSessionDate ? fmtDate(lastSessionDate) : '—'}
               </p>
             </div>
           </div>
           {mostTrainedName && (
-            <div style={{ background: 'rgba(45,31,14,0.03)', borderRadius: '12px', padding: '14px 18px', marginTop: '10px' }}>
+            <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', marginTop: '10px' }}>
               <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Чаще всего</p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '15px', color: '#2d1f0e', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '15px', color: 'var(--text-primary)', margin: 0 }}>
                 {mostTrainedName}
               </p>
             </div>
@@ -729,11 +729,11 @@ export default function ClientProfilePage() {
             <p style={LABEL}>Последние отзывы тренера</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {feedbacks.map((fb, i) => (
-                <div key={i} style={{ borderLeft: '2px solid rgba(122,74,32,0.2)', paddingLeft: '12px' }}>
-                  <p style={{ fontFamily: 'Epilogue, sans-serif', fontStyle: 'italic', fontSize: '14px', color: 'rgba(45,31,14,0.75)', margin: '0 0 4px', lineHeight: 1.4 }}>
+                <div key={i} style={{ borderLeft: '2px solid rgba(220,80,0,0.15)', paddingLeft: '12px' }}>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 4px', lineHeight: 1.4 }}>
                     {fb.message}
                   </p>
-                  <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.3)', margin: 0, letterSpacing: '1px' }}>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: 0, letterSpacing: '1px' }}>
                     {fmtDate(fb.created_at)}
                   </p>
                 </div>
@@ -754,12 +754,12 @@ export default function ClientProfilePage() {
               value={feedbackInput}
               onChange={(e) => setFeedbackInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendFeedback()}
-              style={{ flex: 1, background: 'rgba(45,31,14,0.05)', border: 'none', borderRadius: '10px', padding: '10px 14px', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', outline: 'none' }}
+              style={{ flex: 1, background: 'var(--bg-card-soft)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
             />
             <button
               onClick={sendFeedback}
               disabled={sendingFeedback || !feedbackInput.trim()}
-              style={{ padding: '10px 18px', borderRadius: '10px', background: feedbackSent ? '#1a7a3c' : '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', cursor: 'pointer', transition: 'background 0.2s', opacity: !feedbackInput.trim() ? 0.5 : 1, flexShrink: 0 }}
+              style={{ padding: '10px 18px', borderRadius: 'var(--radius-sm)', background: feedbackSent ? '#1a7a3c' : 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer', transition: 'background 0.2s', opacity: !feedbackInput.trim() ? 0.5 : 1, flexShrink: 0 }}
             >
               {feedbackSent ? '✓' : sendingFeedback ? '...' : 'Отправить'}
             </button>

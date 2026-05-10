@@ -75,7 +75,7 @@ export default function ProgramsPage() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+        <p style={{ fontFamily: 'var(--font-text)', color: 'var(--text-tertiary)', fontSize: '16px' }}>Загружаем...</p>
       </div>
     </div>
   )
@@ -90,17 +90,17 @@ export default function ProgramsPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <button
               onClick={() => router.push('/coach')}
-              style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '999px', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}
             >
               ← назад
             </button>
             <div>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '24px', margin: 0 }}>Программы</h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: 0 }}>{programs.length} создано</p>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '24px', margin: 0 }}>Программы</h1>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: 0 }}>{programs.length} создано</p>
             </div>
             <button
               onClick={() => router.push('/coach/programs/new')}
-              style={{ marginLeft: 'auto', padding: '9px 18px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '13px', cursor: 'pointer', flexShrink: 0 }}
+              style={{ marginLeft: 'auto', padding: '9px 18px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '13px', cursor: 'pointer', flexShrink: 0 }}
             >
               + Создать
             </button>
@@ -108,11 +108,11 @@ export default function ProgramsPage() {
 
           {programs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <p style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '20px', margin: '0 0 8px' }}>Нет программ</p>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)', margin: '0 0 20px' }}>Создай первую программу тренировок</p>
+              <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '20px', margin: '0 0 8px' }}>Нет программ</p>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-tertiary)', margin: '0 0 20px' }}>Создай первую программу тренировок</p>
               <button
                 onClick={() => router.push('/coach/programs/new')}
-                style={{ padding: '12px 28px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}
               >
                 Создать программу
               </button>
@@ -123,29 +123,29 @@ export default function ProgramsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                      <h3 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '16px', margin: 0 }}>{prog.title}</h3>
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{prog.title}</h3>
                       <span style={{
-                        fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px',
+                        fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px',
                         padding: '2px 8px', borderRadius: '999px',
-                        background: prog.is_active ? 'rgba(26,122,60,0.1)' : 'rgba(0,0,0,0.06)',
-                        color: prog.is_active ? '#1a7a3c' : 'rgba(45,31,14,0.4)',
+                        background: prog.is_active ? 'rgba(26,122,60,0.1)' : 'var(--bg-card-soft)',
+                        color: prog.is_active ? '#1a7a3c' : 'var(--text-tertiary)',
                       }}>
                         {prog.is_active ? 'Активна' : 'Неактивна'}
                       </span>
                     </div>
 
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.5)', margin: '0 0 4px' }}>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 4px' }}>
                       👤 {getAssignedNames(prog)}
                     </p>
 
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                       {prog.start_date && (
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)' }}>
                           {fmtDate(prog.start_date)}{prog.end_date ? ` — ${fmtDate(prog.end_date)}` : ''}
                         </span>
                       )}
                       {prog.workout_ids && (
-                        <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '10px', color: 'rgba(45,31,14,0.35)' }}>
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)' }}>
                           {prog.workout_ids.length} тр.
                         </span>
                       )}
@@ -155,19 +155,19 @@ export default function ProgramsPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
                     <button
                       onClick={() => router.push(`/coach/programs/edit/${prog.id}`)}
-                      style={{ padding: '5px 12px', borderRadius: '999px', background: '#7a4a20', color: '#fff', border: 'none', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       ✏️ Изменить
                     </button>
                     <button
                       onClick={() => toggleActive(prog)}
-                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'rgba(0,0,0,0.05)' : 'rgba(26,122,60,0.1)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(26,122,60,0.2)', color: prog.is_active ? 'rgba(45,31,14,0.5)' : '#1a7a3c', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: prog.is_active ? 'var(--bg-card-soft)' : 'rgba(26,122,60,0.1)', border: prog.is_active ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(26,122,60,0.2)', color: prog.is_active ? 'var(--text-secondary)' : '#1a7a3c', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       {prog.is_active ? 'Деактивировать' : 'Активировать'}
                     </button>
                     <button
                       onClick={() => deleteProgram(prog.id, prog.title)}
-                      style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.15)', color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: 'rgba(138,37,32,0.08)', border: '1px solid rgba(138,37,32,0.15)', color: 'var(--error)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer' }}
                     >
                       Удалить
                     </button>

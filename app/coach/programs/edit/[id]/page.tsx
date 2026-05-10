@@ -13,25 +13,25 @@ const glass: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(0,0,0,0.05)',
+  background: 'var(--bg-card-soft)',
   border: 'none',
   borderRadius: '999px',
   padding: '11px 14px',
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '16px',
-  color: '#2d1f0e',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
 }
 
 const fieldLabel: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '11px',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.4)',
+  color: 'var(--text-tertiary)',
   marginBottom: '6px',
   display: 'block',
 }
@@ -155,7 +155,7 @@ export default function EditProgramPage() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+        <p style={{ fontFamily: 'var(--font-text)', color: 'var(--text-tertiary)', fontSize: '16px' }}>Загружаем...</p>
       </div>
     </div>
   )
@@ -170,18 +170,18 @@ export default function EditProgramPage() {
 
           {/* HEADER */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
-            <button onClick={() => router.push('/coach/programs')} style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px', color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}>
+            <button onClick={() => router.push('/coach/programs')} style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '999px', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0 }}>
               ← назад
             </button>
             <div>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: 0 }}>Редактировать программу</h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.5)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>Цикл тренировок</p>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '26px', margin: 0 }}>Редактировать программу</h1>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--text-secondary)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>Цикл тренировок</p>
             </div>
           </div>
 
           {/* BASIC */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 16px' }}>Основное</p>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 16px' }}>Основное</p>
             <div style={{ marginBottom: '14px' }}>
               <span style={fieldLabel}>Название программы</span>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Базовый цикл" style={inputStyle} />
@@ -200,17 +200,17 @@ export default function EditProgramPage() {
 
           {/* CLIENTS */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 14px' }}>
               Клиенты · {selectedClients.length} выбрано
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {clients.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Нет клиентов</p>}
+              {clients.length === 0 && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Нет клиентов</p>}
               {clients.map(c => (
-                <div key={c.id} onClick={() => toggleClient(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '12px', background: selectedClients.includes(c.id) ? 'rgba(122,74,32,0.08)' : 'rgba(0,0,0,0.03)', border: selectedClients.includes(c.id) ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent', transition: 'all 0.15s' }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedClients.includes(c.id) ? '#7a4a20' : 'rgba(0,0,0,0.06)', border: selectedClients.includes(c.id) ? 'none' : '1px solid rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={c.id} onClick={() => toggleClient(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedClients.includes(c.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedClients.includes(c.id) ? '1px solid rgba(220,80,0,0.15)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedClients.includes(c.id) ? 'var(--accent-primary)' : 'var(--bg-card-soft)', border: selectedClients.includes(c.id) ? 'none' : '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedClients.includes(c.id) && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                   </div>
-                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>{c.name}</span>
+                  <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-primary)' }}>{c.name}</span>
                 </div>
               ))}
             </div>
@@ -218,17 +218,17 @@ export default function EditProgramPage() {
 
           {/* SELECT WORKOUTS */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>Тренировки в программе</p>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 14px' }}>Тренировки в программе</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {allWorkouts.length === 0 && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.5)', margin: 0 }}>Нет тренировок</p>}
+              {allWorkouts.length === 0 && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Нет тренировок</p>}
               {allWorkouts.map(w => (
-                <div key={w.id} onClick={() => toggleWorkout(w)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '12px', background: selectedWorkoutIds.includes(w.id) ? 'rgba(122,74,32,0.08)' : 'rgba(0,0,0,0.03)', border: selectedWorkoutIds.includes(w.id) ? '1px solid rgba(122,74,32,0.2)' : '1px solid transparent', transition: 'all 0.15s' }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedWorkoutIds.includes(w.id) ? '#7a4a20' : 'rgba(0,0,0,0.06)', border: selectedWorkoutIds.includes(w.id) ? 'none' : '1px solid rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={w.id} onClick={() => toggleWorkout(w)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: selectedWorkoutIds.includes(w.id) ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)', border: selectedWorkoutIds.includes(w.id) ? '1px solid rgba(220,80,0,0.15)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: selectedWorkoutIds.includes(w.id) ? 'var(--accent-primary)' : 'var(--bg-card-soft)', border: selectedWorkoutIds.includes(w.id) ? 'none' : '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedWorkoutIds.includes(w.id) && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e', margin: 0 }}>{w.title}</p>
-                    {w.subtitle && <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.4)', margin: '1px 0 0' }}>{w.subtitle}</p>}
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-primary)', margin: 0 }}>{w.title}</p>
+                    {w.subtitle && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)', margin: '1px 0 0' }}>{w.subtitle}</p>}
                   </div>
                 </div>
               ))}
@@ -238,19 +238,19 @@ export default function EditProgramPage() {
           {/* ORDER */}
           {orderedWorkouts.length > 0 && (
             <div style={glass}>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.5)', margin: '0 0 14px' }}>Порядок тренировок</p>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 14px' }}>Порядок тренировок</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {orderedWorkouts.map((w, idx) => (
-                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '12px', background: 'rgba(122,74,32,0.06)', border: '1px solid rgba(122,74,32,0.12)' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#7a4a20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '13px', color: '#fff' }}>{LETTERS[idx] || idx + 1}</span>
+                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(220,80,0,0.06)', border: '1px solid rgba(220,80,0,0.1)' }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '13px', color: '#fff' }}>{LETTERS[idx] || idx + 1}</span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: '#2d1f0e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.title}</p>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.title}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                      <button onClick={() => moveUp(idx)} disabled={idx === 0} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', width: '28px', height: '28px', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'rgba(45,31,14,0.2)' : '#7a4a20', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
-                      <button onClick={() => moveDown(idx)} disabled={idx === orderedWorkouts.length - 1} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '8px', width: '28px', height: '28px', cursor: idx === orderedWorkouts.length - 1 ? 'default' : 'pointer', color: idx === orderedWorkouts.length - 1 ? 'rgba(45,31,14,0.2)' : '#7a4a20', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
+                      <button onClick={() => moveUp(idx)} disabled={idx === 0} style={{ background: 'var(--bg-card-soft)', border: 'none', borderRadius: '8px', width: '28px', height: '28px', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'var(--text-tertiary)' : 'var(--accent-primary)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
+                      <button onClick={() => moveDown(idx)} disabled={idx === orderedWorkouts.length - 1} style={{ background: 'var(--bg-card-soft)', border: 'none', borderRadius: '8px', width: '28px', height: '28px', cursor: idx === orderedWorkouts.length - 1 ? 'default' : 'pointer', color: idx === orderedWorkouts.length - 1 ? 'var(--text-tertiary)' : 'var(--accent-primary)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
                     </div>
                   </div>
                 ))}
@@ -264,9 +264,9 @@ export default function EditProgramPage() {
             disabled={saving || !title.trim() || orderedWorkouts.length === 0}
             style={{
               width: '100%', padding: '14px', borderRadius: '999px',
-              background: title.trim() && orderedWorkouts.length > 0 ? '#7a4a20' : 'rgba(122,74,32,0.3)',
+              background: title.trim() && orderedWorkouts.length > 0 ? 'var(--accent-primary)' : 'var(--accent-soft-bg)',
               color: '#fff', border: 'none',
-              fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+              fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px',
               cursor: title.trim() && orderedWorkouts.length > 0 && !saving ? 'pointer' : 'not-allowed',
               marginBottom: '10px',
             }}
@@ -280,7 +280,7 @@ export default function EditProgramPage() {
             style={{
               width: '100%', padding: '12px', borderRadius: '999px',
               background: 'rgba(138,37,32,0.07)', border: '1px solid rgba(138,37,32,0.2)',
-              color: '#8a2520', fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px',
+              color: 'var(--error)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px',
               cursor: 'pointer',
             }}
           >

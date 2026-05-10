@@ -5,36 +5,34 @@ import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.7)',
-  borderRadius: '20px',
+  background: 'var(--bg-card)',
+  border: '1px solid var(--divider)',
+  borderRadius: 'var(--radius-md)',
   padding: '22px',
   marginBottom: '12px',
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(0,0,0,0.05)',
-  border: 'none',
-  borderRadius: '12px',
+  background: 'var(--bg-card-soft)',
+  border: '1px solid var(--divider)',
+  borderRadius: 'var(--radius-md)',
   padding: '11px 14px',
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '14px',
-  color: '#2d1f0e',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
 }
 
 const fieldLabel: React.CSSProperties = {
-  fontFamily: 'Chillax, sans-serif',
+  fontFamily: 'var(--font-text)',
   fontWeight: 300,
   fontSize: '11px',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
-  color: 'rgba(45,31,14,0.4)',
+  color: 'var(--text-tertiary)',
   marginBottom: '6px',
   display: 'block',
 }
@@ -113,7 +111,7 @@ export default function NewWorkoutPage() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <AnimatedBackground />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Chillax, sans-serif', color: 'rgba(45,31,14,0.4)', fontSize: '16px' }}>Загружаем...</p>
+        <p style={{ fontFamily: 'var(--font-text)', color: 'var(--text-tertiary)', fontSize: '16px' }}>Загружаем...</p>
       </div>
     </div>
   )
@@ -129,19 +127,18 @@ export default function NewWorkoutPage() {
             <button
               onClick={() => router.push('/coach')}
               style={{
-                background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.7)', borderRadius: '999px',
-                color: 'rgba(45,31,14,0.5)', fontFamily: 'Chillax, sans-serif',
+                background: 'var(--bg-card)',                 border: '1px solid var(--divider)', borderRadius: '999px',
+                color: 'var(--text-secondary)', fontFamily: 'var(--font-text)',
                 fontWeight: 300, fontSize: '13px', padding: '8px 18px', cursor: 'pointer', flexShrink: 0,
               }}
             >
               ← назад
             </button>
             <div>
-              <h1 style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, color: '#2d1f0e', fontSize: '26px', margin: 0 }}>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '26px', margin: 0 }}>
                 Новая тренировка
               </h1>
-              <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, color: 'rgba(45,31,14,0.35)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>
+              <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, color: 'var(--text-tertiary)', fontSize: '11px', margin: 0, letterSpacing: '1px' }}>
                 Заполни и сохрани
               </p>
             </div>
@@ -149,7 +146,7 @@ export default function NewWorkoutPage() {
 
           {/* BASIC INFO */}
           <div style={glass}>
-            <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '0 0 16px' }}>Занятие</p>
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '0 0 16px' }}>Занятие</p>
 
             <div style={{ marginBottom: '14px' }}>
               <span style={fieldLabel}>Название</span>
@@ -169,9 +166,9 @@ export default function NewWorkoutPage() {
                     type="checkbox"
                     checked={assignedToMultiple.length === 0}
                     onChange={() => setAssignedToMultiple([])}
-                    style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
                   />
-                  <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>Для всех клиентов</span>
+                  <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-primary)' }}>Для всех клиентов</span>
                 </label>
                 {clients.map(c => (
                   <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
@@ -185,9 +182,9 @@ export default function NewWorkoutPage() {
                           setAssignedToMultiple(prev => prev.filter(id => id !== c.id))
                         }
                       }}
-                      style={{ width: '16px', height: '16px', accentColor: '#7a4a20', cursor: 'pointer' }}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
                     />
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: '#2d1f0e' }}>{c.name}</span>
+                    <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-primary)' }}>{c.name}</span>
                   </label>
                 ))}
               </div>
@@ -195,20 +192,20 @@ export default function NewWorkoutPage() {
           </div>
 
           {/* EXERCISES */}
-          <p style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(45,31,14,0.35)', margin: '8px 0 12px' }}>
+          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '8px 0 12px' }}>
             Упражнения
           </p>
 
           {exercises.map((ex, idx) => (
             <div key={ex.id} style={{ ...glass, position: 'relative' }}>
-              <span style={{ position: 'absolute', top: '18px', left: '22px', fontFamily: 'Epilogue, sans-serif', fontWeight: 300, fontSize: '11px', color: 'rgba(45,31,14,0.3)' }}>
+              <span style={{ position: 'absolute', top: '18px', left: '22px', fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)' }}>
                 {String(idx + 1).padStart(2, '0')}
               </span>
 
               {exercises.length > 1 && (
                 <button
                   onClick={() => removeExercise(ex.id)}
-                  style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', color: 'rgba(45,31,14,0.25)', fontSize: '18px', cursor: 'pointer', padding: '4px', lineHeight: 1 }}
+                  style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', color: 'var(--text-tertiary)', fontSize: '18px', cursor: 'pointer', padding: '4px', lineHeight: 1 }}
                 >
                   ✕
                 </button>
@@ -243,7 +240,7 @@ export default function NewWorkoutPage() {
                     onChange={e => updateExercise(ex.id, 'description', e.target.value)}
                     placeholder="Укрепляет заднюю цепь, улучшает стабильность поясницы"
                     rows={2}
-                    style={{ ...inputStyle, borderRadius: '12px', resize: 'none', lineHeight: 1.55 }}
+                    style={{ ...inputStyle, borderRadius: 'var(--radius-md)', resize: 'none', lineHeight: 1.55 }}
                   />
                 </div>
 
@@ -260,8 +257,8 @@ export default function NewWorkoutPage() {
             onClick={() => setExercises(prev => [...prev, newExercise()])}
             style={{
               width: '100%', padding: '13px', borderRadius: '999px',
-              background: 'rgba(122,74,32,0.08)', border: '1px dashed rgba(122,74,32,0.25)',
-              color: '#7a4a20', fontFamily: 'Chillax, sans-serif', fontWeight: 300,
+              background: 'var(--accent-soft-bg)', border: '1px dashed rgba(220,80,0,0.18)',
+              color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300,
               fontSize: '14px', cursor: 'pointer', marginBottom: '16px',
             }}
           >
@@ -274,9 +271,9 @@ export default function NewWorkoutPage() {
             disabled={loading || !title.trim()}
             style={{
               width: '100%', padding: '14px', borderRadius: '999px',
-              background: title.trim() ? '#7a4a20' : 'rgba(122,74,32,0.3)',
+              background: title.trim() ? 'var(--accent-primary)' : 'var(--accent-soft-bg)',
               color: '#fff', border: 'none',
-              fontFamily: 'Chillax, sans-serif', fontWeight: 500, fontSize: '16px',
+              fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px',
               cursor: title.trim() && !loading ? 'pointer' : 'not-allowed',
               transition: 'background 0.2s',
             }}

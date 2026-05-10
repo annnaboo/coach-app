@@ -498,16 +498,16 @@ export default function CoachPage() {
     <div style={{ position: 'relative', zIndex: 1, padding: '28px 20px 60px' }}>
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
         <div style={{ marginBottom: '28px' }}>
-          <div className="skeleton" style={{ height: '40px', borderRadius: '12px', width: '50%', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ height: '40px', borderRadius: 'var(--radius-md)', width: '50%', marginBottom: '8px' }} />
           <div className="skeleton" style={{ height: '10px', borderRadius: '5px', width: '30%' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
           {[1,2,3,4].map(i => (
-            <div key={i} className="skeleton" style={{ borderRadius: '16px', padding: '16px 10px', height: '64px' }} />
+            <div key={i} className="skeleton" style={{ borderRadius: 'var(--radius-md)', padding: '16px 10px', height: '64px' }} />
           ))}
         </div>
         {[1, 2].map(i => (
-          <div key={i} className="skeleton" style={{ borderRadius: '20px', padding: '22px', marginBottom: '12px', height: '88px' }} />
+          <div key={i} className="skeleton" style={{ borderRadius: 'var(--radius-md)', padding: '22px', marginBottom: '12px', height: '88px' }} />
         ))}
       </div>
     </div>
@@ -818,7 +818,7 @@ export default function CoachPage() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {swapRequests.map(req => (
-                  <div key={req.id} style={{ background: 'var(--accent-soft-bg)', borderRadius: '12px', padding: '12px 14px' }}>
+                  <div key={req.id} style={{ background: 'var(--accent-soft-bg)', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '14px', color: 'var(--text-primary)', margin: '0 0 2px' }}>{req.player_name}</p>
@@ -847,7 +847,7 @@ export default function CoachPage() {
                         <select
                           value={swapWorkoutSelected[req.id] || ''}
                           onChange={e => setSwapWorkoutSelected(prev => ({ ...prev, [req.id]: e.target.value }))}
-                          style={{ flex: 1, background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '10px', padding: '8px 12px', fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
+                          style={{ flex: 1, background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
                         >
                           <option value="">— выбери тренировку —</option>
                           {workoutsList.map(w => (
@@ -910,7 +910,7 @@ export default function CoachPage() {
               : null
 
             return (
-              <div key={client.id} className="card-enter" style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', padding: '16px 18px', marginBottom: '10px' }}>
+              <div key={client.id} className="card-enter" style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-soft)', padding: '16px 18px', marginBottom: '10px' }}>
                 {/* A — HEADER */}
                 <div onClick={() => setOpenClient(isOpen ? null : client.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                   <div onClick={e => { e.stopPropagation(); router.push(`/coach/clients/${client.id}`) }} style={{ width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0, background: 'var(--accent-soft-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '16px', color: 'var(--accent-primary)' }}>
@@ -1039,7 +1039,7 @@ export default function CoachPage() {
                               alert(data.error || 'Ошибка')
                             }
                           }}
-                          style={{ padding: '7px 14px', borderRadius: '10px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '12px', cursor: 'pointer', opacity: (resetPasswords[client.id] || '').length < 6 ? 0.4 : 1, flexShrink: 0 }}
+                          style={{ padding: '7px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '12px', cursor: 'pointer', opacity: (resetPasswords[client.id] || '').length < 6 ? 0.4 : 1, flexShrink: 0 }}
                         >
                           {savingReset === client.id ? '...' : 'Сохранить'}
                         </button>
@@ -1054,17 +1054,17 @@ export default function CoachPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                       <div>
                         <p style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Начало периода</p>
-                        <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                        <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }} />
                       </div>
                       <div>
                         <p style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Конец периода</p>
-                        <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                        <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }} />
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                       <div>
                         <p style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Сумма €</p>
-                        <input type="number" placeholder="5000" value={paymentForms[client.id]?.amount || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], amount: e.target.value } }))} className="no-spin" style={{ ...inputSm, borderRadius: '10px' }} />
+                        <input type="number" placeholder="5000" value={paymentForms[client.id]?.amount || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], amount: e.target.value } }))} className="no-spin" style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '18px' }}>
                         <input type="checkbox" id={`paid-${client.id}`} checked={paymentForms[client.id]?.paid || false} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], paid: e.target.checked } }))} style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }} />
@@ -1103,16 +1103,16 @@ export default function CoachPage() {
                               value={monthlyRates[client.id] || ''}
                               onChange={e => setMonthlyRates(prev => ({ ...prev, [client.id]: e.target.value }))}
                               placeholder="Сумма в €"
-                              style={{ ...inputSm, borderRadius: '10px' }}
+                              style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }}
                             />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                               <div>
                                 <p style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>С</p>
-                                <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                                <input type="date" value={paymentForms[client.id]?.period_start || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_start: e.target.value } }))} style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }} />
                               </div>
                               <div>
                                 <p style={{ fontFamily: 'var(--font-text)', fontWeight: 600, fontSize: '9px', color: 'var(--text-tertiary)', margin: '0 0 4px', letterSpacing: '1px', textTransform: 'uppercase' }}>До</p>
-                                <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: '10px' }} />
+                                <input type="date" value={paymentForms[client.id]?.period_end || ''} onChange={e => setPaymentForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], period_end: e.target.value } }))} style={{ ...inputSm, borderRadius: 'var(--radius-sm)' }} />
                               </div>
                             </div>
                             {(() => {
@@ -1282,7 +1282,7 @@ export default function CoachPage() {
                             onChange={e => setStarterForms(prev => ({ ...prev, [client.id]: { ...prev[client.id], notes: e.target.value } }))}
                             placeholder="Стартовые показатели..."
                             rows={2}
-                            style={{ ...inputSm, borderRadius: '10px', resize: 'none', lineHeight: 1.5 }}
+                            style={{ ...inputSm, borderRadius: 'var(--radius-sm)', resize: 'none', lineHeight: 1.5 }}
                           />
                         </div>
                         <button
@@ -1352,7 +1352,7 @@ export default function CoachPage() {
                           <div style={{ display: 'flex', gap: '6px', marginBottom: latestReport.notes ? '8px' : 0 }}>
                             {(['photo_front_url', 'photo_side_url', 'photo_back_url'] as const).map((key, i) => (
                               latestReport[key] ? (
-                                <img key={i} src={latestReport[key]} alt="" style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--divider)' }} />
+                                <img key={i} src={latestReport[key]} alt="" style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--divider)' }} />
                               ) : null
                             ))}
                           </div>
@@ -1416,7 +1416,7 @@ export default function CoachPage() {
                                 disabled={savingWorkout === client.id}
                                 className="pressable"
                                 style={{
-                                  flex: 1, padding: '9px 14px', borderRadius: '12px', textAlign: 'left',
+                                  flex: 1, padding: '9px 14px', borderRadius: 'var(--radius-md)', textAlign: 'left',
                                   background: assignedWorkout?.id === w.id ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)',
                                   border: assignedWorkout?.id === w.id ? '1px solid rgba(139,30,63,0.2)' : '1px solid var(--divider)',
                                   cursor: 'pointer',
@@ -1436,7 +1436,7 @@ export default function CoachPage() {
                         )}
                       </div>
                     ) : assignedWorkout ? (
-                      <div style={{ background: 'var(--accent-soft-bg)', borderRadius: '12px', padding: '10px 14px' }}>
+                      <div style={{ background: 'var(--accent-soft-bg)', borderRadius: 'var(--radius-md)', padding: '10px 14px' }}>
                         <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', margin: 0 }}>{assignedWorkout.title}</p>
                         {assignedWorkout.subtitle && <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '11px', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>{assignedWorkout.subtitle}</p>}
                       </div>
@@ -1455,7 +1455,7 @@ export default function CoachPage() {
                             {prog && <button onClick={() => router.push(`/coach/programs/edit/${prog.id}`)} style={{ background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', padding: 0 }}>Изменить</button>}
                           </div>
                           {prog ? (
-                            <div style={{ background: 'var(--accent-soft-bg)', borderRadius: '12px', padding: '10px 14px' }}>
+                            <div style={{ background: 'var(--accent-soft-bg)', borderRadius: 'var(--radius-md)', padding: '10px 14px' }}>
                               <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{prog.title}</p>
                               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                 {prog.start_date && <span style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '10px', color: 'var(--text-tertiary)' }}>Старт: {new Date(prog.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>}
@@ -1500,7 +1500,7 @@ export default function CoachPage() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: '480px', background: 'var(--bg-card)', borderRadius: '24px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}
+            style={{ width: '100%', maxWidth: '480px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}
           >
             {/* Close */}
             <button
@@ -1528,7 +1528,7 @@ export default function CoachPage() {
                     <img
                       src={url}
                       alt={label}
-                      style={{ width: '100%', height: '130px', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
+                      style={{ width: '100%', height: '130px', objectFit: 'cover', borderRadius: 'var(--radius-md)', display: 'block' }}
                     />
                     <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '10px', color: 'var(--text-tertiary)', textAlign: 'center', margin: '4px 0 0' }}>{label}</p>
                   </div>
@@ -1556,7 +1556,7 @@ export default function CoachPage() {
                 { key: 'left_arm', label: 'Рука Л' },
                 { key: 'right_arm', label: 'Рука П' },
               ].filter(({ key }) => (viewingReport.report[key] ?? viewingReport.report[key === 'left_thigh' || key === 'right_thigh' ? 'one_thigh' : key === 'left_arm' || key === 'right_arm' ? 'arm' : key]) != null).map(({ key, label }) => (
-                <div key={key} style={{ background: 'var(--bg-card-soft)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                <div key={key} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '12px', textAlign: 'center' }}>
                   <p style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '22px', color: 'var(--text-primary)', margin: '0 0 2px', lineHeight: 1 }}>{viewingReport.report[key] ?? viewingReport.report[key === 'left_thigh' || key === 'right_thigh' ? 'one_thigh' : 'arm']}</p>
                   <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>{label} см</p>
                 </div>
@@ -1579,7 +1579,7 @@ export default function CoachPage() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '28px 24px', width: '100%', maxWidth: '480px', marginTop: '40px', position: 'relative' }}
+            style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '28px 24px', width: '100%', maxWidth: '480px', marginTop: '40px', position: 'relative' }}
           >
             <button onClick={() => setViewingReportHistory(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>✕</button>
             <h2 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '22px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{viewingReportHistory.client}</h2>
@@ -1590,7 +1590,7 @@ export default function CoachPage() {
                 const next = arr[i + 1]
                 const diff = r.weight != null && next?.weight != null ? +(r.weight - next.weight).toFixed(1) : null
                 return (
-                  <div key={r.id || i} style={{ background: 'var(--bg-card-soft)', borderRadius: '16px', padding: '14px 16px' }}>
+                  <div key={r.id || i} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
                       <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '11px', color: 'var(--text-tertiary)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
                         {r.week_start ? new Date(r.week_start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
@@ -1609,7 +1609,7 @@ export default function CoachPage() {
                     {(r.photo_front_url || r.photo_side_url || r.photo_back_url) && (
                       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                         {[r.photo_front_url, r.photo_side_url, r.photo_back_url].filter(Boolean).map((url, j) => (
-                          <img key={j} src={url} alt="" style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--divider)' }} />
+                          <img key={j} src={url} alt="" style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--divider)' }} />
                         ))}
                       </div>
                     )}

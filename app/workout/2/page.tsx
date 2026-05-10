@@ -16,7 +16,7 @@ export default function WorkoutLegacyPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <AnimatedBackground />
-      <p style={{ position: 'relative', zIndex: 1, fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '14px', color: 'rgba(45,31,14,0.4)' }}>
+      <p style={{ position: 'relative', zIndex: 1, fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-tertiary)' }}>
         Загружаем...
       </p>
     </div>
