@@ -1,7 +1,6 @@
 /**
- * Lux Minimal / Liquid — typed token constants
- * Source of truth: design-system.md + design-tokens.json v1.0
- * Do not add hardcoded hex values here — all values must match design-tokens.json.
+ * ORYZO — typed token constants v2.0
+ * Source: styles.refero.design/style/1f204e95-454a-437e-845b-c1b169d35607
  */
 import type React from 'react'
 
@@ -9,69 +8,79 @@ import type React from 'react'
 
 export const color = {
   bg: {
-    primary:  '#F7F3EE',
-    gradient: 'linear-gradient(180deg, #F7F3EE 0%, #EFE7DE 100%)',
-    card:     '#FFFFFF',
-    cardSoft: '#FBF8F5',
-    overlay:  'rgba(28, 26, 25, 0.4)',
+    base:     '#100904',
+    primary:  '#100904',
+    gradient: 'linear-gradient(180deg, #100904 0%, #0d0702 100%)',
+    card:     '#1c1108',
+    cardSoft: '#261a0d',
+    overlay:  'rgba(16, 9, 4, 0.75)',
   },
   text: {
-    primary:  '#1C1A19',
-    secondary:'#8A817C',
-    tertiary: '#B7ADA7',
-    inverse:  '#FFFFFF',
-    disabled: 'rgba(28, 26, 25, 0.35)',
+    primary:  '#ffedd7',
+    secondary:'#bbac97',
+    tertiary: '#887b6d',
+    inverse:  '#100904',
+    disabled: 'rgba(255, 237, 215, 0.3)',
   },
   accent: {
-    primary:  '#8B1E3F',
-    hover:    '#A62C52',
-    pressed:  '#6E1832',
-    softBg:   '#F3D6DD',
-    gradient: 'linear-gradient(135deg, #8B1E3F 0%, #A62C52 100%)',
+    primary:  '#dc5000',
+    hover:    '#f05a00',
+    pressed:  '#b84200',
+    softBg:   'rgba(220, 80, 0, 0.14)',
+    gradient: 'linear-gradient(135deg, #dc5000 0%, #f05a00 100%)',
   },
-  lux: {
-    brown:  '#6B3E2E',
-    gold:   '#C6A27E',
+  palette: {
+    corkDust:   '#ffedd7',
+    lightCork:  '#f6e0c6',
+    faintHazel: '#bbac97',
+    agedStone:  '#887b6d',
+    fadedBark:  '#382416',
+    deepMocha:  '#40372e',
+    oliveGreen: '#445231',
+    subtleMoss: '#5d6c49',
+    rust:       '#dc5000',
   },
-  divider: '#E8E1DA',
+  divider: 'rgba(255, 237, 215, 0.1)',
   system: {
-    success:   '#4A8F6E',
-    successBg: '#E2EEE8',
-    warning:   '#D4A373',
-    warningBg: '#F6EADC',
-    error:     '#B23A48',
-    errorBg:   '#F5DADE',
+    success:   '#5d6c49',
+    successBg: 'rgba(93, 108, 73, 0.18)',
+    warning:   '#887b6d',
+    warningBg: 'rgba(136, 123, 109, 0.14)',
+    error:     '#e05a00',
+    errorBg:   'rgba(220, 80, 0, 0.14)',
   },
-  /** Data-viz palette — use in this order for multi-series charts */
-  chart: ['#8B1E3F', '#6B3E2E', '#C6A27E', '#4A8F6E', '#8A817C'] as const,
+  chart: ['#dc5000', '#f6e0c6', '#5d6c49', '#bbac97', '#887b6d'] as const,
 } as const
 
 // ─── Typography ───────────────────────────────────────────────────────────────
 
 export const font = {
-  primary: "'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif",
-  text:    "'SF Pro Text',    'Inter', system-ui, -apple-system, sans-serif",
+  primary: "'DM Sans', 'Inter', system-ui, -apple-system, sans-serif",
+  text:    "'DM Sans', 'Inter', system-ui, -apple-system, sans-serif",
+  serif:   "'Literata', 'Merriweather', Georgia, serif",
+  mono:    "'DM Mono', 'ui-monospace', monospace",
 } as const
 
 export const type = {
-  display:    { fontSize: 34, lineHeight: 40, fontWeight: 700, letterSpacing: -0.8 },
-  h1:         { fontSize: 28, lineHeight: 34, fontWeight: 700, letterSpacing: -0.5 },
-  h2:         { fontSize: 22, lineHeight: 28, fontWeight: 600, letterSpacing: -0.3 },
-  h3:         { fontSize: 18, lineHeight: 24, fontWeight: 600, letterSpacing: -0.2 },
-  body:       { fontSize: 16, lineHeight: 24, fontWeight: 400, letterSpacing:  0   },
-  bodyMedium: { fontSize: 16, lineHeight: 24, fontWeight: 500, letterSpacing:  0   },
-  caption:    { fontSize: 13, lineHeight: 18, fontWeight: 500, letterSpacing:  0   },
-  micro:      { fontSize: 11, lineHeight: 14, fontWeight: 600, letterSpacing:  0.4 },
+  display:    { fontSize: 49, lineHeight: 1,    fontWeight: 600, letterSpacing: -0.018 },
+  h1:         { fontSize: 34, lineHeight: 1.09, fontWeight: 600, letterSpacing: -0.018 },
+  h2:         { fontSize: 23, lineHeight: 1.09, fontWeight: 500, letterSpacing: -0.018 },
+  h3:         { fontSize: 18, lineHeight: 1.2,  fontWeight: 500, letterSpacing: 0 },
+  body:       { fontSize: 16, lineHeight: 1.26, fontWeight: 400, letterSpacing: 0 },
+  bodyLg:     { fontSize: 16, lineHeight: 1.26, fontWeight: 400, letterSpacing: 0 },
+  bodySm:     { fontSize: 14, lineHeight: 1.33, fontWeight: 400, letterSpacing: 0 },
+  caption:    { fontSize: 10, lineHeight: 1.5,  fontWeight: 400, letterSpacing: 0 },
+  micro:      { fontSize: 10, lineHeight: 1.5,  fontWeight: 500, letterSpacing: 0.4 },
 } as const
 
-// ─── Spacing (4px grid) ───────────────────────────────────────────────────────
+// ─── Spacing ──────────────────────────────────────────────────────────────────
 
 export const space = {
-  xs:  4,
-  sm:  8,
-  md:  16,
-  lg:  24,
-  xl:  32,
+  xs:    4,
+  sm:    8,
+  md:    16,
+  lg:    24,
+  xl:    32,
   '2xl': 48,
   '3xl': 64,
 } as const
@@ -80,19 +89,19 @@ export const space = {
 
 export const radius = {
   sm:   8,
-  md:   16,
-  lg:   24,
-  xl:   32,
+  md:   12,
+  lg:   20,
+  xl:   28,
   pill: 999,
 } as const
 
-// ─── Shadow ───────────────────────────────────────────────────────────────────
+// ─── Shadow — flat per ORYZO ──────────────────────────────────────────────────
 
 export const shadow = {
-  soft:       '0 4px 12px rgba(0, 0, 0, 0.04)',
-  hover:      '0 8px 20px rgba(0, 0, 0, 0.08)',
-  modal:      '0 24px 48px rgba(0, 0, 0, 0.12)',
-  accentGlow: '0 0 0 6px rgba(139, 30, 63, 0.12)',
+  soft:       'none',
+  hover:      'none',
+  modal:      'none',
+  accentGlow: '0 0 0 3px rgba(220, 80, 0, 0.25)',
 } as const
 
 // ─── Motion ───────────────────────────────────────────────────────────────────
@@ -129,11 +138,11 @@ export const a11y = {
   focusRingWidth:     2,
 } as const
 
-// ─── CSS var helpers (for inline styles that reference custom properties) ─────
+// ─── CSS var helpers ──────────────────────────────────────────────────────────
 
 export const cssVar = {
+  bgBase:         'var(--bg-base)',
   bgPrimary:      'var(--bg-primary)',
-  bgGradient:     'var(--bg-gradient)',
   bgCard:         'var(--bg-card)',
   bgCardSoft:     'var(--bg-card-soft)',
   bgOverlay:      'var(--bg-overlay)',
@@ -147,8 +156,6 @@ export const cssVar = {
   accentPressed:  'var(--accent-pressed)',
   accentSoftBg:   'var(--accent-soft-bg)',
   accentGradient: 'var(--accent-gradient)',
-  luxBrown:       'var(--lux-brown)',
-  luxGold:        'var(--lux-gold)',
   divider:        'var(--divider)',
   success:        'var(--success)',
   successBg:      'var(--success-bg)',
@@ -157,13 +164,11 @@ export const cssVar = {
   error:          'var(--error)',
   errorBg:        'var(--error-bg)',
   shadowSoft:     'var(--shadow-soft)',
-  shadowHover:    'var(--shadow-hover)',
   shadowModal:    'var(--shadow-modal)',
   shadowGlow:     'var(--shadow-accent-glow)',
 } as const
 
-// ─── Legacy re-exports (remove once all consumers are migrated) ───────────────
-// TODO: delete these after Phase 3 is complete
+// ─── Legacy re-exports ────────────────────────────────────────────────────────
 
 /** @deprecated use color.accent.primary */
 export const colors = {
@@ -189,21 +194,21 @@ export const shadows = {
   lg: shadow.modal,
 }
 
-/** @deprecated use .card CSS class or bg/radius/shadow tokens */
+/** @deprecated use .card CSS class */
 export const glassCard: React.CSSProperties = {
   background:   color.bg.card,
   borderRadius: `${radius.md}px`,
-  boxShadow:    shadow.soft,
+  border:       `1px solid ${color.divider}`,
   padding:      `${space.md}px`,
 }
 
 /** @deprecated use .type-micro CSS class */
 export const LABEL: React.CSSProperties = {
   fontFamily:    font.text,
-  fontWeight:    600,
-  fontSize:      '11px',
-  lineHeight:    '14px',
+  fontWeight:    500,
+  fontSize:      '10px',
+  lineHeight:    '1.5',
   letterSpacing: '0.4px',
   textTransform: 'uppercase' as const,
-  color:         color.text.secondary,
+  color:         color.text.tertiary,
 }

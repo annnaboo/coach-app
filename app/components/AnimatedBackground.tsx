@@ -28,38 +28,38 @@ export default function AnimatedBackground() {
         .blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(70px);
-          opacity: 0.45;
+          filter: blur(80px);
+          opacity: 0.35;
         }
         @media (prefers-reduced-motion: reduce) {
           .blob { animation: none !important; }
         }
       `}</style>
 
-      {/* blob 1 — warm blush, top right */}
+      {/* blob 1 — rust ember glow, top right */}
       <div className="blob" style={{
-        width: '580px', height: '580px',
-        top: '-180px', right: '-130px',
-        background: 'radial-gradient(circle, rgba(243,214,221,0.8) 0%, transparent 65%)',
-        animation: 'blob1 20s ease-in-out infinite',
+        width: '560px', height: '560px',
+        top: '-160px', right: '-120px',
+        background: 'radial-gradient(circle, rgba(220,80,0,0.5) 0%, transparent 65%)',
+        animation: 'blob1 22s ease-in-out infinite',
       }} />
 
-      {/* blob 2 — warm beige, left */}
+      {/* blob 2 — deep amber, left mid */}
       <div className="blob" style={{
-        width: '480px', height: '480px',
-        top: '20%', left: '-140px',
-        background: 'radial-gradient(circle, rgba(239,231,222,0.7) 0%, transparent 65%)',
-        animation: 'blob2 24s ease-in-out infinite',
-        animationDelay: '-8s',
+        width: '440px', height: '440px',
+        top: '25%', left: '-130px',
+        background: 'radial-gradient(circle, rgba(56,36,22,0.9) 0%, transparent 65%)',
+        animation: 'blob2 26s ease-in-out infinite',
+        animationDelay: '-9s',
       }} />
 
-      {/* blob 3 — soft warm, bottom */}
+      {/* blob 3 — subtle olive, bottom */}
       <div className="blob" style={{
-        width: '640px', height: '480px',
-        bottom: '-120px', left: '5%',
-        background: 'radial-gradient(circle, rgba(247,243,238,0.9) 0%, transparent 65%)',
-        animation: 'blob3 28s ease-in-out infinite',
-        animationDelay: '-14s',
+        width: '600px', height: '440px',
+        bottom: '-100px', left: '10%',
+        background: 'radial-gradient(circle, rgba(68,82,49,0.35) 0%, transparent 65%)',
+        animation: 'blob3 30s ease-in-out infinite',
+        animationDelay: '-15s',
       }} />
     </div>
   )
