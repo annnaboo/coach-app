@@ -1,7 +1,32 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies()
+  const callerClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(list) {
+          try { list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {}
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await callerClient.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: callerProfile } = await callerClient
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'coach') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { userId, password } = await request.json()
 
   if (!userId || !password) {
@@ -11,14 +36,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Минимум 6 символов' }, { status: 400 })
   }
 
-  const supabase = createClient(
+  // Ensure the target is a client, not another coach or admin account
+  const adminClient = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { error } = await supabase.auth.admin.updateUserById(userId, {
+  const { data: targetProfile } = await adminClient
+    .from('profiles').select('role').eq('id', userId).single()
+  if (targetProfile?.role !== 'client') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
     password,
-    email_confirm: true,  // подтверждаем email если ещё не подтверждён
+    email_confirm: true,
   })
 
   if (error) {

@@ -1,7 +1,32 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies()
+  const callerClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(list) {
+          try { list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {}
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await callerClient.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: profile } = await callerClient
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'coach') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { email, name, password } = await request.json()
 
   if (!email || !name || !password) {
