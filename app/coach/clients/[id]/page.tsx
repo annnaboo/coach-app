@@ -88,6 +88,7 @@ export default function ClientProfilePage() {
   const [program, setProgram] = useState<any>(null)
   const [reports, setReports] = useState<any[]>([])
   const [workoutLogs, setWorkoutLogs] = useState<any[]>([])
+  const [exerciseNameMap, setExerciseNameMap] = useState<Record<string, string>>({})
   const [schedule, setSchedule] = useState<any[]>([])
   const [moodLogs, setMoodLogs] = useState<any[]>([])
   const [feedbacks, setFeedbacks] = useState<any[]>([])
@@ -176,7 +177,7 @@ export default function ClientProfilePage() {
         .order('week_start', { ascending: false })
         .limit(8),
       supabase.from('workout_logs')
-        .select('exercise_id, w1, w2, w3, saved_at')
+        .select('exercise_id, workout_id, w1, w2, w3, saved_at')
         .eq('player', clientId)
         .order('saved_at', { ascending: false }),
       supabase.from('programs')
@@ -207,6 +208,19 @@ export default function ClientProfilePage() {
     setFeedbacks(feedbackRes.data || [])
     setSchedule(scheduleRes.data || [])
     setMoodLogs(moodRes.data || [])
+
+    // Build exercise name map from the workouts referenced in this client's logs
+    const workoutIds = [...new Set((logsRes.data || []).map((l: any) => l.workout_id).filter(Boolean))]
+    if (workoutIds.length > 0) {
+      const { data: workoutsData } = await supabase
+        .from('workouts').select('exercises').in('id', workoutIds)
+      const nameMap: Record<string, string> = {}
+      ;(workoutsData || []).forEach((w: any) => {
+        const exs = Array.isArray(w.exercises) ? w.exercises : []
+        exs.forEach((ex: any) => { if (ex.id && ex.name) nameMap[ex.id] = ex.name })
+      })
+      setExerciseNameMap(nameMap)
+    }
 
     // Signed URL for latest report photo
     const latestPhoto = reportsRes.data?.[0]?.photo_front
@@ -308,7 +322,7 @@ export default function ClientProfilePage() {
   })
   const mostTrainedId = Object.entries(exerciseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
   const mostTrainedName = mostTrainedId
-    ? (EXERCISE_NAMES[mostTrainedId] ?? mostTrainedId)
+    ? (exerciseNameMap[mostTrainedId] ?? EXERCISE_NAMES[mostTrainedId] ?? mostTrainedId)
     : null
 
   // Weekly schedule grid
@@ -560,7 +574,7 @@ export default function ClientProfilePage() {
                     <div key={exId} style={{ borderBottom: '1px solid var(--bg-card-soft)', padding: '16px 0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                         <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)' }}>
-                          {EXERCISE_NAMES[exId] ?? exId}
+                          {exerciseNameMap[exId] ?? EXERCISE_NAMES[exId] ?? exId}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {weeks.length > 1 && (
@@ -782,7 +796,7 @@ export default function ClientProfilePage() {
                     style={{ borderBottom: '1px solid var(--bg-card-soft)', padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                   >
                     <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)' }}>
-                      {EXERCISE_NAMES[log.exercise_id] ?? log.exercise_id}
+                      {exerciseNameMap[log.exercise_id] ?? EXERCISE_NAMES[log.exercise_id] ?? log.exercise_id}
                     </span>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                       {sets.map((w, j) => (
