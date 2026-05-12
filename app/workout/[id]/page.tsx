@@ -136,7 +136,7 @@ export default function DynamicWorkoutPage() {
     setSaving(key)
     const supabase = createClient()
 
-    const { error } = await supabase.from('workout_logs').upsert({
+    const { error } = await supabase.from('workout_logs').insert({
       player: userId,
       exercise_id: key,
       w1: parseFloat(f.w1 || '') || null,
@@ -145,7 +145,7 @@ export default function DynamicWorkoutPage() {
       reps: parseInt(f.reps || '') || null,
       saved_at: new Date().toISOString(),
       workout_id: workoutId,
-    }, { onConflict: 'player,exercise_id' })
+    })
 
     if (!error) {
       setSaved(prev => ({ ...prev, [key]: true }))

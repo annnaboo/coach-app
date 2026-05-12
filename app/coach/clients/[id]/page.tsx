@@ -180,10 +180,8 @@ export default function ClientProfilePage() {
         .eq('player', clientId)
         .order('saved_at', { ascending: false }),
       supabase.from('programs')
-        .select('title, workout_ids, start_date, end_date')
-        .eq('is_active', true)
-        .contains('assigned_to', [clientId])
-        .limit(1),
+        .select('title, workout_ids, start_date, end_date, assigned_to')
+        .eq('is_active', true),
       supabase.from('coach_feedback')
         .select('message, created_at')
         .eq('client_id', clientId)
@@ -205,7 +203,7 @@ export default function ClientProfilePage() {
     setPayment(paymentRes.data?.[0] || null)
     setReports(reportsRes.data || [])
     setWorkoutLogs(logsRes.data || [])
-    setProgram(programRes.data?.[0] || null)
+    setProgram(programRes.data?.find((p: any) => p.assigned_to?.includes(clientId)) || null)
     setFeedbacks(feedbackRes.data || [])
     setSchedule(scheduleRes.data || [])
     setMoodLogs(moodRes.data || [])
@@ -213,8 +211,12 @@ export default function ClientProfilePage() {
     // Signed URL for latest report photo
     const latestPhoto = reportsRes.data?.[0]?.photo_front
     if (latestPhoto) {
-      const { data: urlData } = await supabase.storage.from('reports').createSignedUrl(latestPhoto, 3600)
-      if (urlData?.signedUrl) setLatestPhotoUrl(urlData.signedUrl)
+      if (latestPhoto.startsWith('http')) {
+        setLatestPhotoUrl(latestPhoto)
+      } else {
+        const { data: urlData } = await supabase.storage.from('reports').createSignedUrl(latestPhoto, 3600)
+        if (urlData?.signedUrl) setLatestPhotoUrl(urlData.signedUrl)
+      }
     }
 
     setLoading(false)
@@ -294,6 +296,11 @@ export default function ClientProfilePage() {
   )]
   const totalSessions = uniqueDates.length
   const lastSessionDate = uniqueDates[0] ?? null
+
+  // All logs from the most recent session (for detail view)
+  const lastSessionLogs = lastSessionDate
+    ? workoutLogs.filter((l) => l.saved_at?.slice(0, 10) === lastSessionDate)
+    : []
 
   const exerciseCounts: Record<string, number> = {}
   workoutLogs.forEach((l) => {
@@ -644,9 +651,9 @@ export default function ClientProfilePage() {
         )}
 
         {/* ── MEASUREMENTS ── */}
-        {latestReport && (
-          <div style={SECTION}>
-            <p style={LABEL}>Замеры</p>
+        <div style={SECTION}>
+          <p style={LABEL}>Замеры</p>
+          {latestReport ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
               {MEASUREMENTS.map(({ key, label }) => {
                 const curr = latestReport?.[key] ?? null
@@ -667,8 +674,12 @@ export default function ClientProfilePage() {
                 )
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
+              Клиент ещё не отправил отчёт с замерами
+            </p>
+          )}
+        </div>
 
         {/* ── LATEST PHOTO ── */}
         {latestPhotoUrl && (
@@ -757,6 +768,38 @@ export default function ClientProfilePage() {
             </div>
           )}
         </div>
+
+        {/* ── LAST SESSION DETAIL ── */}
+        {lastSessionLogs.length > 0 && (
+          <div style={SECTION}>
+            <p style={LABEL}>Последняя тренировка · {fmtDate(lastSessionDate!)}</p>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {lastSessionLogs.map((log, i) => {
+                const sets = [log.w1, log.w2, log.w3].filter((w) => w && parseFloat(w) > 0)
+                return (
+                  <div
+                    key={i}
+                    style={{ borderBottom: '1px solid var(--bg-card-soft)', padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)' }}>
+                      {EXERCISE_NAMES[log.exercise_id] ?? log.exercise_id}
+                    </span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+                      {sets.map((w, j) => (
+                        <span key={j} style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '14px', color: 'var(--accent-primary)' }}>
+                          {w}
+                        </span>
+                      ))}
+                      {sets.length > 0 && (
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)' }}>кг</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── LAST FEEDBACK ── */}
         {feedbacks.length > 0 && (
