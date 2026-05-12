@@ -247,6 +247,13 @@ export default function ClientPage() {
     setShowSwapForm(false)
   }
 
+  // Build exercise name map from all fetched workouts
+  const exerciseNameMap: Record<string, string> = {}
+  workouts.forEach(w => {
+    const exs = Array.isArray(w.exercises) ? w.exercises : []
+    exs.forEach((ex: any) => { if (ex.id && ex.name) exerciseNameMap[ex.id] = ex.name })
+  })
+
   // Stats
   const totalSessions = logs.length
   const maxWeights: Record<string, number> = {}
@@ -751,7 +758,7 @@ export default function ClientPage() {
               top3.map(([exId, weight]) => (
                 <div key={exId} style={{ marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>{EXERCISE_NAMES[exId] || exId}</span>
+                    <span style={{ fontFamily: 'Chillax, sans-serif', fontWeight: 300, fontSize: '13px', color: 'rgba(45,31,14,0.6)' }}>{exerciseNameMap[exId] || EXERCISE_NAMES[exId] || exId}</span>
                     <span style={{ fontFamily: 'Epilogue, sans-serif', fontWeight: 400, fontSize: '15px', color: '#7a4a20' }}>{weight} кг</span>
                   </div>
                   <div style={{ height: '2px', borderRadius: '999px', background: 'rgba(45,31,14,0.08)' }}>

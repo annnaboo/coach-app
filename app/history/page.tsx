@@ -15,6 +15,7 @@ const card: React.CSSProperties = {
 
 type Log = {
   exercise_id: string
+  workout_id?: string
   w1?: string
   w2?: string
   w3?: string
@@ -43,7 +44,7 @@ function getMaxWeight(log: Log): number {
   )
 }
 
-function buildExerciseSeries(logs: Log[]): ExerciseSeries[] {
+function buildExerciseSeries(logs: Log[], nameMap: Record<string, string>): ExerciseSeries[] {
   const byExercise: Record<string, { date: string; max: number }[]> = {}
   logs.forEach(log => {
     const max = getMaxWeight(log)
@@ -70,19 +71,20 @@ function buildExerciseSeries(logs: Log[]): ExerciseSeries[] {
         : 'flat'
       return {
         id,
-        name: EXERCISE_NAMES[id] || id,
+        name: nameMap[id] || EXERCISE_NAMES[id] || id,
         pr,
         sessions: sorted,
         trend,
       }
     })
-    .filter(e => e.sessions.length >= 2)
+    .filter(e => e.sessions.length >= 1)
     .sort((a, b) => b.pr - a.pr)
 }
 
 export default function HistoryPage() {
   const [logs, setLogs] = useState<Log[]>([])
   const [schedule, setSchedule] = useState<Record<string, string>>({})
+  const [exerciseNameMap, setExerciseNameMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'history' | 'progress'>('history')
   const router = useRouter()
@@ -95,7 +97,7 @@ export default function HistoryPage() {
       const [logsRes, schedRes] = await Promise.all([
         supabase
           .from('workout_logs')
-          .select('exercise_id, w1, w2, w3, saved_at')
+          .select('exercise_id, workout_id, w1, w2, w3, saved_at')
           .eq('player', data.user.id)
           .order('saved_at', { ascending: false }),
         supabase
@@ -110,6 +112,22 @@ export default function HistoryPage() {
         if (s.workouts?.title) schedMap[s.scheduled_date] = s.workouts.title
       })
       setSchedule(schedMap)
+
+      // Build exercise name map from the workouts referenced in logs
+      const workoutIds = [...new Set((logsRes.data || []).map((l: any) => l.workout_id).filter(Boolean))]
+      if (workoutIds.length > 0) {
+        const { data: workoutsData } = await supabase
+          .from('workouts')
+          .select('exercises')
+          .in('id', workoutIds)
+        const nameMap: Record<string, string> = {}
+        ;(workoutsData || []).forEach((w: any) => {
+          const exs = Array.isArray(w.exercises) ? w.exercises : []
+          exs.forEach((ex: any) => { if (ex.id && ex.name) nameMap[ex.id] = ex.name })
+        })
+        setExerciseNameMap(nameMap)
+      }
+
       setLoading(false)
     })
   }, [])
@@ -127,7 +145,7 @@ export default function HistoryPage() {
     return vals.length === 0 ? '—' : vals.join(' / ') + ' кг'
   }
 
-  const series = buildExerciseSeries(logs)
+  const series = buildExerciseSeries(logs, exerciseNameMap)
 
   if (loading) return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
@@ -236,7 +254,7 @@ export default function HistoryPage() {
                         {dayLogs.map((log, i) => (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: i < dayLogs.length - 1 ? '10px' : 0, borderBottom: i < dayLogs.length - 1 ? '1px solid var(--divider)' : 'none', marginBottom: i < dayLogs.length - 1 ? '10px' : 0 }}>
                             <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {EXERCISE_NAMES[log.exercise_id] || log.exercise_id}
+                              {exerciseNameMap[log.exercise_id] || EXERCISE_NAMES[log.exercise_id] || log.exercise_id}
                             </span>
                             <span style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontSize: '14px', color: 'var(--accent-primary)', marginLeft: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                               {formatWeights(log)}
