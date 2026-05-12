@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
-import { LineChart, Line } from 'recharts'
+import { LineChart, Line, AreaChart, Area, ResponsiveContainer } from 'recharts'
 import {
   getPaymentStatus,
   fmtDate,
@@ -111,6 +111,23 @@ export default function ClientProfilePage() {
   const [savingPayment, setSavingPayment] = useState(false)
   const [paymentSaved, setPaymentSaved] = useState(false)
 
+  // Feature 3: compliance / all schedule
+  const [allSchedule, setAllSchedule] = useState<any[]>([])
+
+  // Feature 4: nutrition plan
+  const [clientNutrition, setClientNutrition] = useState<any>(null)
+
+  // Feature 6: progress photos
+  const [progressPhotos, setProgressPhotos] = useState<{ id: string; url: string; taken_at: string; weight_kg: number | null }[]>([])
+
+  // Feature 7: swap requests
+  const [swapRequests, setSwapRequests] = useState<any[]>([])
+
+  // Feature 9: coach notes
+  const [clientNotes, setClientNotes] = useState<any[]>([])
+  const [noteInput, setNoteInput] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
+
   // Pre-compute date windows once per mount so loadAll and render share the same values.
   const { mondayStr, sundayStr } = getMondaySunday()
   const sevenAgo = sevenDaysAgo()
@@ -156,7 +173,8 @@ export default function ClientProfilePage() {
       .from('profiles').select('role').eq('id', authData.user.id).single()
     if (callerProf?.role !== 'coach') { router.push('/client'); return }
 
-    setCoachId(authData.user.id)
+    const currentCoachId = authData.user.id
+    setCoachId(currentCoachId)
 
     const [
       profileRes,
@@ -167,6 +185,10 @@ export default function ClientProfilePage() {
       feedbackRes,
       scheduleRes,
       moodRes,
+      allScheduleRes,
+      nutritionRes,
+      swapRes,
+      notesRes,
     ] = await Promise.all([
       supabase.from('profiles').select('name, height_cm').eq('id', clientId).single(),
       supabase.from('payments').select('*').eq('player_id', clientId)
@@ -198,6 +220,26 @@ export default function ClientProfilePage() {
         .eq('player_id', clientId)
         .gte('logged_date', sevenAgo)
         .order('logged_date', { ascending: false }),
+      // Feature 3: all schedule for compliance
+      supabase.from('workout_schedule')
+        .select('scheduled_date')
+        .eq('player_id', clientId),
+      // Feature 4: nutrition plan
+      supabase.from('nutrition_plans')
+        .select('calories,protein,fat,carbs,notes')
+        .eq('player_id', clientId)
+        .single(),
+      // Feature 7: swap requests
+      supabase.from('workout_swap_requests')
+        .select('id,reason,status,created_at')
+        .eq('player_id', clientId)
+        .eq('status', 'pending'),
+      // Feature 9: coach notes
+      supabase.from('coach_client_notes')
+        .select('id,content,created_at')
+        .eq('coach_id', currentCoachId)
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false }),
     ])
 
     setName(profileRes.data?.name || '')
@@ -208,6 +250,10 @@ export default function ClientProfilePage() {
     setFeedbacks(feedbackRes.data || [])
     setSchedule(scheduleRes.data || [])
     setMoodLogs(moodRes.data || [])
+    setAllSchedule(allScheduleRes.data || [])
+    setClientNutrition(nutritionRes.data || null)
+    setSwapRequests(swapRes.data || [])
+    setClientNotes(notesRes.data || [])
 
     // Build exercise name map from the workouts referenced in this client's logs
     const workoutIds = [...new Set((logsRes.data || []).map((l: any) => l.workout_id).filter(Boolean))]
@@ -234,6 +280,35 @@ export default function ClientProfilePage() {
     }
 
     setLoading(false)
+
+    // Feature 6: progress photos — fetch after setLoading so page renders fast
+    const { data: photosData } = await supabase
+      .from('progress_photos')
+      .select('id,photo_url,taken_at,weight_kg')
+      .eq('user_id', clientId)
+      .order('taken_at', { ascending: false })
+      .limit(6)
+
+    if (photosData && photosData.length > 0) {
+      const paths = photosData.map((p: any) => p.photo_url).filter(Boolean)
+      if (paths.length > 0) {
+        const { data: signedData } = await supabase.storage
+          .from('progress-photos')
+          .createSignedUrls(paths, 3600)
+        const urlMap: Record<string, string> = {}
+        ;(signedData || []).forEach((s: any) => {
+          if (s.path && s.signedUrl) urlMap[s.path] = s.signedUrl
+        })
+        setProgressPhotos(
+          photosData.map((p: any) => ({
+            id: p.id,
+            url: urlMap[p.photo_url] || '',
+            taken_at: p.taken_at,
+            weight_kg: p.weight_kg ?? null,
+          })).filter((p) => p.url)
+        )
+      }
+    }
   }
 
   function openPaymentEdit() {
@@ -289,6 +364,35 @@ export default function ClientProfilePage() {
     setTimeout(() => setFeedbackSent(false), 2000)
   }
 
+  // Feature 7: mark swap request as reviewed
+  async function markSwapReviewed(id: string) {
+    const supabase = createClient()
+    await supabase.from('workout_swap_requests').update({ status: 'reviewed' }).eq('id', id)
+    setSwapRequests((prev) => prev.filter((r) => r.id !== id))
+  }
+
+  // Feature 9: save coach note
+  async function saveNote() {
+    if (!noteInput.trim() || !coachId) return
+    setSavingNote(true)
+    const supabase = createClient()
+    const { data } = await supabase.from('coach_client_notes').insert({
+      coach_id: coachId,
+      client_id: clientId,
+      content: noteInput.trim(),
+    }).select('id,content,created_at').single()
+    if (data) setClientNotes((prev) => [data, ...prev])
+    setNoteInput('')
+    setSavingNote(false)
+  }
+
+  // Feature 9: delete coach note
+  async function deleteNote(id: string) {
+    const supabase = createClient()
+    await supabase.from('coach_client_notes').delete().eq('id', id)
+    setClientNotes((prev) => prev.filter((n) => n.id !== id))
+  }
+
   // ── Derived data ────────────────────────────────────────────────────────────
 
   // Reports sorted oldest → newest for chart / first-value comparison
@@ -338,6 +442,107 @@ export default function ClientProfilePage() {
   moodLogs.forEach((m) => { moodByDate[m.logged_date] = m })
   const moodDays = buildWeek(sevenAgo)
 
+  // ── Feature 1: Frequency heatmap (last 8 weeks) ──────────────────────────
+
+  const logDateSet = new Set(workoutLogs.map((l) => l.saved_at?.slice(0, 10)).filter(Boolean))
+
+  // Build 8-week grid: weeks[0] = oldest, weeks[7] = current week
+  // Each week: Mon-Sun (7 days)
+  const heatmapWeeks: string[][] = []
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  // Find Monday of current week
+  const dayOfWeek = today.getDay()
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  const currentMonday = new Date(today)
+  currentMonday.setDate(today.getDate() + diffToMonday)
+  currentMonday.setHours(0, 0, 0, 0)
+  for (let w = 7; w >= 0; w--) {
+    const weekDates: string[] = []
+    for (let d = 0; d < 7; d++) {
+      const dt = new Date(currentMonday)
+      dt.setDate(currentMonday.getDate() - w * 7 + d)
+      weekDates.push(`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`)
+    }
+    heatmapWeeks.push(weekDates)
+  }
+
+  // ── Feature 2: Personal records ──────────────────────────────────────────
+
+  const prByExercise: Record<string, number> = {}
+  workoutLogs.forEach((log) => {
+    if (!log.exercise_id) return
+    const maxVal = Math.max(
+      parseFloat(log.w1 || '0') || 0,
+      parseFloat(log.w2 || '0') || 0,
+      parseFloat(log.w3 || '0') || 0,
+    )
+    if (maxVal > 0) {
+      prByExercise[log.exercise_id] = Math.max(prByExercise[log.exercise_id] || 0, maxVal)
+    }
+  })
+  const topPRs = Object.entries(prByExercise)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+  const maxPR = topPRs[0]?.[1] || 1
+
+  // ── Feature 3: Compliance rate ────────────────────────────────────────────
+
+  const now28 = new Date()
+  now28.setDate(now28.getDate() - 28)
+  const cutoff28Str = `${now28.getFullYear()}-${String(now28.getMonth() + 1).padStart(2, '0')}-${String(now28.getDate()).padStart(2, '0')}`
+  const scheduledIn28 = allSchedule.filter((s: any) => s.scheduled_date >= cutoff28Str).length
+  const loggedIn28 = new Set(
+    workoutLogs
+      .map((l) => l.saved_at?.slice(0, 10))
+      .filter((d): d is string => Boolean(d) && d >= cutoff28Str)
+  ).size
+  const compliancePct = scheduledIn28 > 0 ? Math.round((loggedIn28 / scheduledIn28) * 100) : null
+
+  // ── Feature 8: Streak counter ─────────────────────────────────────────────
+
+  // Build set of week-monday-strings that have at least 1 workout
+  const weeksWithWorkouts = new Set<string>()
+  workoutLogs.forEach((log) => {
+    if (!log.saved_at) return
+    const d = new Date(log.saved_at)
+    const day = d.getDay()
+    const mon = new Date(d)
+    mon.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
+    mon.setHours(0, 0, 0, 0)
+    weeksWithWorkouts.add(mon.toISOString().slice(0, 10))
+  })
+  // Walk back from current week
+  let streakWeeks = 0
+  for (let w = 0; w < 52; w++) {
+    const mon = new Date(currentMonday)
+    mon.setDate(currentMonday.getDate() - w * 7)
+    mon.setHours(0, 0, 0, 0)
+    const key = mon.toISOString().slice(0, 10)
+    if (weeksWithWorkouts.has(key)) {
+      streakWeeks++
+    } else {
+      break
+    }
+  }
+
+  // ── Feature 10: Volume chart ──────────────────────────────────────────────
+
+  const volumeByDate: Record<string, number> = {}
+  workoutLogs.forEach((log) => {
+    const date = log.saved_at?.slice(0, 10)
+    if (!date) return
+    const maxVal = Math.max(
+      parseFloat(log.w1 || '0') || 0,
+      parseFloat(log.w2 || '0') || 0,
+      parseFloat(log.w3 || '0') || 0,
+    )
+    if (maxVal > 0) volumeByDate[date] = (volumeByDate[date] || 0) + maxVal
+  })
+  const volumeData = Object.entries(volumeByDate)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, volume]) => ({ date, volume }))
+
   // ── Loading state ───────────────────────────────────────────────────────────
 
   if (loading) {
@@ -364,12 +569,12 @@ export default function ClientProfilePage() {
       if (new Date(log.saved_at) < cutoff) return
       const exId = log.exercise_id
       if (!exId) return
-      const maxW = Math.max(
+      const maxWt = Math.max(
         parseFloat(log.w1 || '0') || 0,
         parseFloat(log.w2 || '0') || 0,
         parseFloat(log.w3 || '0') || 0,
       )
-      if (maxW === 0) return
+      if (maxWt === 0) return
       const d = new Date(log.saved_at)
       const day = d.getDay()
       const mon = new Date(d)
@@ -377,8 +582,8 @@ export default function ClientProfilePage() {
       mon.setHours(0, 0, 0, 0)
       const weekKey = mon.toISOString().slice(0, 10)
       if (!byExerciseWeek[exId]) byExerciseWeek[exId] = {}
-      if (!byExerciseWeek[exId][weekKey] || maxW > byExerciseWeek[exId][weekKey]) {
-        byExerciseWeek[exId][weekKey] = maxW
+      if (!byExerciseWeek[exId][weekKey] || maxWt > byExerciseWeek[exId][weekKey]) {
+        byExerciseWeek[exId][weekKey] = maxWt
       }
     })
     Object.entries(byExerciseWeek).forEach(([exId, weekMap]) => {
@@ -537,6 +742,42 @@ export default function ClientProfilePage() {
           )}
         </div>
 
+        {/* ── FEATURE 4: NUTRITION PLAN ── */}
+        <div style={SECTION}>
+          <p style={LABEL}>Рацион клиента</p>
+          {clientNutrition ? (
+            <div>
+              <p style={{ ...BIG, fontSize: '36px', marginBottom: '12px' }}>
+                {clientNutrition.calories}
+                <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-secondary)', marginLeft: '6px' }}>ккал</span>
+              </p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {[
+                  { label: 'Белки', value: clientNutrition.protein },
+                  { label: 'Жиры', value: clientNutrition.fat },
+                  { label: 'Углеводы', value: clientNutrition.carbs },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '10px 14px', flex: '1 1 0', textAlign: 'center' }}>
+                    <p style={{ ...MICRO_LABEL, margin: '0 0 4px', textAlign: 'center' }}>{label}</p>
+                    <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '18px', color: 'var(--text-primary)', margin: 0 }}>
+                      {value ?? '—'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {clientNutrition.notes && (
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                  {clientNutrition.notes}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
+              Рацион не назначен
+            </p>
+          )}
+        </div>
+
         {/* ── TRAJECTORY VIEW ── */}
         {view === 'trajectory' && (
           <div style={{ paddingTop: '20px' }}>
@@ -673,6 +914,11 @@ export default function ClientProfilePage() {
                 const curr = latestReport?.[key] ?? null
                 const first = firstReport?.[key] ?? null
                 const d = delta(curr, first)
+                // Feature 5: sparkline data for this measurement
+                const sparkData = reportsAsc
+                  .map((r) => ({ v: r[key] ?? null }))
+                  .filter((p) => p.v != null)
+                const hasSpark = sparkData.length >= 2
                 return (
                   <div key={key} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
                     <p style={{ ...MICRO_LABEL, margin: '0 0 4px' }}>{label}</p>
@@ -683,6 +929,13 @@ export default function ClientProfilePage() {
                       <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: deltaColor(d), margin: '2px 0 0' }}>
                         {d}
                       </p>
+                    )}
+                    {hasSpark && (
+                      <div style={{ marginTop: '6px' }}>
+                        <LineChart width={80} height={32} data={sparkData}>
+                          <Line type="monotone" dataKey="v" stroke="var(--accent-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                        </LineChart>
+                      </div>
                     )}
                   </div>
                 )
@@ -713,7 +966,7 @@ export default function ClientProfilePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
             {weekDays.map((dateStr, i) => {
               const title = scheduleByDate[dateStr]
-              const now = new Date(); const isToday = dateStr === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+              const nowD = new Date(); const isToday = dateStr === `${nowD.getFullYear()}-${String(nowD.getMonth()+1).padStart(2,'0')}-${String(nowD.getDate()).padStart(2,'0')}`
               return (
                 <div key={dateStr} style={{ textAlign: 'center' }}>
                   <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isToday ? 'var(--accent-primary)' : 'var(--text-tertiary)', margin: '0 0 6px' }}>
@@ -727,6 +980,44 @@ export default function ClientProfilePage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+
+        {/* ── FEATURE 1: FREQUENCY HEATMAP ── */}
+        <div style={SECTION}>
+          <p style={LABEL}>Частота (8 недель)</p>
+          <div style={{ display: 'flex', gap: '3px' }}>
+            {heatmapWeeks.map((week, wi) => (
+              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1 }}>
+                {week.map((dateStr) => {
+                  const hasWorkout = logDateSet.has(dateStr)
+                  const isToday = dateStr === todayStr
+                  let bg = 'var(--bg-card-soft)'
+                  if (isToday) bg = 'rgba(0,0,0,0.12)'
+                  else if (hasWorkout) bg = 'var(--accent-primary)'
+                  return (
+                    <div
+                      key={dateStr}
+                      title={dateStr}
+                      style={{
+                        width: '100%',
+                        paddingBottom: '100%',
+                        position: 'relative',
+                        borderRadius: '3px',
+                        background: bg,
+                        opacity: hasWorkout ? 1 : 0.35,
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '6px', marginTop: '8px', alignItems: 'center' }}>
+            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'var(--bg-card-soft)', opacity: 0.35 }} />
+            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)' }}>нет</span>
+            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'var(--accent-primary)', marginLeft: '8px' }} />
+            <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)' }}>тренировка</span>
           </div>
         </div>
 
@@ -773,6 +1064,24 @@ export default function ClientProfilePage() {
               </p>
             </div>
           </div>
+          {/* Feature 3: compliance + Feature 8: streak — second row */}
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '10px' }}>
+            <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', flex: '1 1 0' }}>
+              <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Выполнение</p>
+              <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
+                {scheduledIn28 > 0 ? `${loggedIn28} / ${scheduledIn28}` : '—'}
+              </p>
+              {compliancePct !== null && (
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  {compliancePct}%
+                </p>
+              )}
+            </div>
+            <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', flex: '1 1 0' }}>
+              <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Недель подряд</p>
+              <p style={{ ...BIG, fontSize: '32px' }}>{streakWeeks}</p>
+            </div>
+          </div>
           {mostTrainedName && (
             <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 18px', marginTop: '10px' }}>
               <p style={{ ...MICRO_LABEL, margin: '0 0 6px' }}>Чаще всего</p>
@@ -782,6 +1091,44 @@ export default function ClientProfilePage() {
             </div>
           )}
         </div>
+
+        {/* ── FEATURE 2: PERSONAL RECORDS ── */}
+        {topPRs.length > 0 && (
+          <div style={SECTION}>
+            <p style={LABEL}>Личные рекорды</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {topPRs.map(([exId, weight]) => {
+                const barWidth = Math.round((weight / maxPR) * 100)
+                const exName = exerciseNameMap[exId] ?? EXERCISE_NAMES[exId] ?? exId
+                return (
+                  <div key={exId}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)' }}>
+                        {exName}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '16px', color: 'var(--accent-primary)', letterSpacing: '-0.5px' }}>
+                        {weight} <span style={{ fontFamily: 'var(--font-text)', fontSize: '10px', color: 'var(--text-tertiary)' }}>кг</span>
+                      </span>
+                    </div>
+                    <div style={{ height: '3px', borderRadius: '2px', background: 'var(--bg-card-soft)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${barWidth}%`, borderRadius: '2px', background: 'var(--accent-primary)' }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── FEATURE 10: VOLUME CHART ── */}
+        {volumeData.length >= 2 && (
+          <div style={SECTION}>
+            <p style={LABEL}>Объём (кг / тренировка)</p>
+            <LineChart width={440} height={80} data={volumeData} style={{ maxWidth: '100%' }}>
+              <Line type="monotone" dataKey="volume" stroke="var(--accent-primary)" strokeWidth={2} dot={{ r: 3, fill: 'var(--accent-primary)', strokeWidth: 0 }} isAnimationActive={false} />
+            </LineChart>
+          </div>
+        )}
 
         {/* ── LAST SESSION DETAIL ── */}
         {lastSessionLogs.length > 0 && (
@@ -815,6 +1162,57 @@ export default function ClientProfilePage() {
           </div>
         )}
 
+        {/* ── FEATURE 6: PROGRESS PHOTOS GALLERY ── */}
+        {progressPhotos.length > 0 && (
+          <div style={SECTION}>
+            <p style={LABEL}>Фото прогресса</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {progressPhotos.map((photo) => (
+                <div key={photo.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <img
+                    src={photo.url}
+                    alt={photo.taken_at}
+                    style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--divider)' }}
+                  />
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: 0, textAlign: 'center', letterSpacing: '0.5px' }}>
+                    {new Date(photo.taken_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                    {photo.weight_kg != null && ` · ${photo.weight_kg} кг`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── FEATURE 7: SWAP REQUESTS ── */}
+        {swapRequests.length > 0 && (
+          <div style={SECTION}>
+            <p style={LABEL}>Запросы на замену</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {swapRequests.map((req) => (
+                <div key={req.id} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: '0 0 4px', letterSpacing: '1px' }}>
+                      {fmtDate(req.created_at)}
+                    </p>
+                    {req.reason && (
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
+                        {req.reason}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => markSwapReviewed(req.id)}
+                    style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '999px', background: 'transparent', border: '1px solid var(--divider)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer', letterSpacing: '0.5px' }}
+                  >
+                    Рассмотрено
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── LAST FEEDBACK ── */}
         {feedbacks.length > 0 && (
           <div style={SECTION}>
@@ -835,6 +1233,50 @@ export default function ClientProfilePage() {
         )}
 
         </>}
+
+        {/* ── FEATURE 9: COACH NOTES ── */}
+        <div style={SECTION}>
+          <p style={LABEL}>Заметки тренера</p>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <textarea
+              placeholder="Заметка о клиенте..."
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              rows={3}
+              style={{ flex: 1, background: 'var(--bg-card-soft)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', outline: 'none', resize: 'vertical' }}
+            />
+            <button
+              onClick={saveNote}
+              disabled={savingNote || !noteInput.trim()}
+              style={{ alignSelf: 'flex-end', padding: '10px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer', opacity: !noteInput.trim() ? 0.5 : 1, flexShrink: 0 }}
+            >
+              {savingNote ? '...' : 'Сохранить'}
+            </button>
+          </div>
+          {clientNotes.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {clientNotes.map((note) => (
+                <div key={note.id} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.4 }}>
+                      {note.content}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: 'var(--text-tertiary)', margin: 0, letterSpacing: '1px' }}>
+                      {fmtDate(note.created_at)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteNote(note.id)}
+                    style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '14px', padding: '0 4px', lineHeight: 1 }}
+                    title="Удалить заметку"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* ── RESET PASSWORD ── */}
         <div style={SECTION}>
