@@ -69,6 +69,9 @@ export default function ClientPage() {
   const router = useRouter()
 
   const today = localDateStr(new Date())
+  const paymentDaysLeft = clientPayment?.paid && clientPayment?.period_end
+    ? Math.ceil((new Date(clientPayment.period_end).getTime() - new Date().getTime()) / 86400000)
+    : null
   const programTodayId = program && programWorkouts ? Object.keys(programWorkouts)[0] : null
   const programTodayWorkout = programTodayId ? programWorkouts[programTodayId] : null
   const todayWorkout = weekSchedule[today] || programTodayWorkout || null
@@ -354,7 +357,18 @@ export default function ClientPage() {
                   Личный дашборд
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  {clientPayment && clientPayment.paid && (
+                  {clientPayment && clientPayment.paid && paymentDaysLeft !== null && paymentDaysLeft <= 7 && paymentDaysLeft >= 0 && (
+                    <span style={{
+                      fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px',
+                      padding: '4px 12px', borderRadius: '999px',
+                      background: 'transparent', color: 'var(--warning)',
+                      border: '1px solid rgba(200,140,30,0.35)',
+                      letterSpacing: '1px',
+                    }}>
+                      ⚠ Оплата истекает {paymentDaysLeft === 0 ? 'сегодня' : `через ${paymentDaysLeft} дн.`}
+                    </span>
+                  )}
+                  {clientPayment && clientPayment.paid && (paymentDaysLeft === null || paymentDaysLeft > 7) && (
                     <span style={{
                       fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px',
                       padding: '4px 12px', borderRadius: '999px',
@@ -402,8 +416,11 @@ export default function ClientPage() {
 
           {/* WEEK CALENDAR */}
           <div className="card-enter" style={{ ...card }} onClick={e => e.stopPropagation()}>
-            <p style={{ ...LABEL }}>
-              {weekNumber && totalWeeks ? `Неделя ${weekNumber} из ${totalWeeks}` : 'Эта неделя'}
+            <p style={{ ...LABEL, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span>{weekNumber && totalWeeks ? `Неделя ${weekNumber} из ${totalWeeks}` : 'Эта неделя'}</span>
+              <span style={{ fontWeight: 300, fontSize: '10px', letterSpacing: '1px', color: 'var(--text-tertiary)', textTransform: 'none' }}>
+                {new Date(monday).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+              </span>
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
               {DAYS.map((day, i) => {
@@ -641,7 +658,9 @@ export default function ClientPage() {
                   style={{ position: 'relative', overflow: 'hidden', borderRadius: '999px', background: 'var(--accent-primary)', border: 'none', color: 'var(--text-inverse)', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '15px', padding: '12px 28px', cursor: 'pointer' }}
                 >
                   <span style={{ position: 'absolute', inset: 0, borderRadius: '999px', background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%)', pointerEvents: 'none', zIndex: 1 }} />
-                  <span style={{ position: 'relative', zIndex: 2 }}>Открыть тренировку</span>
+                  <span style={{ position: 'relative', zIndex: 2 }}>
+                    Открыть тренировку{todayWorkout.exercises?.length ? ` · ${todayWorkout.exercises.length} упр.` : ''}
+                  </span>
                 </button>
                 {/* Swap request */}
                 <div style={{ marginTop: '10px' }}>
@@ -678,6 +697,42 @@ export default function ClientPage() {
               </>
             )}
           </div>
+
+          {/* MUSCLE GROUPS THIS WEEK */}
+          {(() => {
+            const weekWorkouts = [...Object.values(weekSchedule), ...Object.values(programWorkouts)]
+            const groups: Record<string, number> = {}
+            weekWorkouts.forEach(w => {
+              const exs = Array.isArray(w.exercises) ? w.exercises : []
+              exs.forEach((ex: any) => {
+                if (ex.muscleGroup) {
+                  ex.muscleGroup.split(',').forEach((g: string) => {
+                    const t = g.trim()
+                    if (t) groups[t] = (groups[t] || 0) + 1
+                  })
+                }
+              })
+            })
+            const sorted = Object.entries(groups).sort(([, a], [, b]) => b - a).slice(0, 6)
+            if (sorted.length === 0) return null
+            return (
+              <div className="card-enter" style={{ ...card }}>
+                <p style={{ ...LABEL }}>Мышцы на этой неделе</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {sorted.map(([group, count]) => (
+                    <span key={group} style={{
+                      fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px',
+                      color: 'var(--text-secondary)', background: 'var(--bg-card-soft)',
+                      border: '1px solid var(--divider)', borderRadius: '999px',
+                      padding: '4px 12px', letterSpacing: '0.3px',
+                    }}>
+                      {group}{count > 1 ? ` ×${count}` : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* NEXT WORKOUT */}
           {nextProgramWorkout && program && (!program.end_date || new Date(program.end_date) >= new Date()) && (

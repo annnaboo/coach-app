@@ -28,6 +28,7 @@ export default function AllWorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [clients, setClients] = useState<ClientProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -47,6 +48,21 @@ export default function AllWorkoutsPage() {
       setLoading(false)
     })
   }, [])
+
+  async function duplicateWorkout(w: Workout) {
+    const supabase = createClient()
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData.user) return
+    const { data, error } = await supabase.from('workouts').insert({
+      title: `${w.title} (копия)`,
+      subtitle: w.subtitle,
+      exercises: w.exercises,
+      assigned_to_multiple: [],
+      created_by: authData.user.id,
+      is_active: false,
+    }).select().single()
+    if (!error && data) setWorkouts(prev => [data as Workout, ...prev])
+  }
 
   async function deleteWorkout(id: string, title: string) {
     if (!confirm(`Удалить тренировку "${title}"? Это действие нельзя отменить.`)) return
@@ -99,13 +115,40 @@ export default function AllWorkoutsPage() {
             </button>
           </div>
 
+          {workouts.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <input
+                type="text"
+                placeholder="Поиск по названию..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%', background: 'var(--bg-card)', border: '1px solid var(--divider)',
+                  borderRadius: '999px', padding: '10px 18px',
+                  fontFamily: 'var(--font-text)', fontSize: '13px', color: 'var(--text-primary)',
+                  outline: 'none', boxSizing: 'border-box' as const,
+                }}
+              />
+            </div>
+          )}
+
           {workouts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0' }}>
               <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--text-primary)', fontSize: '20px', margin: '0 0 8px' }}>Нет тренировок</p>
               <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '14px', color: 'var(--text-tertiary)', margin: '0 0 20px' }}>Создай первую тренировку для клиентов</p>
             </div>
+          ) : workouts.filter(w =>
+              w.title.toLowerCase().includes(search.toLowerCase()) ||
+              (w.subtitle || '').toLowerCase().includes(search.toLowerCase())
+            ).length === 0 ? (
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', textAlign: 'center', padding: '32px 0', margin: 0 }}>
+              Ничего не найдено
+            </p>
           ) : (
-            workouts.map(w => (
+            workouts.filter(w =>
+              w.title.toLowerCase().includes(search.toLowerCase()) ||
+              (w.subtitle || '').toLowerCase().includes(search.toLowerCase())
+            ).map(w => (
               <div key={w.id} style={glass}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -126,6 +169,12 @@ export default function AllWorkoutsPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>
+                    <button
+                      onClick={() => duplicateWorkout(w)}
+                      style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '999px', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}
+                    >
+                      Копия
+                    </button>
                     <button
                       onClick={() => router.push(`/coach/workout/edit/${w.id}`)}
                       style={{ background: 'var(--accent-soft-bg)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '999px', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', padding: '5px 12px', cursor: 'pointer' }}

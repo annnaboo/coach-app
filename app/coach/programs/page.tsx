@@ -60,6 +60,22 @@ export default function ProgramsPage() {
     setPrograms(prev => prev.filter(p => p.id !== id))
   }
 
+  async function duplicateProgram(prog: Program) {
+    const supabase = createClient()
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData.user) return
+    const { data, error } = await supabase.from('programs').insert({
+      title: `${prog.title} (копия)`,
+      workout_ids: prog.workout_ids || [],
+      assigned_to: [],
+      start_date: prog.start_date,
+      end_date: prog.end_date,
+      is_active: false,
+      created_by: authData.user.id,
+    }).select().single()
+    if (!error && data) setPrograms(prev => [data as Program, ...prev])
+  }
+
   async function toggleActive(prog: Program) {
     const supabase = createClient()
     await supabase.from('programs').update({ is_active: !prog.is_active }).eq('id', prog.id)
@@ -153,6 +169,12 @@ export default function ProgramsPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => duplicateProgram(prog)}
+                      style={{ padding: '5px 12px', borderRadius: '999px', background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', color: 'var(--text-secondary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      Копия
+                    </button>
                     <button
                       onClick={() => router.push(`/coach/programs/edit/${prog.id}`)}
                       style={{ padding: '5px 12px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}

@@ -40,6 +40,9 @@ export default function DynamicWorkoutPage() {
   const [showCompletion, setShowCompletion] = useState(false)
   // #49 — extra sets added dynamically per exercise (on top of what's in ex.sets)
   const [extraSets, setExtraSets] = useState<Record<string, number>>({})
+  const [difficulty, setDifficulty] = useState<number | null>(null)
+  const [sessionNotes, setSessionNotes] = useState('')
+  const [savingSession, setSavingSession] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -151,6 +154,22 @@ export default function DynamicWorkoutPage() {
       setSaved(prev => ({ ...prev, [key]: true }))
     }
     setSaving(null)
+  }
+
+  async function saveSession() {
+    if (!userId || !workoutId) return
+    setSavingSession(true)
+    const supabase = createClient()
+    try {
+      await supabase.from('workout_sessions').insert({
+        player_id: userId,
+        workout_id: workoutId,
+        completed_at: new Date().toISOString(),
+        difficulty: difficulty ?? null,
+        notes: sessionNotes || null,
+      })
+    } catch {}
+    setSavingSession(false)
   }
 
   if (loading) return (
@@ -465,12 +484,59 @@ export default function DynamicWorkoutPage() {
                 })}
               </div>
 
+              {/* Difficulty rating */}
+              <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+                <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: 'var(--text-tertiary)', margin: '0 0 10px' }}>
+                  Насколько было сложно?
+                </p>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                  {([
+                    { val: 1, emoji: '😴' },
+                    { val: 2, emoji: '🙂' },
+                    { val: 3, emoji: '😤' },
+                    { val: 4, emoji: '💪' },
+                    { val: 5, emoji: '🔥' },
+                  ] as { val: number; emoji: string }[]).map(({ val, emoji }) => (
+                    <button
+                      key={val}
+                      onClick={() => setDifficulty(difficulty === val ? null : val)}
+                      style={{
+                        width: '48px', height: '48px', borderRadius: '50%', fontSize: '22px',
+                        background: difficulty === val ? 'var(--accent-soft-bg)' : 'var(--bg-card)',
+                        border: difficulty === val ? '2px solid var(--accent-primary)' : '1px solid var(--divider)',
+                        cursor: 'pointer',
+                        transform: difficulty === val ? 'scale(1.15)' : 'scale(1)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Session notes */}
+              <textarea
+                value={sessionNotes}
+                onChange={e => setSessionNotes(e.target.value)}
+                placeholder="Как прошла тренировка? (необязательно)"
+                style={{
+                  width: '100%', minHeight: '72px', marginBottom: '20px',
+                  background: 'var(--bg-card)', border: '1px solid var(--divider)',
+                  borderRadius: '12px', padding: '12px 14px',
+                  fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px',
+                  color: 'var(--text-primary)', outline: 'none', resize: 'none',
+                  boxSizing: 'border-box' as const, lineHeight: 1.55,
+                }}
+              />
+
               <button
-                onClick={() => router.push('/client')}
+                onClick={async () => { await saveSession(); router.push('/client') }}
+                disabled={savingSession}
                 className="pressable"
-                style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'var(--accent-primary)', color: 'var(--text-inverse)', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '14px', borderRadius: '999px', background: 'var(--accent-primary)', color: 'var(--text-inverse)', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 500, fontSize: '16px', cursor: 'pointer', opacity: savingSession ? 0.7 : 1 }}
               >
-                Вернуться на главную
+                {savingSession ? 'Сохраняем...' : 'Вернуться на главную'}
               </button>
             </div>
           </div>

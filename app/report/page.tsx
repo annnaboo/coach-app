@@ -61,6 +61,7 @@ export default function ReportPage() {
   const [success, setSuccess] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+  const [prefilled, setPrefilled] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -68,9 +69,30 @@ export default function ReportPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session?.user) { router.push('/'); return }
       setUserId(session.user.id)
-      const { data: prof } = await supabase
-        .from('profiles').select('height_cm').eq('id', session.user.id).single()
-      if (prof?.height_cm) setHeightCm(String(prof.height_cm))
+      const [profRes, lastReportRes] = await Promise.all([
+        supabase.from('profiles').select('height_cm').eq('id', session.user.id).single(),
+        supabase.from('weekly_reports')
+          .select('weight, height_cm, chest, waist, waist_navel, hips, left_thigh, right_thigh, left_arm, right_arm')
+          .eq('player_id', session.user.id)
+          .order('week_start', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ])
+      if (profRes.data?.height_cm) setHeightCm(String(profRes.data.height_cm))
+      if (lastReportRes.data) {
+        const r = lastReportRes.data
+        if (r.weight) setWeight(String(r.weight))
+        if (r.height_cm) setHeightCm(String(r.height_cm))
+        if (r.chest) setChest(String(r.chest))
+        if (r.waist) setWaist(String(r.waist))
+        if (r.waist_navel) setWaistNavel(String(r.waist_navel))
+        if (r.hips) setHips(String(r.hips))
+        if (r.left_thigh) setLeftThigh(String(r.left_thigh))
+        if (r.right_thigh) setRightThigh(String(r.right_thigh))
+        if (r.left_arm) setLeftArm(String(r.left_arm))
+        if (r.right_arm) setRightArm(String(r.right_arm))
+        setPrefilled(true)
+      }
     })
   }, [])
 
@@ -290,7 +312,14 @@ export default function ReportPage() {
 
               {/* PARAMS */}
               <div style={solidCard} onClick={() => setActiveTooltip(null)}>
-                <p style={sectionLabel}>ПАРАМЕТРЫ</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
+                  <p style={{ ...sectionLabel, margin: 0 }}>ПАРАМЕТРЫ</p>
+                  {prefilled && (
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)', margin: 0, letterSpacing: '0.3px' }}>
+                      Данные из прошлой недели
+                    </p>
+                  )}
+                </div>
                 {FIELDS.map(({ label, unit, value, setter }, i) => {
                   const hasTooltip = !!TOOLTIPS[label]
                   const isOpen = activeTooltip === label
