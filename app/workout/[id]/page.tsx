@@ -53,7 +53,7 @@ export default function DynamicWorkoutPage() {
 
       const [workoutRes, logsRes] = await Promise.all([
         supabase.from('workouts').select('*').eq('id', workoutId).single(),
-        supabase.from('workout_logs').select('*').eq('player', data.user.id).order('saved_at', { ascending: false }),
+        supabase.from('workout_logs').select('exercise_id, w1, w2, w3, w4, w5, w6, w7, w8, reps, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
       ])
 
       if (!workoutRes.data) { router.push('/client'); return }
@@ -71,7 +71,12 @@ export default function DynamicWorkoutPage() {
       ;(logsRes.data || []).forEach((row: any) => {
         const key = row.exercise_id
         if (!prev[key]) {
-          prev[key] = { w1: row.w1 || '', w2: row.w2 || '', w3: row.w3 || '', reps: row.reps || '' }
+          prev[key] = {
+            w1: row.w1 || '', w2: row.w2 || '', w3: row.w3 || '',
+            w4: row.w4 || '', w5: row.w5 || '', w6: row.w6 || '',
+            w7: row.w7 || '', w8: row.w8 || '',
+            reps: row.reps || '',
+          }
         }
       })
       setPrevLogs(prev)
@@ -139,18 +144,28 @@ export default function DynamicWorkoutPage() {
     setSaving(key)
     const supabase = createClient()
 
-    const { error } = await supabase.from('workout_logs').insert({
-      player: userId,
-      exercise_id: key,
-      w1: parseFloat(f.w1 || '') || null,
-      w2: parseFloat(f.w2 || '') || null,
-      w3: parseFloat(f.w3 || '') || null,
-      reps: parseInt(f.reps || '') || null,
-      saved_at: new Date().toISOString(),
-      workout_id: workoutId,
-    })
+    const { error } = await supabase.from('workout_logs').upsert(
+      {
+        player: userId,
+        exercise_id: key,
+        w1: parseFloat(f.w1 || '') || null,
+        w2: parseFloat(f.w2 || '') || null,
+        w3: parseFloat(f.w3 || '') || null,
+        w4: parseFloat(f.w4 || '') || null,
+        w5: parseFloat(f.w5 || '') || null,
+        w6: parseFloat(f.w6 || '') || null,
+        w7: parseFloat(f.w7 || '') || null,
+        w8: parseFloat(f.w8 || '') || null,
+        reps: parseInt(f.reps || '') || null,
+        saved_at: new Date().toISOString(),
+        workout_id: workoutId,
+      },
+      { onConflict: 'player,exercise_id,workout_id' }
+    )
 
-    if (!error) {
+    if (error) {
+      showToast('Не удалось сохранить. Попробуй ещё раз.')
+    } else {
       setSaved(prev => ({ ...prev, [key]: true }))
     }
     setSaving(null)

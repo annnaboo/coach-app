@@ -66,6 +66,8 @@ export default function ClientPage() {
   const [restDays, setRestDays] = useState<string[]>([])
   const [coachFeedback, setCoachFeedback] = useState<{ message: string; created_at: string } | null>(null)
   const [nextProgramWorkout, setNextProgramWorkout] = useState<Workout | null>(null)
+  const [swapApproved, setSwapApproved] = useState(false)
+  const [checkingSwap, setCheckingSwap] = useState(false)
   const router = useRouter()
 
   const today = localDateStr(new Date())
@@ -246,6 +248,23 @@ export default function ClientPage() {
       setRestDays(prev => [...prev, dateStr])
     }
     setSchedulingDay(null)
+  }
+
+  async function checkSwapApproval() {
+    if (!userId) return
+    setCheckingSwap(true)
+    const supabase = createClient()
+    const { data: schedData } = await supabase
+      .from('workout_schedule')
+      .select('scheduled_date, workouts(id, title, subtitle, exercises)')
+      .eq('player_id', userId)
+      .eq('scheduled_date', today)
+      .maybeSingle()
+    if (schedData?.workouts) {
+      setWeekSchedule(prev => ({ ...prev, [today]: schedData.workouts as Workout }))
+      setSwapApproved(true)
+    }
+    setCheckingSwap(false)
   }
 
   async function sendSwapRequest() {
@@ -665,7 +684,20 @@ export default function ClientPage() {
                 {/* Swap request */}
                 <div style={{ marginTop: '10px' }}>
                   {swapSent ? (
-                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--success)', margin: 0 }}>✓ Запрос отправлен тренеру</p>
+                    swapApproved ? (
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--success)', margin: 0 }}>✓ Тренировка обновлена — обнови страницу</p>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--success)', margin: 0 }}>✓ Запрос отправлен тренеру</p>
+                        <button
+                          onClick={checkSwapApproval}
+                          disabled={checkingSwap}
+                          style={{ background: 'none', border: '1px solid var(--divider)', borderRadius: '999px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer', padding: '3px 12px' }}
+                        >
+                          {checkingSwap ? '...' : 'Проверить →'}
+                        </button>
+                      </div>
+                    )
                   ) : showSwapForm ? (
                     <div style={{ marginTop: '8px' }}>
                       <input

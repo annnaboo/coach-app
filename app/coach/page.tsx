@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AnimatedBackground from '@/app/components/AnimatedBackground'
-import { getPaymentStatus } from '@/lib/utils'
+import { getPaymentStatus, localDateStr } from '@/lib/utils'
 import ArtName from '@/app/components/ArtName'
 import BrandLogo from '@/app/components/BrandLogo'
 import { LABEL } from '@/lib/design/tokens'
@@ -153,6 +153,17 @@ export default function CoachPage() {
     if (!current.includes(req.player_id)) {
       await supabase.from('workouts').update({ assigned_to_multiple: [...current, req.player_id] }).eq('id', workoutId)
     }
+    // Use today's local date — not req.created_at which is UTC and may be yesterday in client's timezone
+    const requestDate = localDateStr(new Date())
+    await supabase.from('workout_schedule')
+      .delete()
+      .eq('player_id', req.player_id)
+      .eq('scheduled_date', requestDate)
+    await supabase.from('workout_schedule').insert({
+      player_id: req.player_id,
+      workout_id: workoutId,
+      scheduled_date: requestDate,
+    })
     setSwapRequests(prev => prev.filter(r => r.id !== req.id))
     setApprovingSwap(null)
   }
