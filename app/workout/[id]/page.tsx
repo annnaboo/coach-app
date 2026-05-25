@@ -135,10 +135,18 @@ export default function DynamicWorkoutPage() {
     const fieldsArr = getFieldsForSets(ex.sets || '3', key)
     const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
 
-    const hasAnyWeight = setWeightFields.some(fld => !!f[fld])
+    const hasAnyWeight = setWeightFields.some(fld => !!f[fld] || !!(prevLogs[key] || {})[fld])
     if (!hasAnyWeight) {
       showToast('Введите вес хотя бы в одном подходе')
       return
+    }
+
+    const getVal = (field: string) => {
+      const fromFields = f[field]
+      if (fromFields !== undefined && fromFields !== '') return parseFloat(fromFields) || null
+      const fromPrev = (prevLogs[key] || {})[field]
+      if (fromPrev !== undefined && fromPrev !== '') return parseFloat(String(fromPrev)) || null
+      return null
     }
 
     setSaving(key)
@@ -148,15 +156,15 @@ export default function DynamicWorkoutPage() {
       {
         player: userId,
         exercise_id: key,
-        w1: parseFloat(f.w1 || '') || null,
-        w2: parseFloat(f.w2 || '') || null,
-        w3: parseFloat(f.w3 || '') || null,
-        w4: parseFloat(f.w4 || '') || null,
-        w5: parseFloat(f.w5 || '') || null,
-        w6: parseFloat(f.w6 || '') || null,
-        w7: parseFloat(f.w7 || '') || null,
-        w8: parseFloat(f.w8 || '') || null,
-        reps: parseInt(f.reps || '') || null,
+        w1: getVal('w1'),
+        w2: getVal('w2'),
+        w3: getVal('w3'),
+        w4: getVal('w4'),
+        w5: getVal('w5'),
+        w6: getVal('w6'),
+        w7: getVal('w7'),
+        w8: getVal('w8'),
+        reps: parseInt(f.reps || '') || parseInt(String((prevLogs[key] || {}).reps || '')) || null,
         saved_at: new Date().toISOString(),
         workout_id: workoutId,
       },
@@ -386,7 +394,10 @@ export default function DynamicWorkoutPage() {
 
                       {/* Add set button — #49 fixed: onClick now increments set count */}
                       <button
-                        onClick={() => setExtraSets(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }))}
+                        onClick={() => {
+                          setExtraSets(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }))
+                          setSaved(prev => ({ ...prev, [key]: false }))
+                        }}
                         style={{
                           width: '100%', padding: '11px', borderRadius: '999px',
                           background: 'transparent', border: '1px solid var(--divider)',

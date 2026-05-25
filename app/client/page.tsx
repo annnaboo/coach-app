@@ -68,6 +68,7 @@ export default function ClientPage() {
   const [nextProgramWorkout, setNextProgramWorkout] = useState<Workout | null>(null)
   const [swapApproved, setSwapApproved] = useState(false)
   const [checkingSwap, setCheckingSwap] = useState(false)
+  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false)
   const router = useRouter()
 
   const today = localDateStr(new Date())
@@ -261,7 +262,7 @@ export default function ClientPage() {
       .eq('scheduled_date', today)
       .maybeSingle()
     if (schedData?.workouts) {
-      setWeekSchedule(prev => ({ ...prev, [today]: schedData.workouts as Workout }))
+      setWeekSchedule(prev => ({ ...prev, [today]: schedData.workouts as unknown as Workout }))
       setSwapApproved(true)
     }
     setCheckingSwap(false)
@@ -681,6 +682,42 @@ export default function ClientPage() {
                     Открыть тренировку{todayWorkout.exercises?.length ? ` · ${todayWorkout.exercises.length} упр.` : ''}
                   </span>
                 </button>
+                {/* Self-service workout picker */}
+                <div style={{ marginTop: '10px' }}>
+                  {showWorkoutPicker ? (
+                    <div style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '12px', padding: '12px' }}>
+                      {workouts.length === 0 ? (
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, padding: '4px 2px' }}>Нет доступных тренировок</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {workouts.map((w) => (
+                            <button
+                              key={w.id}
+                              onClick={() => { assignWorkout(today, w); setShowWorkoutPicker(false) }}
+                              style={{ background: w.id === todayWorkout.id ? 'var(--accent-soft-bg)' : 'none', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-text)' }}
+                            >
+                              <div style={{ fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)' }}>{w.title}</div>
+                              {w.subtitle && <div style={{ fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{w.subtitle}</div>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setShowWorkoutPicker(false)}
+                        style={{ marginTop: '8px', background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                      >
+                        отмена
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowWorkoutPicker(true)}
+                      style={{ background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                    >
+                      сменить тренировку
+                    </button>
+                  )}
+                </div>
                 {/* Swap request */}
                 <div style={{ marginTop: '10px' }}>
                   {swapSent ? (
