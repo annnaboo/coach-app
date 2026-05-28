@@ -444,31 +444,29 @@ export default function ClientPage() {
             </div>
           </div>
 
-          {/* REPORT REMINDER BANNER */}
-          {reportReminderDay !== null && !hasReportThisWeek && (() => {
-            const todayDow = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-            if (todayDow !== reportReminderDay) return null
-            return (
-              <div className="card-enter" style={{ borderBottom: '1px solid var(--divider)', padding: '20px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.15)', borderRadius: '14px', padding: '14px 16px' }}>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--accent-primary)', margin: '0 0 3px' }}>
-                      📋 Отчёт недели
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                      Не забудь сдать замеры и вес за эту неделю
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push('/report')}
-                    style={{ flexShrink: 0, padding: '8px 18px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.3px' }}
-                  >
-                    Заполнить →
-                  </button>
+          {/* REPORT REMINDER BANNER — shown all week until report submitted */}
+          {reportReminderDay !== null && !hasReportThisWeek && (
+            <div className="card-enter" style={{ borderBottom: '1px solid var(--divider)', padding: '20px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.15)', borderRadius: '14px', padding: '14px 16px' }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--accent-primary)', margin: '0 0 3px' }}>
+                    📋 Отчёт недели
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                    Не забудь сдать замеры и вес
+                    {' · до '}
+                    {['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'][reportReminderDay]}
+                  </p>
                 </div>
+                <button
+                  onClick={() => router.push('/report')}
+                  style={{ flexShrink: 0, padding: '8px 18px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.3px' }}
+                >
+                  Заполнить →
+                </button>
               </div>
-            )
-          })()}
+            </div>
+          )}
 
           {/* WEEK CALENDAR */}
           <div className="card-enter" style={{ ...card }} onClick={e => e.stopPropagation()}>
