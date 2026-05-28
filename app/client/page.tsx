@@ -694,7 +694,7 @@ export default function ClientPage() {
                           {workouts.map((w) => (
                             <button
                               key={w.id}
-                              onClick={() => { assignWorkout(today, w); setShowWorkoutPicker(false) }}
+                              onClick={async () => { await assignWorkout(today, w); setShowWorkoutPicker(false) }}
                               style={{ background: w.id === todayWorkout.id ? 'var(--accent-soft-bg)' : 'none', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-text)' }}
                             >
                               <div style={{ fontWeight: 400, fontSize: '13px', color: 'var(--text-primary)' }}>{w.title}</div>
@@ -707,7 +707,7 @@ export default function ClientPage() {
                         onClick={() => setShowWorkoutPicker(false)}
                         style={{ marginTop: '8px', background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
                       >
-                        отмена
+                        Отмена
                       </button>
                     </div>
                   ) : (
@@ -715,7 +715,7 @@ export default function ClientPage() {
                       onClick={() => setShowWorkoutPicker(true)}
                       style={{ background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
                     >
-                      змінити тренування
+                      Изменить тренировку
                     </button>
                   )}
                 </div>
@@ -762,17 +762,17 @@ export default function ClientPage() {
               </>
             ) : (
               <>
-                <h2 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', color: 'var(--text-tertiary)', fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Тренування не обрано</h2>
+                <h2 style={{ fontFamily: 'var(--font-primary)', fontWeight: 400, fontStyle: 'italic', color: 'var(--text-tertiary)', fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Тренировка не выбрана</h2>
                 {showWorkoutPicker ? (
                   <div style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '12px', padding: '12px', marginTop: '12px' }}>
                     {workouts.length === 0 ? (
-                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>Немає доступних тренувань</p>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>Нет доступных тренировок</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {workouts.map((w) => (
                           <button
                             key={w.id}
-                            onClick={() => { assignWorkout(today, w); setShowWorkoutPicker(false) }}
+                            onClick={async () => { await assignWorkout(today, w); setShowWorkoutPicker(false) }}
                             style={{ background: 'none', border: '1px solid var(--divider)', borderRadius: '8px', padding: '10px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-text)' }}
                           >
                             <div style={{ fontWeight: 400, fontSize: '14px', color: 'var(--text-primary)' }}>{w.title}</div>
@@ -782,7 +782,7 @@ export default function ClientPage() {
                       </div>
                     )}
                     <button onClick={() => setShowWorkoutPicker(false)} style={{ marginTop: '8px', background: 'none', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-                      скасувати
+                      Отмена
                     </button>
                   </div>
                 ) : (
@@ -790,7 +790,7 @@ export default function ClientPage() {
                     onClick={() => setShowWorkoutPicker(true)}
                     style={{ marginTop: '12px', padding: '10px 24px', borderRadius: '999px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.2)', color: 'var(--accent-primary)', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', cursor: 'pointer' }}
                   >
-                    Обрати тренування
+                    Выбрать тренировку
                   </button>
                 )}
               </>
