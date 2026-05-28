@@ -103,6 +103,15 @@ export default function ClientProfilePage() {
   const [savingReset, setSavingReset] = useState(false)
   const [resetDone, setResetDone] = useState(false)
 
+  // Measurements UI
+  const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null)
+  const [showMeasureTable, setShowMeasureTable] = useState(false)
+
+  // Report reminder
+  const [reminderDay, setReminderDay] = useState<number | null>(null)
+  const [savingReminder, setSavingReminder] = useState(false)
+  const [reminderSaved, setReminderSaved] = useState(false)
+
   // Payment editing
   const [editingPayment, setEditingPayment] = useState(false)
   const [payPaid, setPayPaid] = useState(true)
@@ -187,8 +196,10 @@ export default function ClientProfilePage() {
       moodRes,
       allScheduleRes,
       nutritionRes,
+
       swapRes,
       notesRes,
+      reminderRes,
     ] = await Promise.all([
       supabase.from('profiles').select('name, height_cm').eq('id', clientId).single(),
       supabase.from('payments').select('*').eq('player_id', clientId)
@@ -197,7 +208,7 @@ export default function ClientProfilePage() {
         .select('week_start, weight, chest, waist, hips, waist_navel, left_thigh, right_thigh, left_arm, right_arm, notes, photo_front')
         .eq('player_id', clientId)
         .order('week_start', { ascending: false })
-        .limit(8),
+        .limit(16),
       supabase.from('workout_logs')
         .select('exercise_id, workout_id, w1, w2, w3, saved_at')
         .eq('player', clientId)
@@ -240,6 +251,11 @@ export default function ClientProfilePage() {
         .eq('coach_id', currentCoachId)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false }),
+      // Report reminder
+      supabase.from('report_reminder_settings')
+        .select('day_of_week,enabled')
+        .eq('client_id', clientId)
+        .maybeSingle(),
     ])
 
     setName(profileRes.data?.name || '')
@@ -254,6 +270,9 @@ export default function ClientProfilePage() {
     setClientNutrition(nutritionRes.data || null)
     setSwapRequests(swapRes.data || [])
     setClientNotes(notesRes.data || [])
+    if (reminderRes.data) {
+      setReminderDay(reminderRes.data.enabled ? reminderRes.data.day_of_week : null)
+    }
 
     // Build exercise name map from the workouts referenced in this client's logs
     const workoutIds = [...new Set((logsRes.data || []).map((l: any) => l.workout_id).filter(Boolean))]
@@ -391,6 +410,22 @@ export default function ClientProfilePage() {
     const supabase = createClient()
     await supabase.from('coach_client_notes').delete().eq('id', id)
     setClientNotes((prev) => prev.filter((n) => n.id !== id))
+  }
+
+  async function saveReminder(day: number | null) {
+    setSavingReminder(true)
+    const supabase = createClient()
+    if (day === null) {
+      await supabase.from('report_reminder_settings')
+        .upsert({ client_id: clientId, day_of_week: 0, enabled: false }, { onConflict: 'client_id' })
+    } else {
+      await supabase.from('report_reminder_settings')
+        .upsert({ client_id: clientId, day_of_week: day, enabled: true, updated_at: new Date().toISOString() }, { onConflict: 'client_id' })
+    }
+    setReminderDay(day)
+    setSavingReminder(false)
+    setReminderSaved(true)
+    setTimeout(() => setReminderSaved(false), 2000)
   }
 
   // ── Derived data ────────────────────────────────────────────────────────────
@@ -907,40 +942,157 @@ export default function ClientProfilePage() {
 
         {/* ── MEASUREMENTS ── */}
         <div style={SECTION}>
-          <p style={LABEL}>Замеры</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <p style={{ ...LABEL, margin: 0 }}>Замеры</p>
+            {reports.length >= 2 && (
+              <button
+                onClick={() => setShowMeasureTable(v => !v)}
+                style={{ background: 'none', border: '1px solid var(--divider)', borderRadius: '999px', padding: '3px 12px', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-secondary)', cursor: 'pointer', letterSpacing: '0.5px' }}
+              >
+                {showMeasureTable ? 'Свернуть' : 'Все недели'}
+              </button>
+            )}
+          </div>
           {latestReport ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-              {MEASUREMENTS.map(({ key, label }) => {
-                const curr = latestReport?.[key] ?? null
-                const first = firstReport?.[key] ?? null
-                const d = delta(curr, first)
-                // Feature 5: sparkline data for this measurement
-                const sparkData = reportsAsc
-                  .map((r) => ({ v: r[key] ?? null }))
-                  .filter((p) => p.v != null)
-                const hasSpark = sparkData.length >= 2
-                return (
-                  <div key={key} style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-                    <p style={{ ...MICRO_LABEL, margin: '0 0 4px' }}>{label}</p>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
-                      {curr != null ? curr : '—'}
-                    </p>
-                    {d && d !== '0' && (
-                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: deltaColor(d), margin: '2px 0 0' }}>
-                        {d}
+            <>
+              {/* 4-col grid of clickable measurement cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '7px', marginBottom: '10px' }}>
+                {MEASUREMENTS.map(({ key, label }) => {
+                  const curr = latestReport?.[key] ?? null
+                  const prevWeek = reports[1]?.[key] ?? null
+                  const first = firstReport?.[key] ?? null
+                  const dWeek = delta(curr, prevWeek)
+                  const dTotal = delta(curr, first)
+                  const sparkData = reportsAsc.map((r) => ({ v: r[key] ?? null })).filter((p) => p.v != null)
+                  const hasSpark = sparkData.length >= 2
+                  const isSelected = selectedMeasure === key
+                  return (
+                    <div
+                      key={key}
+                      onClick={() => hasSpark && setSelectedMeasure(isSelected ? null : key)}
+                      style={{
+                        background: isSelected ? 'var(--accent-soft-bg)' : 'var(--bg-card-soft)',
+                        border: isSelected ? '1px solid rgba(139,30,63,0.2)' : '1px solid transparent',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '9px 9px',
+                        cursor: hasSpark ? 'pointer' : 'default',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <p style={{ ...MICRO_LABEL, margin: '0 0 2px', fontSize: '8px' }}>{label}</p>
+                      <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '17px', letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
+                        {curr != null ? curr : '—'}
                       </p>
-                    )}
-                    {hasSpark && (
-                      <div style={{ marginTop: '6px' }}>
-                        <LineChart width={80} height={32} data={sparkData}>
-                          <Line type="monotone" dataKey="v" stroke="var(--accent-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-                        </LineChart>
+                      {curr != null && prevWeek != null && dWeek && dWeek !== '0' ? (
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: deltaColor(dWeek), margin: '2px 0 0' }}>
+                          {dWeek} нед
+                        </p>
+                      ) : dTotal && dTotal !== '0' ? (
+                        <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '9px', color: deltaColor(dTotal), margin: '2px 0 0' }}>
+                          {dTotal} ∑
+                        </p>
+                      ) : null}
+                      {hasSpark && (
+                        <div style={{ marginTop: '5px' }}>
+                          <LineChart width={68} height={28} data={sparkData}>
+                            <Line type="monotone" dataKey="v" stroke="var(--accent-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                          </LineChart>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Expanded AreaChart for selected measurement */}
+              {selectedMeasure && (() => {
+                const selDef = MEASUREMENTS.find(m => m.key === selectedMeasure)
+                const chartData = reportsAsc
+                  .map((r) => ({ v: r[selectedMeasure as string] ?? null, lbl: new Date(r.week_start + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) }))
+                  .filter(d => d.v != null)
+                if (chartData.length < 2) return null
+                const first = chartData[0].v as number
+                const last = chartData[chartData.length - 1].v as number
+                const diff = +(last - first).toFixed(1)
+                return (
+                  <div style={{ background: 'var(--bg-card-soft)', borderRadius: 'var(--radius-md)', padding: '14px 12px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                      <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>
+                        {selDef?.label} · по неделям
+                      </p>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline' }}>
+                        <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '10px', color: 'var(--text-tertiary)' }}>старт {first}</span>
+                        <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '15px', color: 'var(--accent-primary)' }}>{last}</span>
+                        {diff !== 0 && (
+                          <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: deltaColor(diff > 0 ? `+${diff}` : String(diff)) }}>
+                            {diff > 0 ? '+' : ''}{diff}
+                          </span>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <ResponsiveContainer width="100%" height={110}>
+                      <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                        <defs>
+                          <linearGradient id="measGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.18} />
+                            <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="v" stroke="var(--accent-primary)" strokeWidth={2} fill="url(#measGrad)" dot={{ r: 3, fill: 'var(--accent-primary)', strokeWidth: 0 }} isAnimationActive={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: 'var(--text-tertiary)' }}>{chartData[0].lbl}</span>
+                      {chartData.length > 2 && <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: 'var(--text-tertiary)' }}>{chartData[Math.floor(chartData.length / 2)].lbl}</span>}
+                      <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '8px', color: 'var(--accent-primary)' }}>{chartData[chartData.length - 1].lbl}</span>
+                    </div>
                   </div>
                 )
-              })}
-            </div>
+              })()}
+
+              {/* Week-by-week comparison table */}
+              {showMeasureTable && (
+                <div style={{ overflowX: 'auto', marginTop: '6px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--divider)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-text)', fontWeight: 300 }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-card-soft)' }}>
+                        <th style={{ fontSize: '8px', color: 'var(--text-tertiary)', textAlign: 'left', padding: '6px 8px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, fontWeight: 300, whiteSpace: 'nowrap' }}>Неделя</th>
+                        <th style={{ fontSize: '8px', color: 'var(--text-tertiary)', textAlign: 'right', padding: '6px 6px', letterSpacing: '1px', fontWeight: 300 }}>Вес</th>
+                        {MEASUREMENTS.slice(0, 6).map(m => (
+                          <th key={m.key} style={{ fontSize: '8px', color: 'var(--text-tertiary)', textAlign: 'right', padding: '6px 6px', letterSpacing: '0.5px', fontWeight: 300, whiteSpace: 'nowrap' }}>{m.label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.map((r, i) => {
+                        const prevRow = reports[i + 1]
+                        return (
+                          <tr key={r.week_start} style={{ borderTop: '1px solid var(--divider)', background: i === 0 ? 'rgba(139,30,63,0.03)' : 'transparent' }}>
+                            <td style={{ fontSize: '10px', color: i === 0 ? 'var(--accent-primary)' : 'var(--text-tertiary)', padding: '7px 8px', whiteSpace: 'nowrap' }}>
+                              {new Date(r.week_start + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                            </td>
+                            <td style={{ fontSize: '12px', color: 'var(--text-primary)', textAlign: 'right', padding: '7px 6px', fontFamily: 'var(--font-serif)', fontWeight: 400 }}>
+                              <span>{r.weight ?? '—'}</span>
+                              {prevRow?.weight != null && r.weight != null && delta(r.weight, prevRow.weight) !== '0' && (
+                                <span style={{ fontSize: '8px', color: deltaColor(delta(r.weight, prevRow.weight)), marginLeft: '2px' }}>{delta(r.weight, prevRow.weight)}</span>
+                              )}
+                            </td>
+                            {MEASUREMENTS.slice(0, 6).map(m => (
+                              <td key={m.key} style={{ fontSize: '12px', color: 'var(--text-primary)', textAlign: 'right', padding: '7px 6px', fontFamily: 'var(--font-serif)', fontWeight: 400 }}>
+                                <span>{r[m.key] ?? '—'}</span>
+                                {prevRow?.[m.key] != null && r[m.key] != null && delta(r[m.key], prevRow[m.key]) !== '0' && (
+                                  <span style={{ fontSize: '8px', color: deltaColor(delta(r[m.key], prevRow[m.key])), marginLeft: '2px' }}>{delta(r[m.key], prevRow[m.key])}</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
             <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
               Клиент ещё не отправил отчёт с замерами
@@ -1275,6 +1427,53 @@ export default function ClientProfilePage() {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* ── REPORT REMINDER ── */}
+        <div style={SECTION}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <p style={{ ...LABEL, margin: 0 }}>Напоминание об отчёте</p>
+            {reminderSaved && (
+              <span style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--success)', letterSpacing: '0.5px' }}>✓ Сохранено</span>
+            )}
+          </div>
+          <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-tertiary)', margin: '0 0 12px', lineHeight: 1.5 }}>
+            Клиент увидит напоминание в выбранный день, если отчёт за неделю ещё не сдан.
+          </p>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((label, i) => (
+              <button
+                key={i}
+                onClick={() => saveReminder(reminderDay === i ? null : i)}
+                disabled={savingReminder}
+                style={{
+                  padding: '6px 14px', borderRadius: '999px', cursor: 'pointer',
+                  fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px',
+                  border: reminderDay === i ? '1px solid rgba(139,30,63,0.3)' : '1px solid var(--divider)',
+                  background: reminderDay === i ? 'var(--accent-soft-bg)' : 'transparent',
+                  color: reminderDay === i ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  opacity: savingReminder ? 0.6 : 1,
+                  transition: 'all 0.15s',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+            {reminderDay !== null && (
+              <button
+                onClick={() => saveReminder(null)}
+                disabled={savingReminder}
+                style={{ padding: '6px 14px', borderRadius: '999px', cursor: 'pointer', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', border: '1px solid var(--divider)', background: 'transparent', color: 'var(--text-tertiary)', opacity: savingReminder ? 0.6 : 1 }}
+              >
+                Отключить
+              </button>
+            )}
+          </div>
+          {reminderDay !== null && !savingReminder && (
+            <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '11px', color: 'var(--text-tertiary)', margin: '10px 0 0' }}>
+              Напоминание каждый {['понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу', 'воскресенье'][reminderDay]}
+            </p>
           )}
         </div>
 

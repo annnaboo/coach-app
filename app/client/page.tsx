@@ -69,6 +69,8 @@ export default function ClientPage() {
   const [swapApproved, setSwapApproved] = useState(false)
   const [checkingSwap, setCheckingSwap] = useState(false)
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false)
+  const [reportReminderDay, setReportReminderDay] = useState<number | null>(null)
+  const [hasReportThisWeek, setHasReportThisWeek] = useState(false)
   const router = useRouter()
 
   const today = localDateStr(new Date())
@@ -100,7 +102,7 @@ export default function ClientPage() {
       const weekStartStr = localDateStr(weekStart)
       const weekEndStr = localDateStr(weekEnd)
 
-      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes, feedbackRes] = await Promise.all([
+      const [logsRes, wLogsRes, moodRes, nutritionRes, workoutsRes, scheduleRes, programsRes, paymentRes, reportsRes, restDaysRes, feedbackRes, reminderRes, thisWeekReportRes] = await Promise.all([
         supabase.from('workout_logs').select('exercise_id, w1, w2, w3, saved_at').eq('player', user.id).order('saved_at', { ascending: false }),
         supabase.from('workout_logs').select('saved_at').eq('player', user.id).gte('saved_at', weekStart.toISOString()).lt('saved_at', weekEnd.toISOString()),
         supabase.from('mood_logs').select('*').eq('player_id', user.id).eq('logged_date', today).single(),
@@ -112,11 +114,19 @@ export default function ClientPage() {
         supabase.from('weekly_reports').select('week_start, weight, height_cm').eq('player_id', user.id).order('week_start', { ascending: false }).limit(12),
         supabase.from('rest_days').select('rest_date').eq('player_id', user.id).gte('rest_date', weekStartStr).lte('rest_date', weekEndStr),
         supabase.from('coach_feedback').select('message, created_at').eq('client_id', user.id).order('created_at', { ascending: false }).limit(1).single(),
+        supabase.from('report_reminder_settings').select('day_of_week,enabled').eq('client_id', user.id).maybeSingle(),
+        supabase.from('weekly_reports').select('id').eq('player_id', user.id).eq('week_start', (() => {
+          const d = new Date(); const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+          const mon = new Date(d); mon.setDate(diff); mon.setHours(0,0,0,0)
+          return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`
+        })()).maybeSingle(),
       ])
       setClientPayment(paymentRes.data?.[0] || null)
       setWeeklyReports(reportsRes.data || [])
       setRestDays((restDaysRes.data || []).map((r: any) => r.rest_date))
       if (feedbackRes.data) setCoachFeedback(feedbackRes.data)
+      if (reminderRes.data?.enabled) setReportReminderDay(reminderRes.data.day_of_week)
+      setHasReportThisWeek(!!thisWeekReportRes.data)
 
       const days = [...new Set((wLogsRes.data || []).map((l: any) => l.saved_at.slice(0, 10)))]
       setWeekLogs(days)
@@ -433,6 +443,32 @@ export default function ClientPage() {
               </div>
             </div>
           </div>
+
+          {/* REPORT REMINDER BANNER */}
+          {reportReminderDay !== null && !hasReportThisWeek && (() => {
+            const todayDow = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+            if (todayDow !== reportReminderDay) return null
+            return (
+              <div className="card-enter" style={{ borderBottom: '1px solid var(--divider)', padding: '20px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--accent-soft-bg)', border: '1px solid rgba(139,30,63,0.15)', borderRadius: '14px', padding: '14px 16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 400, fontSize: '13px', color: 'var(--accent-primary)', margin: '0 0 3px' }}>
+                      📋 Отчёт недели
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                      Не забудь сдать замеры и вес за эту неделю
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push('/report')}
+                    style={{ flexShrink: 0, padding: '8px 18px', borderRadius: '999px', background: 'var(--accent-primary)', color: '#fff', border: 'none', fontFamily: 'var(--font-text)', fontWeight: 300, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.3px' }}
+                  >
+                    Заполнить →
+                  </button>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* WEEK CALENDAR */}
           <div className="card-enter" style={{ ...card }} onClick={e => e.stopPropagation()}>
