@@ -53,7 +53,7 @@ export default function DynamicWorkoutPage() {
 
       const [workoutRes, logsRes] = await Promise.all([
         supabase.from('workouts').select('*').eq('id', workoutId).single(),
-        supabase.from('workout_logs').select('exercise_id, w1, w2, w3, w4, w5, w6, w7, w8, reps, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
+        supabase.from('workout_logs').select('exercise_id, w1, w2, w3, w4, w5, w6, w7, w8, reps, reps1, reps2, reps3, reps4, reps5, reps6, reps7, reps8, saved_at').eq('player', data.user.id).order('saved_at', { ascending: false }),
       ])
 
       if (!workoutRes.data) { router.push('/client'); return }
@@ -75,7 +75,11 @@ export default function DynamicWorkoutPage() {
             w1: row.w1 || '', w2: row.w2 || '', w3: row.w3 || '',
             w4: row.w4 || '', w5: row.w5 || '', w6: row.w6 || '',
             w7: row.w7 || '', w8: row.w8 || '',
-            reps: row.reps || '',
+            // per-set reps; fall back to legacy single `reps` value for old records
+            reps1: row.reps1 ?? row.reps ?? '', reps2: row.reps2 ?? row.reps ?? '',
+            reps3: row.reps3 ?? row.reps ?? '', reps4: row.reps4 ?? row.reps ?? '',
+            reps5: row.reps5 ?? row.reps ?? '', reps6: row.reps6 ?? row.reps ?? '',
+            reps7: row.reps7 ?? row.reps ?? '', reps8: row.reps8 ?? row.reps ?? '',
           }
         }
       })
@@ -99,7 +103,7 @@ export default function DynamicWorkoutPage() {
     const base = parseInt(setsStr) || 3
     const extra = extraSets[key] || 0
     const total = Math.min(base + extra, 8) // cap at 8 sets
-    return [...Array.from({ length: total }, (_, i) => `w${i + 1}`), 'reps']
+    return Array.from({ length: total }, (_, i) => `w${i + 1}`)
   }
 
   function setField(key: string, field: string, value: string) {
@@ -133,7 +137,7 @@ export default function DynamicWorkoutPage() {
     const key = getKey(ex, idx)
     const f = fields[key] || {}
     const fieldsArr = getFieldsForSets(ex.sets || '3', key)
-    const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
+    const setWeightFields = fieldsArr
 
     const hasAnyWeight = setWeightFields.some(fld => !!f[fld] || !!(prevLogs[key] || {})[fld])
     if (!hasAnyWeight) {
@@ -156,15 +160,16 @@ export default function DynamicWorkoutPage() {
       {
         player: userId,
         exercise_id: key,
-        w1: getVal('w1'),
-        w2: getVal('w2'),
-        w3: getVal('w3'),
-        w4: getVal('w4'),
-        w5: getVal('w5'),
-        w6: getVal('w6'),
-        w7: getVal('w7'),
-        w8: getVal('w8'),
-        reps: parseInt(f.reps || '') || parseInt(String((prevLogs[key] || {}).reps || '')) || null,
+        w1: getVal('w1'), w2: getVal('w2'), w3: getVal('w3'), w4: getVal('w4'),
+        w5: getVal('w5'), w6: getVal('w6'), w7: getVal('w7'), w8: getVal('w8'),
+        reps1: getVal('reps1') ? Math.round(getVal('reps1')!) : null,
+        reps2: getVal('reps2') ? Math.round(getVal('reps2')!) : null,
+        reps3: getVal('reps3') ? Math.round(getVal('reps3')!) : null,
+        reps4: getVal('reps4') ? Math.round(getVal('reps4')!) : null,
+        reps5: getVal('reps5') ? Math.round(getVal('reps5')!) : null,
+        reps6: getVal('reps6') ? Math.round(getVal('reps6')!) : null,
+        reps7: getVal('reps7') ? Math.round(getVal('reps7')!) : null,
+        reps8: getVal('reps8') ? Math.round(getVal('reps8')!) : null,
         saved_at: new Date().toISOString(),
         workout_id: workoutId,
       },
@@ -286,7 +291,7 @@ export default function DynamicWorkoutPage() {
                 </div>
 
                 {isExpanded && (() => {
-                  const setWeightFields = fieldsArr.filter(fld => fld !== 'reps')
+                  const setWeightFields = fieldsArr
                   const doneSets = setWeightFields.filter(fld => !!f[fld]).length
                   return (
                     <>
@@ -350,9 +355,9 @@ export default function DynamicWorkoutPage() {
                                 </div>
                                 <input
                                   type="number"
-                                  value={f.reps || ''}
-                                  onChange={e => setField(key, 'reps', e.target.value)}
-                                  placeholder={p.reps || '—'}
+                                  value={f[`reps${setIdx + 1}`] || ''}
+                                  onChange={e => setField(key, `reps${setIdx + 1}`, e.target.value)}
+                                  placeholder={String(p[`reps${setIdx + 1}`] || '—')}
                                   className="no-spin"
                                   style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
                                 />
