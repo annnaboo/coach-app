@@ -348,20 +348,14 @@ export default function DynamicWorkoutPage() {
                                   />
                                   <button type="button" onClick={() => stepWeight(key, wField, +2.5)} style={stepBtn}>+</button>
                                 </div>
-                                {setIdx === 0 ? (
-                                  <input
-                                    type="number"
-                                    value={f.reps || ''}
-                                    onChange={e => setField(key, 'reps', e.target.value)}
-                                    placeholder={p.reps || '—'}
-                                    className="no-spin"
-                                    style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
-                                  />
-                                ) : (
-                                  <div style={{ background: 'var(--bg-card-soft)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-tertiary)' }}>
-                                    {f.reps || p.reps || '—'}
-                                  </div>
-                                )}
+                                <input
+                                  type="number"
+                                  value={f.reps || ''}
+                                  onChange={e => setField(key, 'reps', e.target.value)}
+                                  placeholder={p.reps || '—'}
+                                  className="no-spin"
+                                  style={{ background: 'var(--bg-card-soft)', border: '1px solid var(--divider)', borderRadius: '8px', padding: '8px', textAlign: 'center', fontFamily: 'var(--font-text)', fontSize: '15px', color: 'var(--text-primary)', outline: 'none', width: '100%', boxSizing: 'border-box' as const }}
+                                />
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   {isDone ? (
                                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
